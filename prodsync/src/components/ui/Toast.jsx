@@ -1,7 +1,7 @@
 'use client';
 
 import { createContext, useContext, useState, useCallback, useEffect } from 'react';
-import { cn } from '../../lib/utils';
+import { cn, generateId } from '../../lib/utils';
 
 // Toast Context
 const ToastContext = createContext();
@@ -11,7 +11,7 @@ export const ToastProvider = ({ children }) => {
   const [toasts, setToasts] = useState([]);
   
   const addToast = useCallback((toast) => {
-    const id = Math.random().toString(36).substr(2, 9);
+    const id = generateId('toast');
     const newToast = {
       id,
       type: 'info',

@@ -321,10 +321,12 @@ export const employeeValidationSchema = {
   }
 };
 
-export default {
+const hrApi = {
   employeeApi,
   departmentApi,
   roleApi,
   handleApiError,
   employeeValidationSchema
 };
+
+export default hrApi;

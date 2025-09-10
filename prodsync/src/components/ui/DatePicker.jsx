@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useId } from 'react';
 import { cn } from '../../lib/utils';
 
 const DatePicker = ({
@@ -24,7 +24,8 @@ const DatePicker = ({
   const datePickerRef = useRef(null);
   
   const hasError = !!error;
-  const datePickerId = props.id || `datepicker-${Math.random().toString(36).substr(2, 9)}`;
+  const generatedId = useId();
+  const datePickerId = props.id || generatedId;
   
   // Format date for display
   const formatDate = (date) => {

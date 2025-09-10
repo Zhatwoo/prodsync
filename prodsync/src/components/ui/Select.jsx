@@ -1,6 +1,6 @@
 'use client';
 
-import { forwardRef, useState, useRef, useEffect } from 'react';
+import { forwardRef, useState, useRef, useEffect, useId } from 'react';
 import { cn } from '../../lib/utils';
 
 const Select = forwardRef(({
@@ -26,7 +26,8 @@ const Select = forwardRef(({
   const searchRef = useRef(null);
   
   const hasError = !!error;
-  const selectId = props.id || `select-${Math.random().toString(36).substr(2, 9)}`;
+  const generatedId = useId();
+  const selectId = props.id || generatedId;
   
   // Filter options based on search term
   const filteredOptions = searchable
