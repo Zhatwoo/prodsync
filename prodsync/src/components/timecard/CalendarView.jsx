@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/24/outline';
+// Removed @heroicons/react import - using inline SVG icons instead
 
 const CalendarView = ({ timeEntries, selectedDate, onDateSelect }) => {
   const [currentMonth, setCurrentMonth] = useState(new Date());
@@ -108,7 +108,9 @@ const CalendarView = ({ timeEntries, selectedDate, onDateSelect }) => {
               onClick={() => navigateMonth(-1)}
               className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-md"
             >
-              <ChevronLeftIcon className="w-5 h-5" />
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
             </button>
             <button
               onClick={goToToday}
@@ -120,7 +122,9 @@ const CalendarView = ({ timeEntries, selectedDate, onDateSelect }) => {
               onClick={() => navigateMonth(1)}
               className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-md"
             >
-              <ChevronRightIcon className="w-5 h-5" />
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
             </button>
           </div>
         </div>

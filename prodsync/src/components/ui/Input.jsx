@@ -1,6 +1,6 @@
 'use client';
 
-import { forwardRef, useState } from 'react';
+import { forwardRef, useState, useId } from 'react';
 import { cn } from '../../lib/utils';
 
 const Input = forwardRef(({
@@ -22,7 +22,8 @@ const Input = forwardRef(({
   const inputType = type === 'password' && showPassword ? 'text' : type;
   const hasError = !!error;
   
-  const inputId = props.id || `input-${Math.random().toString(36).substr(2, 9)}`;
+  const generatedId = useId();
+  const inputId = props.id || generatedId;
   
   return (
     <div className="w-full">

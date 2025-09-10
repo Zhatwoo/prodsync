@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { Button, Modal, ModalHeader, ModalBody, ModalFooter, ModalTitle, DatePicker, Select, Input, useToast } from '../ui';
-import { ClockIcon, PlayIcon, StopIcon, PencilIcon, CalendarIcon, DocumentArrowDownIcon } from '@heroicons/react/24/outline';
+// Removed @heroicons/react import - using inline SVG icons instead
 import { hasRole } from '../../lib/roles';
 import CalendarView from './CalendarView';
 
@@ -17,7 +17,7 @@ const Timecard = ({ user, userRole }) => {
   const [editingEntry, setEditingEntry] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [timezone, setTimezone] = useState(Intl.DateTimeFormat().resolvedOptions().timeZone);
-  const { toast } = useToast();
+  const { addToast } = useToast();
 
   // Update current time every second
   useEffect(() => {
@@ -41,10 +41,10 @@ const Timecard = ({ user, userRole }) => {
       setTimeEntries(mockEntries);
     } catch (error) {
       console.error('Error loading time entries:', error);
-      toast({
+      addToast({
+        type: 'error',
         title: 'Error',
-        description: 'Failed to load time entries',
-        variant: 'destructive'
+        message: 'Failed to load time entries'
       });
     }
   };
@@ -105,20 +105,20 @@ const Timecard = ({ user, userRole }) => {
       const result = await response.json();
       setCurrentShift(result.shift);
       
-      toast({
+      addToast({
+        type: 'success',
         title: 'Clocked In',
-        description: `Successfully clocked in at ${formatTime(new Date())}`,
-        variant: 'default'
+        message: `Successfully clocked in at ${formatTime(new Date())}`
       });
     } catch (error) {
       // Revert optimistic update
       setIsClockedIn(false);
       setCurrentShift(null);
       
-      toast({
+      addToast({
+        type: 'error',
         title: 'Error',
-        description: 'Failed to clock in. Please try again.',
-        variant: 'destructive'
+        message: 'Failed to clock in. Please try again.'
       });
     } finally {
       setIsLoading(false);
@@ -158,20 +158,20 @@ const Timecard = ({ user, userRole }) => {
       setTimeEntries(prev => [result.shift, ...prev]);
       setCurrentShift(null);
       
-      toast({
+      addToast({
+        type: 'success',
         title: 'Clocked Out',
-        description: `Successfully clocked out at ${formatTime(new Date())}`,
-        variant: 'default'
+        message: `Successfully clocked out at ${formatTime(new Date())}`
       });
     } catch (error) {
       // Revert optimistic update
       setCurrentShift(prev => prev ? { ...prev, clockOut: null } : null);
       setIsClockedIn(true);
       
-      toast({
+      addToast({
+        type: 'error',
         title: 'Error',
-        description: 'Failed to clock out. Please try again.',
-        variant: 'destructive'
+        message: 'Failed to clock out. Please try again.'
       });
     } finally {
       setIsLoading(false);
@@ -187,10 +187,10 @@ const Timecard = ({ user, userRole }) => {
     const csvData = generateCSVData(timeEntries);
     downloadCSV(csvData, `timecard-${user.name}-${formatDateForFilename(selectedDate)}.csv`);
     
-    toast({
+    addToast({
+      type: 'success',
       title: 'Export Complete',
-      description: 'Timecard data exported successfully',
-      variant: 'default'
+      message: 'Timecard data exported successfully'
     });
   };
 
@@ -279,7 +279,9 @@ const Timecard = ({ user, userRole }) => {
                 disabled={isLoading}
                 className="bg-green-600 hover:bg-green-700 text-white px-6 py-3"
               >
-                <PlayIcon className="w-5 h-5 mr-2" />
+                <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M8 5v14l11-7z"/>
+                </svg>
                 Clock In
               </Button>
             ) : (
@@ -288,7 +290,9 @@ const Timecard = ({ user, userRole }) => {
                 disabled={isLoading}
                 className="bg-red-600 hover:bg-red-700 text-white px-6 py-3"
               >
-                <StopIcon className="w-5 h-5 mr-2" />
+                <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M6 6h12v12H6z"/>
+                </svg>
                 Clock Out
               </Button>
             )}
@@ -315,7 +319,9 @@ const Timecard = ({ user, userRole }) => {
             variant={viewMode === 'calendar' ? 'default' : 'outline'}
             onClick={() => setViewMode('calendar')}
           >
-            <CalendarIcon className="w-4 h-4 mr-2" />
+            <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
             Calendar
           </Button>
         </div>
@@ -331,7 +337,9 @@ const Timecard = ({ user, userRole }) => {
             variant="outline"
             className="flex items-center"
           >
-            <DocumentArrowDownIcon className="w-4 h-4 mr-2" />
+            <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
             Export CSV
           </Button>
         </div>
@@ -422,7 +430,9 @@ const Timecard = ({ user, userRole }) => {
                             onClick={() => handleEditTime(entry)}
                             className="text-blue-600 hover:text-blue-900"
                           >
-                            <PencilIcon className="w-4 h-4" />
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                            </svg>
                           </Button>
                         </td>
                       )}
@@ -469,7 +479,7 @@ const EditTimeModal = ({ entry, isOpen, onClose, onSave, userRole }) => {
     requiresApproval: false
   });
   const [isLoading, setIsLoading] = useState(false);
-  const { toast } = useToast();
+  const { addToast } = useToast();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -492,18 +502,18 @@ const EditTimeModal = ({ entry, isOpen, onClose, onSave, userRole }) => {
 
       onSave(updatedEntry);
       
-      toast({
+      addToast({
+        type: 'success',
         title: 'Time Entry Updated',
-        description: formData.requiresApproval 
+        message: formData.requiresApproval 
           ? 'Time entry updated and sent for manager approval'
-          : 'Time entry updated successfully',
-        variant: 'default'
+          : 'Time entry updated successfully'
       });
     } catch (error) {
-      toast({
+      addToast({
+        type: 'error',
         title: 'Error',
-        description: 'Failed to update time entry',
-        variant: 'destructive'
+        message: 'Failed to update time entry'
       });
     } finally {
       setIsLoading(false);
