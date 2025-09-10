@@ -47,10 +47,15 @@ export function throttle(func, limit) {
 }
 
 /**
- * Generate a random ID
+ * Generate a stable ID for SSR compatibility
+ * This is a fallback for when useId is not available
+ * In components, prefer using React's useId hook
  */
-export function generateId() {
-  return Math.random().toString(36).substr(2, 9);
+let idCounter = 0;
+
+export function generateId(prefix = 'id') {
+  // Simple counter-based approach - components should use useId instead
+  return `${prefix}-${++idCounter}`;
 }
 
 /**

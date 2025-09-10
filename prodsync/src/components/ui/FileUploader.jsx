@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useId } from 'react';
 import { cn } from '../../lib/utils';
 
 const FileUploader = ({
@@ -24,7 +24,8 @@ const FileUploader = ({
   const fileInputRef = useRef(null);
   
   const hasError = !!error || !!uploadError;
-  const fileUploaderId = props.id || `fileuploader-${Math.random().toString(36).substr(2, 9)}`;
+  const generatedId = useId();
+  const fileUploaderId = props.id || generatedId;
   
   // Format file size
   const formatFileSize = (bytes) => {

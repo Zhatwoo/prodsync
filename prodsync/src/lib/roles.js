@@ -105,11 +105,25 @@ export const MENU_ITEMS = [
     roles: [ROLES.ADMIN, ROLES.SALES_AGENT, ROLES.TELEMARKETER, ROLES.AUDITOR]
   },
   {
+    id: 'telemarketing',
+    label: 'Telemarketing',
+    icon: 'M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z',
+    path: '/telemarketing',
+    roles: [ROLES.ADMIN, ROLES.TELEMARKETER, ROLES.SALES_AGENT, ROLES.AUDITOR]
+  },
+  {
     id: 'reception',
     label: 'Reception',
     icon: 'M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z',
     path: '/reception',
     roles: [ROLES.ADMIN, ROLES.FRONT_DESK, ROLES.AUDITOR]
+  },
+  {
+    id: 'visitor-log',
+    label: 'Visitor Log',
+    icon: 'M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z',
+    path: '/visitor-log',
+    roles: [ROLES.ADMIN, ROLES.FRONT_DESK, ROLES.HR, ROLES.AUDITOR]
   },
   {
     id: 'timecard',
