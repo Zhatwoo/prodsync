@@ -1,5 +1,4 @@
 import { Roboto } from "next/font/google";
-import Footer from "./components/Footer";
 import "./globals.css";
 
 const roboto = Roboto({
@@ -20,7 +19,6 @@ export default function RootLayout({ children }) {
         className={`${roboto.variable} font-roboto antialiased`}
       >
         {children}
-        <Footer />
       </body>
     </html>
   );

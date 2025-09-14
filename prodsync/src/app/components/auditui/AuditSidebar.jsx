@@ -69,12 +69,10 @@ const Tooltip = ({ children, content, position = 'right' }) => {
   );
 };
 
-export default function HrSidebar({ isCollapsed, onToggleCollapse }) {
+export default function AuditSidebar({ isCollapsed, onToggleCollapse }) {
   const [expandedSections, setExpandedSections] = useState({
-    employeeRecord: true,
-    payroll: false,
-    timeKeeping: false,
-    benefits: false
+    timekeeping: true,
+    appsuite: false
   });
   const pathname = usePathname();
 
@@ -89,31 +87,8 @@ export default function HrSidebar({ isCollapsed, onToggleCollapse }) {
     onToggleCollapse();
   };
 
-
   const sidebarItems = {
-    employeeRecord: {
-      title: 'Employee Record',
-      icon: (
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-        </svg>
-      ),
-      color: 'bg-gradient-to-r from-blue-500 to-blue-600',
-      href: '/positionpages/hrpage/employeesrecord',
-      items: []
-    },
-    payroll: {
-      title: 'Payroll',
-      icon: (
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
-        </svg>
-      ),
-      color: 'bg-gradient-to-r from-green-500 to-green-600',
-      href: '/positionpages/hrpage/payroll',
-      items: []
-    },
-    timeKeeping: {
+    timekeeping: {
       title: 'Time Keeping',
       icon: (
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -121,18 +96,18 @@ export default function HrSidebar({ isCollapsed, onToggleCollapse }) {
         </svg>
       ),
       color: 'bg-gradient-to-r from-purple-500 to-purple-600',
-      href: '/positionpages/hrpage/timekeeping',
+      href: '/positionpages/auditpage/timekeeping',
       items: []
     },
-    benefits: {
-      title: 'Benefits',
+    appsuite: {
+      title: 'App Suite',
       icon: (
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
         </svg>
       ),
-      color: 'bg-gradient-to-r from-pink-500 to-pink-600',
-      href: '/positionpages/hrpage/benefits',
+      color: 'bg-gradient-to-r from-indigo-500 to-indigo-600',
+      href: '/positionpages/auditpage/appsuite',
       items: []
     }
   };
@@ -149,21 +124,21 @@ export default function HrSidebar({ isCollapsed, onToggleCollapse }) {
       <div className="flex items-center justify-between h-14 sm:h-16 md:h-20 px-1 sm:px-2 md:px-3 border-b border-gray-200 bg-white">
         {!isCollapsed && (
           <div className="flex items-center space-x-1 sm:space-x-2 md:space-x-3">
-            <div className="w-7 h-7 sm:w-8 sm:h-8 md:w-10 md:h-10 bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg sm:rounded-xl flex items-center justify-center">
+            <div className="w-7 h-7 sm:w-8 sm:h-8 md:w-10 md:h-10 bg-gradient-to-r from-orange-500 to-orange-600 rounded-lg sm:rounded-xl flex items-center justify-center">
               <svg className="w-3 h-3 sm:w-4 sm:h-4 md:w-6 md:h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
             </div>
             <div className="hidden sm:block">
-              <h1 className="text-sm sm:text-base md:text-lg lg:text-xl font-bold text-gray-900">HR Portal</h1>
-              <p className="text-xs text-gray-500">Human Resources</p>
+              <h1 className="text-sm sm:text-base md:text-lg lg:text-xl font-bold text-gray-900">Audit Portal</h1>
+              <p className="text-xs text-gray-500">Internal Audit</p>
             </div>
           </div>
         )}
         {isCollapsed && (
-          <div className="w-7 h-7 sm:w-8 sm:h-8 bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg flex items-center justify-center mx-auto">
+          <div className="w-7 h-7 sm:w-8 sm:h-8 bg-gradient-to-r from-orange-500 to-orange-600 rounded-lg flex items-center justify-center mx-auto">
             <svg className="w-3 h-3 sm:w-4 sm:h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
           </div>
         )}
@@ -195,13 +170,13 @@ export default function HrSidebar({ isCollapsed, onToggleCollapse }) {
             <Tooltip 
               content={
                 <div>
-                  <div className="font-semibold mb-2">HR Dashboard</div>
+                  <div className="font-semibold mb-2">Audit Dashboard</div>
                   <div className="text-xs opacity-90">
                     <ul className="space-y-1">
-                      <li>• Employee Management</li>
-                      <li>• Payroll Overview</li>
-                      <li>• Timekeeping Summary</li>
-                      <li>• Benefits Tracking</li>
+                      <li>• Audit Overview</li>
+                      <li>• System Monitoring</li>
+                      <li>• Compliance Tracking</li>
+                      <li>• Report Generation</li>
                     </ul>
                   </div>
                 </div>
@@ -209,9 +184,9 @@ export default function HrSidebar({ isCollapsed, onToggleCollapse }) {
               position="cursor"
             >
               <Link
-                href="/positionpages/hrpage"
+                href="/positionpages/auditpage"
                 className={`w-full flex items-center justify-between px-2 sm:px-3 py-2 sm:py-2.5 md:py-3 text-xs sm:text-sm font-semibold text-white rounded-lg sm:rounded-xl transition-all duration-200 hover:shadow-lg bg-gradient-to-r from-gray-600 to-gray-700 ${
-                  isActive('/positionpages/hrpage') ? 'ring-2 ring-white ring-opacity-50' : ''
+                  isActive('/positionpages/auditpage') ? 'ring-2 ring-white ring-opacity-50' : ''
                 }`}
               >
                 <div className="flex items-center min-w-0">
@@ -222,8 +197,8 @@ export default function HrSidebar({ isCollapsed, onToggleCollapse }) {
                   </span>
                   {!isCollapsed && (
                     <span className="text-xs sm:text-sm truncate">
-                      <span className="hidden sm:block">HR Dashboard</span>
-                      <span className="block sm:hidden">HR</span>
+                      <span className="hidden sm:block">Audit Dashboard</span>
+                      <span className="block sm:hidden">Audit</span>
                     </span>
                   )}
                 </div>
@@ -249,44 +224,22 @@ export default function HrSidebar({ isCollapsed, onToggleCollapse }) {
                     <div>
                       <div className="font-semibold mb-2">{section.title}</div>
                       <div className="text-xs opacity-90">
-                        {key === 'employeeRecord' && (
+                        {key === 'timekeeping' && (
                           <ul className="space-y-1">
-                            <li>• DepartmentManagement</li>
-                            <li>• EmployeeDocuments</li>
-                            <li>• EmployeeList</li>
-                            <li>• EmployeeProfile</li>
-                            <li>• NewEmployee</li>
-                            <li>• PositionManagement</li>
+                            <li>• Attendance Overview</li>
+                            <li>• Time Tracking</li>
+                            <li>• Leave Management</li>
+                            <li>• Overtime Management</li>
+                            <li>• Schedule Management</li>
+                            <li>• Attendance Reports</li>
                           </ul>
                         )}
-                        {key === 'payroll' && (
+                        {key === 'appsuite' && (
                           <ul className="space-y-1">
-                            <li>• BenefitsAllowances</li>
-                            <li>• Deductions</li>
-                            <li>• PayrollOverview</li>
-                            <li>• PayrollReports</li>
-                            <li>• SalaryStructure</li>
-                            <li>• TaxManagement</li>
-                          </ul>
-                        )}
-                        {key === 'timeKeeping' && (
-                          <ul className="space-y-1">
-                            <li>• AttendanceOverview</li>
-                            <li>• AttendanceReports</li>
-                            <li>• LeaveManagement</li>
-                            <li>• OvertimeManagement</li>
-                            <li>• ScheduleManagement</li>
-                            <li>• TimeTracking</li>
-                          </ul>
-                        )}
-                        {key === 'benefits' && (
-                          <ul className="space-y-1">
-                            <li>• Benefits Management</li>
-                            <li>• Employee Enrollment</li>
-                            <li>• Coverage Details</li>
-                            <li>• Cost Tracking</li>
-                            <li>• Provider Management</li>
-                            <li>• Eligibility Rules</li>
+                            <li>• Application Suite</li>
+                            <li>• System Tools</li>
+                            <li>• Management Interface</li>
+                            <li>• Administrative Functions</li>
                           </ul>
                         )}
                       </div>
@@ -357,7 +310,7 @@ export default function HrSidebar({ isCollapsed, onToggleCollapse }) {
                       href={item.href}
                       className={`group flex items-center justify-between px-2 sm:px-3 md:px-4 py-1.5 sm:py-2 md:py-2.5 text-xs sm:text-sm rounded-lg transition-all duration-200 ${
                         isActive(item.href)
-                          ? 'bg-blue-50 text-blue-700 border-l-4 border-blue-500'
+                          ? 'bg-orange-50 text-orange-700 border-l-4 border-orange-500'
                           : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
                       }`}
                     >
@@ -368,7 +321,7 @@ export default function HrSidebar({ isCollapsed, onToggleCollapse }) {
                       {item.badge && (
                         <span className={`px-1 sm:px-1.5 md:px-2 py-0.5 sm:py-1 text-xs font-semibold rounded-full flex-shrink-0 ${
                           isActive(item.href)
-                            ? 'bg-blue-200 text-blue-800'
+                            ? 'bg-orange-200 text-orange-800'
                             : 'bg-gray-200 text-gray-600'
                         }`}>
                           {item.badge}
@@ -387,53 +340,84 @@ export default function HrSidebar({ isCollapsed, onToggleCollapse }) {
       {/* Quick Actions */}
       {!isCollapsed && (
         <div className="px-1 sm:px-2 py-2 sm:py-3 md:py-4 flex-shrink-0">
-          <div className="bg-gradient-to-r from-indigo-50 to-blue-50 rounded-lg sm:rounded-xl p-2 sm:p-3 border border-indigo-100">
+          <div className="bg-gradient-to-r from-orange-50 to-red-50 rounded-lg sm:rounded-xl p-2 sm:p-3 border border-orange-100">
             <h3 className="text-xs sm:text-sm font-semibold text-gray-900 mb-1.5 sm:mb-2 md:mb-3">Quick Actions</h3>
             <div className="space-y-1 sm:space-y-1.5 md:space-y-2">
               <Tooltip 
                 content={
                   <div>
-                    <div className="font-semibold mb-2">Add Employee</div>
+                    <div className="font-semibold mb-2">Audit Timekeeping</div>
                     <div className="text-xs opacity-90">
                       <ul className="space-y-1">
-                        <li>• New Employee Registration</li>
-                        <li>• Employee Profile Setup</li>
-                        <li>• Department Assignment</li>
-                        <li>• Position Management</li>
-                        <li>• Document Upload</li>
+                        <li>• Attendance Reports</li>
+                        <li>• Time Tracking Review</li>
+                        <li>• Leave Management Audit</li>
+                        <li>• Overtime Analysis</li>
+                        <li>• Schedule Compliance</li>
                       </ul>
                     </div>
                   </div>
                 }
                 position="cursor"
               >
-                <button className="w-full flex items-center px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-indigo-700 hover:bg-indigo-100 rounded-lg transition-colors">
-                  <span className="mr-1 sm:mr-1.5 md:mr-2 text-sm sm:text-base flex-shrink-0">⚡</span>
+                <Link 
+                  href="/positionpages/auditpage/timekeeping"
+                  className="w-full flex items-center px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-orange-700 hover:bg-orange-100 rounded-lg transition-colors"
+                >
+                  <span className="mr-1 sm:mr-1.5 md:mr-2 text-sm sm:text-base flex-shrink-0">🔍</span>
                   <span className="truncate">
-                    <span className="hidden sm:block">Add Employee</span>
-                    <span className="block sm:hidden">Add</span>
+                    <span className="hidden sm:block">Audit Timekeeping</span>
+                    <span className="block sm:hidden">Timekeeping</span>
                   </span>
-                </button>
+                </Link>
               </Tooltip>
               <Tooltip 
                 content={
                   <div>
-                    <div className="font-semibold mb-2">Generate Report</div>
+                    <div className="font-semibold mb-2">Monitor App Suite</div>
                     <div className="text-xs opacity-90">
                       <ul className="space-y-1">
-                        <li>• Payroll Reports</li>
-                        <li>• Attendance Reports</li>
-                        <li>• Employee Reports</li>
-                        <li>• Department Reports</li>
-                        <li>• Benefits Reports</li>
+                        <li>• Daily Reports Review</li>
+                        <li>• System Tools Monitoring</li>
+                        <li>• Administrative Functions</li>
+                        <li>• Management Interface</li>
+                        <li>• Security Monitoring</li>
                       </ul>
                     </div>
                   </div>
                 }
                 position="cursor"
               >
-                <button className="w-full flex items-center px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-indigo-700 hover:bg-indigo-100 rounded-lg transition-colors">
-                  <span className="mr-1 sm:mr-1.5 md:mr-2 text-sm sm:text-base flex-shrink-0">📊</span>
+                <Link 
+                  href="/positionpages/auditpage/appsuite"
+                  className="w-full flex items-center px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-orange-700 hover:bg-orange-100 rounded-lg transition-colors"
+                >
+                  <span className="mr-1 sm:mr-1.5 md:mr-2 text-sm sm:text-base flex-shrink-0">📱</span>
+                  <span className="truncate">
+                    <span className="hidden sm:block">Monitor App Suite</span>
+                    <span className="block sm:hidden">App Suite</span>
+                  </span>
+                </Link>
+              </Tooltip>
+              <Tooltip 
+                content={
+                  <div>
+                    <div className="font-semibold mb-2">Generate Audit Report</div>
+                    <div className="text-xs opacity-90">
+                      <ul className="space-y-1">
+                        <li>• Compliance Reports</li>
+                        <li>• Timekeeping Analysis</li>
+                        <li>• App Suite Usage</li>
+                        <li>• System Audit Trail</li>
+                        <li>• Performance Metrics</li>
+                      </ul>
+                    </div>
+                  </div>
+                }
+                position="cursor"
+              >
+                <button className="w-full flex items-center px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-orange-700 hover:bg-orange-100 rounded-lg transition-colors">
+                  <span className="mr-1 sm:mr-1.5 md:mr-2 text-sm sm:text-base flex-shrink-0">📋</span>
                   <span className="truncate">
                     <span className="hidden sm:block">Generate Report</span>
                     <span className="block sm:hidden">Report</span>
@@ -445,17 +429,16 @@ export default function HrSidebar({ isCollapsed, onToggleCollapse }) {
         </div>
       )}
 
-
       {/* User Profile Section */}
       <div className="flex-shrink-0 p-1 sm:p-2 border-t border-gray-200 bg-white">
         <div className="flex items-center">
-          <div className="w-7 h-7 sm:w-8 sm:h-8 bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg flex items-center justify-center flex-shrink-0">
-            <span className="text-white text-xs font-bold">HR</span>
+          <div className="w-7 h-7 sm:w-8 sm:h-8 bg-gradient-to-r from-orange-500 to-orange-600 rounded-lg flex items-center justify-center flex-shrink-0">
+            <span className="text-white text-xs font-bold">AU</span>
           </div>
           {!isCollapsed && (
             <div className="ml-1.5 sm:ml-2 md:ml-3 flex-1 min-w-0">
-              <p className="text-xs sm:text-sm font-semibold text-gray-900 truncate">HR Manager</p>
-              <p className="text-xs text-gray-700 truncate">hr@company.com</p>
+              <p className="text-xs sm:text-sm font-semibold text-gray-900 truncate">Audit Manager</p>
+              <p className="text-xs text-gray-700 truncate">audit@company.com</p>
               <div className="flex items-center mt-0.5 sm:mt-1">
                 <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-green-400 rounded-full mr-1 sm:mr-1.5 md:mr-2 flex-shrink-0"></div>
                 <span className="text-xs text-green-600 font-medium">Online</span>

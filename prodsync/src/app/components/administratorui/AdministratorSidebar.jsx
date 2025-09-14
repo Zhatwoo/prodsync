@@ -69,12 +69,13 @@ const Tooltip = ({ children, content, position = 'right' }) => {
   );
 };
 
-export default function HrSidebar({ isCollapsed, onToggleCollapse }) {
+export default function AdministratorSidebar({ isCollapsed, onToggleCollapse }) {
   const [expandedSections, setExpandedSections] = useState({
-    employeeRecord: true,
-    payroll: false,
-    timeKeeping: false,
-    benefits: false
+    sales: true,
+    hrOperations: false,
+    finance: false,
+    operations: false,
+    technology: false
   });
   const pathname = usePathname();
 
@@ -89,51 +90,103 @@ export default function HrSidebar({ isCollapsed, onToggleCollapse }) {
     onToggleCollapse();
   };
 
-
   const sidebarItems = {
-    employeeRecord: {
-      title: 'Employee Record',
+    // HR Operations Section
+    hrOperations: {
+      title: 'HR Operations',
       icon: (
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
         </svg>
       ),
       color: 'bg-gradient-to-r from-blue-500 to-blue-600',
-      href: '/positionpages/hrpage/employeesrecord',
+      href: null,
+      items: [
+        { name: 'Employee Record', href: '/administratorpage/employeesrecord', icon: '👥' },
+        { name: 'Payroll', href: '/administratorpage/payroll', icon: '💰' },
+        { name: 'Timekeeping', href: '/administratorpage/timekeeping', icon: '⏰' },
+        { name: 'Benefits', href: '/administratorpage/benefits', icon: '🎁' }
+      ]
+    },
+    
+    // Government & Compliance Section
+    government: {
+      title: 'Government & Compliance',
+      icon: (
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+        </svg>
+      ),
+      color: 'bg-gradient-to-r from-green-500 to-green-600',
+      href: '/administratorpage/government&compliance',
       items: []
     },
-    payroll: {
-      title: 'Payroll',
+
+    // Finance Section
+    finance: {
+      title: 'Finance',
       icon: (
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
         </svg>
       ),
-      color: 'bg-gradient-to-r from-green-500 to-green-600',
-      href: '/positionpages/hrpage/payroll',
-      items: []
-    },
-    timeKeeping: {
-      title: 'Time Keeping',
-      icon: (
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-        </svg>
-      ),
       color: 'bg-gradient-to-r from-purple-500 to-purple-600',
-      href: '/positionpages/hrpage/timekeeping',
-      items: []
+      href: null,
+      items: [
+        { name: 'Account Payables', href: '/administratorpage/accountpayables', icon: '📋' },
+        { name: 'Expenses', href: '/administratorpage/expenses', icon: '💸' }
+      ]
     },
-    benefits: {
-      title: 'Benefits',
+
+    // Operations Section
+    operations: {
+      title: 'Operations',
       icon: (
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
         </svg>
       ),
-      color: 'bg-gradient-to-r from-pink-500 to-pink-600',
-      href: '/positionpages/hrpage/benefits',
-      items: []
+      color: 'bg-gradient-to-r from-orange-500 to-orange-600',
+      href: null,
+      items: [
+        { name: 'Permits', href: '/administratorpage/permits', icon: '📜' },
+        { name: 'Visitors Monitor', href: '/administratorpage/visitorsmonitor', icon: '👀' }
+      ]
+    },
+
+    // Technology Section
+    technology: {
+      title: 'Technology',
+      icon: (
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+        </svg>
+      ),
+      color: 'bg-gradient-to-r from-indigo-500 to-indigo-600',
+      href: null,
+      items: [
+        { name: 'App Suite', href: '/administratorpage/appsuite', icon: '📱' },
+        { name: 'Telephones', href: '/administratorpage/telephones', icon: '📞' }
+      ]
+    },
+
+    // Sales Division
+    sales: {
+      title: 'Sales Division',
+      icon: (
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+        </svg>
+      ),
+      color: 'bg-gradient-to-r from-emerald-500 to-emerald-600',
+      href: null,
+      items: [
+        { name: 'Client Roles', href: '/administratorpage/clientroles', icon: '👤' },
+        { name: 'Inventory', href: '/administratorpage/Inventory', icon: '📦' },
+        { name: 'Agent Monitoring', href: '/administratorpage/agentmonitoring', icon: '🎯' },
+        { name: 'Reinvestment Request', href: '/administratorpage/reinversmentrequest', icon: '🔄' },
+        { name: 'Timestamp', href: '/administratorpage/timestamp', icon: '⏱️' }
+      ]
     }
   };
 
@@ -149,21 +202,21 @@ export default function HrSidebar({ isCollapsed, onToggleCollapse }) {
       <div className="flex items-center justify-between h-14 sm:h-16 md:h-20 px-1 sm:px-2 md:px-3 border-b border-gray-200 bg-white">
         {!isCollapsed && (
           <div className="flex items-center space-x-1 sm:space-x-2 md:space-x-3">
-            <div className="w-7 h-7 sm:w-8 sm:h-8 md:w-10 md:h-10 bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg sm:rounded-xl flex items-center justify-center">
+            <div className="w-7 h-7 sm:w-8 sm:h-8 md:w-10 md:h-10 bg-gradient-to-r from-indigo-500 to-indigo-600 rounded-lg sm:rounded-xl flex items-center justify-center">
               <svg className="w-3 h-3 sm:w-4 sm:h-4 md:w-6 md:h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
               </svg>
             </div>
             <div className="hidden sm:block">
-              <h1 className="text-sm sm:text-base md:text-lg lg:text-xl font-bold text-gray-900">HR Portal</h1>
-              <p className="text-xs text-gray-500">Human Resources</p>
+              <h1 className="text-sm sm:text-base md:text-lg lg:text-xl font-bold text-gray-900">Admin Portal</h1>
+              <p className="text-xs text-gray-500">Administrator Dashboard</p>
             </div>
           </div>
         )}
         {isCollapsed && (
-          <div className="w-7 h-7 sm:w-8 sm:h-8 bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg flex items-center justify-center mx-auto">
+          <div className="w-7 h-7 sm:w-8 sm:h-8 bg-gradient-to-r from-indigo-500 to-indigo-600 rounded-lg flex items-center justify-center mx-auto">
             <svg className="w-3 h-3 sm:w-4 sm:h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
             </svg>
           </div>
         )}
@@ -195,13 +248,13 @@ export default function HrSidebar({ isCollapsed, onToggleCollapse }) {
             <Tooltip 
               content={
                 <div>
-                  <div className="font-semibold mb-2">HR Dashboard</div>
+                  <div className="font-semibold mb-2">Administrator Dashboard</div>
                   <div className="text-xs opacity-90">
                     <ul className="space-y-1">
-                      <li>• Employee Management</li>
-                      <li>• Payroll Overview</li>
-                      <li>• Timekeeping Summary</li>
-                      <li>• Benefits Tracking</li>
+                      <li>• System Administration</li>
+                      <li>• User Management</li>
+                      <li>• Operations Overview</li>
+                      <li>• Compliance Monitoring</li>
                     </ul>
                   </div>
                 </div>
@@ -209,9 +262,9 @@ export default function HrSidebar({ isCollapsed, onToggleCollapse }) {
               position="cursor"
             >
               <Link
-                href="/positionpages/hrpage"
+                href="/administratorpage"
                 className={`w-full flex items-center justify-between px-2 sm:px-3 py-2 sm:py-2.5 md:py-3 text-xs sm:text-sm font-semibold text-white rounded-lg sm:rounded-xl transition-all duration-200 hover:shadow-lg bg-gradient-to-r from-gray-600 to-gray-700 ${
-                  isActive('/positionpages/hrpage') ? 'ring-2 ring-white ring-opacity-50' : ''
+                  isActive('/administratorpage') ? 'ring-2 ring-white ring-opacity-50' : ''
                 }`}
               >
                 <div className="flex items-center min-w-0">
@@ -222,8 +275,8 @@ export default function HrSidebar({ isCollapsed, onToggleCollapse }) {
                   </span>
                   {!isCollapsed && (
                     <span className="text-xs sm:text-sm truncate">
-                      <span className="hidden sm:block">HR Dashboard</span>
-                      <span className="block sm:hidden">HR</span>
+                      <span className="hidden sm:block">Admin Dashboard</span>
+                      <span className="block sm:hidden">Admin</span>
                     </span>
                   )}
                 </div>
@@ -249,44 +302,11 @@ export default function HrSidebar({ isCollapsed, onToggleCollapse }) {
                     <div>
                       <div className="font-semibold mb-2">{section.title}</div>
                       <div className="text-xs opacity-90">
-                        {key === 'employeeRecord' && (
+                        {section.title === 'Government & Compliance' && (
                           <ul className="space-y-1">
-                            <li>• DepartmentManagement</li>
-                            <li>• EmployeeDocuments</li>
-                            <li>• EmployeeList</li>
-                            <li>• EmployeeProfile</li>
-                            <li>• NewEmployee</li>
-                            <li>• PositionManagement</li>
-                          </ul>
-                        )}
-                        {key === 'payroll' && (
-                          <ul className="space-y-1">
-                            <li>• BenefitsAllowances</li>
-                            <li>• Deductions</li>
-                            <li>• PayrollOverview</li>
-                            <li>• PayrollReports</li>
-                            <li>• SalaryStructure</li>
-                            <li>• TaxManagement</li>
-                          </ul>
-                        )}
-                        {key === 'timeKeeping' && (
-                          <ul className="space-y-1">
-                            <li>• AttendanceOverview</li>
-                            <li>• AttendanceReports</li>
-                            <li>• LeaveManagement</li>
-                            <li>• OvertimeManagement</li>
-                            <li>• ScheduleManagement</li>
-                            <li>• TimeTracking</li>
-                          </ul>
-                        )}
-                        {key === 'benefits' && (
-                          <ul className="space-y-1">
-                            <li>• Benefits Management</li>
-                            <li>• Employee Enrollment</li>
-                            <li>• Coverage Details</li>
-                            <li>• Cost Tracking</li>
-                            <li>• Provider Management</li>
-                            <li>• Eligibility Rules</li>
+                            <li>• Government Records Management</li>
+                            <li>• Compliance Tracking</li>
+                            <li>• Regulatory Reporting</li>
                           </ul>
                         )}
                       </div>
@@ -322,30 +342,48 @@ export default function HrSidebar({ isCollapsed, onToggleCollapse }) {
                   </Link>
                 </Tooltip>
               ) : (
-                <button
-                  onClick={() => toggleSection(key)}
-                  className={`w-full flex items-center justify-between px-2 sm:px-3 py-2 sm:py-2.5 md:py-3 text-xs sm:text-sm font-semibold text-white rounded-lg sm:rounded-xl transition-all duration-200 hover:shadow-lg ${section.color}`}
+                <Tooltip 
+                  content={
+                    <div>
+                      <div className="font-semibold mb-2">{section.title}</div>
+                      <div className="text-xs opacity-90">
+                        {section.items && section.items.length > 0 && (
+                          <ul className="space-y-1">
+                            {section.items.map((item, index) => (
+                              <li key={index}>• {item.name}</li>
+                            ))}
+                          </ul>
+                        )}
+                      </div>
+                    </div>
+                  }
+                  position="cursor"
                 >
-                  <div className="flex items-center min-w-0">
-                    <span className="mr-1.5 sm:mr-2 w-3.5 h-3.5 sm:w-4 sm:h-4 md:w-5 md:h-5 flex-shrink-0">{section.icon}</span>
+                  <button
+                    onClick={() => toggleSection(key)}
+                    className={`w-full flex items-center justify-between px-2 sm:px-3 py-2 sm:py-2.5 md:py-3 text-xs sm:text-sm font-semibold text-white rounded-lg sm:rounded-xl transition-all duration-200 hover:shadow-lg ${section.color}`}
+                  >
+                    <div className="flex items-center min-w-0">
+                      <span className="mr-1.5 sm:mr-2 w-3.5 h-3.5 sm:w-4 sm:h-4 md:w-5 md:h-5 flex-shrink-0">{section.icon}</span>
+                      {!isCollapsed && (
+                        <span className="text-xs sm:text-sm truncate">
+                          <span className="hidden sm:block">{section.title}</span>
+                          <span className="block sm:hidden">{section.title.split(' ')[0]}</span>
+                        </span>
+                      )}
+                    </div>
                     {!isCollapsed && (
-                      <span className="text-xs sm:text-sm truncate">
-                        <span className="hidden sm:block">{section.title}</span>
-                        <span className="block sm:hidden">{section.title.split(' ')[0]}</span>
-                      </span>
+                      <svg 
+                        className={`w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0 transition-transform duration-200 ${expandedSections[key] ? 'rotate-180' : ''}`} 
+                        fill="none" 
+                        stroke="currentColor" 
+                        viewBox="0 0 24 24"
+                      >
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      </svg>
                     )}
-                  </div>
-                  {!isCollapsed && (
-                    <svg 
-                      className={`w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0 transition-transform duration-200 ${expandedSections[key] ? 'rotate-180' : ''}`} 
-                      fill="none" 
-                      stroke="currentColor" 
-                      viewBox="0 0 24 24"
-                    >
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                    </svg>
-                  )}
-                </button>
+                  </button>
+                </Tooltip>
               )}
 
               {/* Section Items */}
@@ -393,39 +431,14 @@ export default function HrSidebar({ isCollapsed, onToggleCollapse }) {
               <Tooltip 
                 content={
                   <div>
-                    <div className="font-semibold mb-2">Add Employee</div>
+                    <div className="font-semibold mb-2">System Overview</div>
                     <div className="text-xs opacity-90">
                       <ul className="space-y-1">
-                        <li>• New Employee Registration</li>
-                        <li>• Employee Profile Setup</li>
-                        <li>• Department Assignment</li>
-                        <li>• Position Management</li>
-                        <li>• Document Upload</li>
-                      </ul>
-                    </div>
-                  </div>
-                }
-                position="cursor"
-              >
-                <button className="w-full flex items-center px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-indigo-700 hover:bg-indigo-100 rounded-lg transition-colors">
-                  <span className="mr-1 sm:mr-1.5 md:mr-2 text-sm sm:text-base flex-shrink-0">⚡</span>
-                  <span className="truncate">
-                    <span className="hidden sm:block">Add Employee</span>
-                    <span className="block sm:hidden">Add</span>
-                  </span>
-                </button>
-              </Tooltip>
-              <Tooltip 
-                content={
-                  <div>
-                    <div className="font-semibold mb-2">Generate Report</div>
-                    <div className="text-xs opacity-90">
-                      <ul className="space-y-1">
-                        <li>• Payroll Reports</li>
-                        <li>• Attendance Reports</li>
-                        <li>• Employee Reports</li>
-                        <li>• Department Reports</li>
-                        <li>• Benefits Reports</li>
+                        <li>• Dashboard Analytics</li>
+                        <li>• System Status</li>
+                        <li>• Recent Activities</li>
+                        <li>• Performance Metrics</li>
+                        <li>• User Activity</li>
                       </ul>
                     </div>
                   </div>
@@ -435,8 +448,33 @@ export default function HrSidebar({ isCollapsed, onToggleCollapse }) {
                 <button className="w-full flex items-center px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-indigo-700 hover:bg-indigo-100 rounded-lg transition-colors">
                   <span className="mr-1 sm:mr-1.5 md:mr-2 text-sm sm:text-base flex-shrink-0">📊</span>
                   <span className="truncate">
-                    <span className="hidden sm:block">Generate Report</span>
-                    <span className="block sm:hidden">Report</span>
+                    <span className="hidden sm:block">System Overview</span>
+                    <span className="block sm:hidden">Overview</span>
+                  </span>
+                </button>
+              </Tooltip>
+              <Tooltip 
+                content={
+                  <div>
+                    <div className="font-semibold mb-2">Admin Tools</div>
+                    <div className="text-xs opacity-90">
+                      <ul className="space-y-1">
+                        <li>• User Management</li>
+                        <li>• System Settings</li>
+                        <li>• Backup & Restore</li>
+                        <li>• Security Configuration</li>
+                        <li>• Access Control</li>
+                      </ul>
+                    </div>
+                  </div>
+                }
+                position="cursor"
+              >
+                <button className="w-full flex items-center px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-indigo-700 hover:bg-indigo-100 rounded-lg transition-colors">
+                  <span className="mr-1 sm:mr-1.5 md:mr-2 text-sm sm:text-base flex-shrink-0">⚙️</span>
+                  <span className="truncate">
+                    <span className="hidden sm:block">Admin Tools</span>
+                    <span className="block sm:hidden">Tools</span>
                   </span>
                 </button>
               </Tooltip>
@@ -445,17 +483,16 @@ export default function HrSidebar({ isCollapsed, onToggleCollapse }) {
         </div>
       )}
 
-
       {/* User Profile Section */}
       <div className="flex-shrink-0 p-1 sm:p-2 border-t border-gray-200 bg-white">
         <div className="flex items-center">
-          <div className="w-7 h-7 sm:w-8 sm:h-8 bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg flex items-center justify-center flex-shrink-0">
-            <span className="text-white text-xs font-bold">HR</span>
+          <div className="w-7 h-7 sm:w-8 sm:h-8 bg-gradient-to-r from-indigo-500 to-indigo-600 rounded-lg flex items-center justify-center flex-shrink-0">
+            <span className="text-white text-xs font-bold">AD</span>
           </div>
           {!isCollapsed && (
             <div className="ml-1.5 sm:ml-2 md:ml-3 flex-1 min-w-0">
-              <p className="text-xs sm:text-sm font-semibold text-gray-900 truncate">HR Manager</p>
-              <p className="text-xs text-gray-700 truncate">hr@company.com</p>
+              <p className="text-xs sm:text-sm font-semibold text-gray-900 truncate">Administrator</p>
+              <p className="text-xs text-gray-700 truncate">admin@company.com</p>
               <div className="flex items-center mt-0.5 sm:mt-1">
                 <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-green-400 rounded-full mr-1 sm:mr-1.5 md:mr-2 flex-shrink-0"></div>
                 <span className="text-xs text-green-600 font-medium">Online</span>
