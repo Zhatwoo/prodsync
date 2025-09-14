@@ -93,7 +93,7 @@ export default function Dashboard() {
                         }`}></div>
                         <div className="flex-1 min-w-0">
                           <p className="text-sm text-gray-900">{activity.action}</p>
-                          <p className="text-sm text-gray-500">by {activity.user} • {activity.time}</p>
+                          <p className="text-sm text-gray-700">by {activity.user} • {activity.time}</p>
                         </div>
                       </div>
                     ))}
@@ -206,7 +206,7 @@ export default function Dashboard() {
                       }`}>
                         {project.status}
                       </span>
-                      <span className="text-gray-500">{project.team} members</span>
+                      <span className="text-gray-700">{project.team} members</span>
                     </div>
                   </div>
                 ))}
@@ -232,7 +232,7 @@ export default function Dashboard() {
                         </div>
                         <div>
                           <p className="text-sm font-medium text-gray-900">User {member}</p>
-                          <p className="text-sm text-gray-500">user{member}@company.com</p>
+                          <p className="text-sm text-gray-700">user{member}@company.com</p>
                         </div>
                       </div>
                     ))}
