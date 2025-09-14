@@ -69,12 +69,10 @@ const Tooltip = ({ children, content, position = 'right' }) => {
   );
 };
 
-export default function HrSidebar({ isCollapsed, onToggleCollapse }) {
+export default function FrontDeskSidebar({ isCollapsed, onToggleCollapse }) {
   const [expandedSections, setExpandedSections] = useState({
-    employeeRecord: true,
-    payroll: false,
-    timeKeeping: false,
-    benefits: false
+    telephones: true,
+    visitorsMonitor: true
   });
   const pathname = usePathname();
 
@@ -89,50 +87,28 @@ export default function HrSidebar({ isCollapsed, onToggleCollapse }) {
     onToggleCollapse();
   };
 
-
   const sidebarItems = {
-    employeeRecord: {
-      title: 'Employee Record',
+    telephones: {
+      title: 'Telephones',
       icon: (
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
         </svg>
       ),
       color: 'bg-gradient-to-r from-blue-500 to-blue-600',
-      href: '/positionpages/hrpage/employeesrecord',
+      href: '/positionpages/frontdesk/telephones',
       items: []
     },
-    payroll: {
-      title: 'Payroll',
+    visitorsMonitor: {
+      title: 'Visitors Monitor',
       icon: (
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
         </svg>
       ),
       color: 'bg-gradient-to-r from-green-500 to-green-600',
-      href: '/positionpages/hrpage/payroll',
-      items: []
-    },
-    timeKeeping: {
-      title: 'Time Keeping',
-      icon: (
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-        </svg>
-      ),
-      color: 'bg-gradient-to-r from-purple-500 to-purple-600',
-      href: '/positionpages/hrpage/timekeeping',
-      items: []
-    },
-    benefits: {
-      title: 'Benefits',
-      icon: (
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-        </svg>
-      ),
-      color: 'bg-gradient-to-r from-pink-500 to-pink-600',
-      href: '/positionpages/hrpage/benefits',
+      href: '/positionpages/frontdesk/visitorsmonitor',
       items: []
     }
   };
@@ -149,19 +125,19 @@ export default function HrSidebar({ isCollapsed, onToggleCollapse }) {
       <div className="flex items-center justify-between h-14 sm:h-16 md:h-20 px-1 sm:px-2 md:px-3 border-b border-gray-200 bg-white">
         {!isCollapsed && (
           <div className="flex items-center space-x-1 sm:space-x-2 md:space-x-3">
-            <div className="w-7 h-7 sm:w-8 sm:h-8 md:w-10 md:h-10 bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg sm:rounded-xl flex items-center justify-center">
+            <div className="w-7 h-7 sm:w-8 sm:h-8 md:w-10 md:h-10 bg-gradient-to-r from-orange-500 to-orange-600 rounded-lg sm:rounded-xl flex items-center justify-center">
               <svg className="w-3 h-3 sm:w-4 sm:h-4 md:w-6 md:h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
               </svg>
             </div>
             <div className="hidden sm:block">
-              <h1 className="text-sm sm:text-base md:text-lg lg:text-xl font-bold text-gray-900">HR Portal</h1>
-              <p className="text-xs text-gray-500">Human Resources</p>
+              <h1 className="text-sm sm:text-base md:text-lg lg:text-xl font-bold text-gray-900">Front Desk</h1>
+              <p className="text-xs text-gray-500">Reception & Monitoring</p>
             </div>
           </div>
         )}
         {isCollapsed && (
-          <div className="w-7 h-7 sm:w-8 sm:h-8 bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg flex items-center justify-center mx-auto">
+          <div className="w-7 h-7 sm:w-8 sm:h-8 bg-gradient-to-r from-orange-500 to-orange-600 rounded-lg flex items-center justify-center mx-auto">
             <svg className="w-3 h-3 sm:w-4 sm:h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
             </svg>
@@ -195,13 +171,13 @@ export default function HrSidebar({ isCollapsed, onToggleCollapse }) {
             <Tooltip 
               content={
                 <div>
-                  <div className="font-semibold mb-2">HR Dashboard</div>
+                  <div className="font-semibold mb-2">Front Desk Dashboard</div>
                   <div className="text-xs opacity-90">
                     <ul className="space-y-1">
-                      <li>• Employee Management</li>
-                      <li>• Payroll Overview</li>
-                      <li>• Timekeeping Summary</li>
-                      <li>• Benefits Tracking</li>
+                      <li>• Telephone Management</li>
+                      <li>• Visitor Monitoring</li>
+                      <li>• Reception Overview</li>
+                      <li>• Access Control</li>
                     </ul>
                   </div>
                 </div>
@@ -209,9 +185,9 @@ export default function HrSidebar({ isCollapsed, onToggleCollapse }) {
               position="cursor"
             >
               <Link
-                href="/positionpages/hrpage"
+                href="/positionpages/frontdesk"
                 className={`w-full flex items-center justify-between px-2 sm:px-3 py-2 sm:py-2.5 md:py-3 text-xs sm:text-sm font-semibold text-white rounded-lg sm:rounded-xl transition-all duration-200 hover:shadow-lg bg-gradient-to-r from-gray-600 to-gray-700 ${
-                  isActive('/positionpages/hrpage') ? 'ring-2 ring-white ring-opacity-50' : ''
+                  isActive('/positionpages/frontdesk') ? 'ring-2 ring-white ring-opacity-50' : ''
                 }`}
               >
                 <div className="flex items-center min-w-0">
@@ -222,8 +198,8 @@ export default function HrSidebar({ isCollapsed, onToggleCollapse }) {
                   </span>
                   {!isCollapsed && (
                     <span className="text-xs sm:text-sm truncate">
-                      <span className="hidden sm:block">HR Dashboard</span>
-                      <span className="block sm:hidden">HR</span>
+                      <span className="hidden sm:block">Front Desk Dashboard</span>
+                      <span className="block sm:hidden">Front Desk</span>
                     </span>
                   )}
                 </div>
@@ -249,44 +225,24 @@ export default function HrSidebar({ isCollapsed, onToggleCollapse }) {
                     <div>
                       <div className="font-semibold mb-2">{section.title}</div>
                       <div className="text-xs opacity-90">
-                        {key === 'employeeRecord' && (
+                        {key === 'telephones' && (
                           <ul className="space-y-1">
-                            <li>• DepartmentManagement</li>
-                            <li>• EmployeeDocuments</li>
-                            <li>• EmployeeList</li>
-                            <li>• EmployeeProfile</li>
-                            <li>• NewEmployee</li>
-                            <li>• PositionManagement</li>
+                            <li>• Phone System Management</li>
+                            <li>• Call Monitoring</li>
+                            <li>• Extension Management</li>
+                            <li>• Call Logs & Reports</li>
+                            <li>• System Configuration</li>
+                            <li>• Emergency Contacts</li>
                           </ul>
                         )}
-                        {key === 'payroll' && (
+                        {key === 'visitorsMonitor' && (
                           <ul className="space-y-1">
-                            <li>• BenefitsAllowances</li>
-                            <li>• Deductions</li>
-                            <li>• PayrollOverview</li>
-                            <li>• PayrollReports</li>
-                            <li>• SalaryStructure</li>
-                            <li>• TaxManagement</li>
-                          </ul>
-                        )}
-                        {key === 'timeKeeping' && (
-                          <ul className="space-y-1">
-                            <li>• AttendanceOverview</li>
-                            <li>• AttendanceReports</li>
-                            <li>• LeaveManagement</li>
-                            <li>• OvertimeManagement</li>
-                            <li>• ScheduleManagement</li>
-                            <li>• TimeTracking</li>
-                          </ul>
-                        )}
-                        {key === 'benefits' && (
-                          <ul className="space-y-1">
-                            <li>• Benefits Management</li>
-                            <li>• Employee Enrollment</li>
-                            <li>• Coverage Details</li>
-                            <li>• Cost Tracking</li>
-                            <li>• Provider Management</li>
-                            <li>• Eligibility Rules</li>
+                            <li>• Visitor Registration</li>
+                            <li>• Access Control</li>
+                            <li>• Visitor Tracking</li>
+                            <li>• Security Monitoring</li>
+                            <li>• Badge Management</li>
+                            <li>• Visitor Reports</li>
                           </ul>
                         )}
                       </div>
@@ -387,56 +343,56 @@ export default function HrSidebar({ isCollapsed, onToggleCollapse }) {
       {/* Quick Actions */}
       {!isCollapsed && (
         <div className="px-1 sm:px-2 py-2 sm:py-3 md:py-4 flex-shrink-0">
-          <div className="bg-gradient-to-r from-indigo-50 to-blue-50 rounded-lg sm:rounded-xl p-2 sm:p-3 border border-indigo-100">
+          <div className="bg-gradient-to-r from-orange-50 to-red-50 rounded-lg sm:rounded-xl p-2 sm:p-3 border border-orange-100">
             <h3 className="text-xs sm:text-sm font-semibold text-gray-900 mb-1.5 sm:mb-2 md:mb-3">Quick Actions</h3>
             <div className="space-y-1 sm:space-y-1.5 md:space-y-2">
               <Tooltip 
                 content={
                   <div>
-                    <div className="font-semibold mb-2">Add Employee</div>
+                    <div className="font-semibold mb-2">Register Visitor</div>
                     <div className="text-xs opacity-90">
                       <ul className="space-y-1">
-                        <li>• New Employee Registration</li>
-                        <li>• Employee Profile Setup</li>
-                        <li>• Department Assignment</li>
-                        <li>• Position Management</li>
-                        <li>• Document Upload</li>
+                        <li>• New Visitor Registration</li>
+                        <li>• ID Verification</li>
+                        <li>• Badge Assignment</li>
+                        <li>• Access Level Setup</li>
+                        <li>• Visit Purpose Logging</li>
                       </ul>
                     </div>
                   </div>
                 }
                 position="cursor"
               >
-                <button className="w-full flex items-center px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-indigo-700 hover:bg-indigo-100 rounded-lg transition-colors">
-                  <span className="mr-1 sm:mr-1.5 md:mr-2 text-sm sm:text-base flex-shrink-0">⚡</span>
+                <button className="w-full flex items-center px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-orange-700 hover:bg-orange-100 rounded-lg transition-colors">
+                  <span className="mr-1 sm:mr-1.5 md:mr-2 text-sm sm:text-base flex-shrink-0">👤</span>
                   <span className="truncate">
-                    <span className="hidden sm:block">Add Employee</span>
-                    <span className="block sm:hidden">Add</span>
+                    <span className="hidden sm:block">Register Visitor</span>
+                    <span className="block sm:hidden">Register</span>
                   </span>
                 </button>
               </Tooltip>
               <Tooltip 
                 content={
                   <div>
-                    <div className="font-semibold mb-2">Generate Report</div>
+                    <div className="font-semibold mb-2">Call Management</div>
                     <div className="text-xs opacity-90">
                       <ul className="space-y-1">
-                        <li>• Payroll Reports</li>
-                        <li>• Attendance Reports</li>
-                        <li>• Employee Reports</li>
-                        <li>• Department Reports</li>
-                        <li>• Benefits Reports</li>
+                        <li>• Incoming Call Handling</li>
+                        <li>• Call Transfer</li>
+                        <li>• Call Logging</li>
+                        <li>• Emergency Calls</li>
+                        <li>• Directory Access</li>
                       </ul>
                     </div>
                   </div>
                 }
                 position="cursor"
               >
-                <button className="w-full flex items-center px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-indigo-700 hover:bg-indigo-100 rounded-lg transition-colors">
-                  <span className="mr-1 sm:mr-1.5 md:mr-2 text-sm sm:text-base flex-shrink-0">📊</span>
+                <button className="w-full flex items-center px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-orange-700 hover:bg-orange-100 rounded-lg transition-colors">
+                  <span className="mr-1 sm:mr-1.5 md:mr-2 text-sm sm:text-base flex-shrink-0">📞</span>
                   <span className="truncate">
-                    <span className="hidden sm:block">Generate Report</span>
-                    <span className="block sm:hidden">Report</span>
+                    <span className="hidden sm:block">Call Management</span>
+                    <span className="block sm:hidden">Calls</span>
                   </span>
                 </button>
               </Tooltip>
@@ -445,17 +401,16 @@ export default function HrSidebar({ isCollapsed, onToggleCollapse }) {
         </div>
       )}
 
-
       {/* User Profile Section */}
       <div className="flex-shrink-0 p-1 sm:p-2 border-t border-gray-200 bg-white">
         <div className="flex items-center">
-          <div className="w-7 h-7 sm:w-8 sm:h-8 bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg flex items-center justify-center flex-shrink-0">
-            <span className="text-white text-xs font-bold">HR</span>
+          <div className="w-7 h-7 sm:w-8 sm:h-8 bg-gradient-to-r from-orange-500 to-orange-600 rounded-lg flex items-center justify-center flex-shrink-0">
+            <span className="text-white text-xs font-bold">FD</span>
           </div>
           {!isCollapsed && (
             <div className="ml-1.5 sm:ml-2 md:ml-3 flex-1 min-w-0">
-              <p className="text-xs sm:text-sm font-semibold text-gray-900 truncate">HR Manager</p>
-              <p className="text-xs text-gray-700 truncate">hr@company.com</p>
+              <p className="text-xs sm:text-sm font-semibold text-gray-900 truncate">Front Desk Staff</p>
+              <p className="text-xs text-gray-700 truncate">frontdesk@company.com</p>
               <div className="flex items-center mt-0.5 sm:mt-1">
                 <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-green-400 rounded-full mr-1 sm:mr-1.5 md:mr-2 flex-shrink-0"></div>
                 <span className="text-xs text-green-600 font-medium">Online</span>
