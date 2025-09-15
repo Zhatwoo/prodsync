@@ -351,7 +351,7 @@ export default function LeaveManagement() {
                   value={newRequest.employeeName}
                   onChange={handleInputChange}
                   required
-                  className="w-full px-3 py-2 text-gray-900 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                  className="w-full px-3 py-2 text-gray-900 bg-white border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
                 >
                   <option value="">Select Employee</option>
                   {employees.map(employee => (
@@ -366,7 +366,7 @@ export default function LeaveManagement() {
                   value={newRequest.leaveType}
                   onChange={handleInputChange}
                   required
-                  className="w-full px-3 py-2 text-gray-900 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                  className="w-full px-3 py-2 text-gray-900 bg-white border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
                 >
                   <option value="">Select Leave Type</option>
                   {leaveTypes.map(type => (
@@ -382,7 +382,7 @@ export default function LeaveManagement() {
                   value={newRequest.startDate}
                   onChange={(e) => handleDateChange('startDate', e.target.value)}
                   required
-                  className="w-full px-3 py-2 text-gray-900 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                  className="w-full px-3 py-2 text-gray-900 bg-white border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
                 />
               </div>
               <div>
@@ -393,7 +393,7 @@ export default function LeaveManagement() {
                   value={newRequest.endDate}
                   onChange={(e) => handleDateChange('endDate', e.target.value)}
                   required
-                  className="w-full px-3 py-2 text-gray-900 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                  className="w-full px-3 py-2 text-gray-900 bg-white border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
                 />
               </div>
               <div>

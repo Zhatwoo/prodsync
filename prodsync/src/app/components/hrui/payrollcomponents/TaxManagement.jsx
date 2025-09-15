@@ -265,7 +265,7 @@ export default function TaxManagement() {
                   value={newTax.type}
                   onChange={handleInputChange}
                   required
-                  className="w-full px-3 py-2 text-gray-900 border border-gray-300 rounded-md focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                  className="w-full px-3 py-2 text-gray-900 bg-white border border-gray-300 rounded-md focus:ring-2 focus:ring-red-500 focus:border-red-500"
                 >
                   <option value="">Select Tax Type</option>
                   {taxTypes.map(type => (
@@ -280,7 +280,7 @@ export default function TaxManagement() {
                   value={newTax.jurisdiction}
                   onChange={handleInputChange}
                   required
-                  className="w-full px-3 py-2 text-gray-900 border border-gray-300 rounded-md focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                  className="w-full px-3 py-2 text-gray-900 bg-white border border-gray-300 rounded-md focus:ring-2 focus:ring-red-500 focus:border-red-500"
                 >
                   <option value="">Select Jurisdiction</option>
                   {jurisdictions.map(jurisdiction => (
@@ -308,7 +308,7 @@ export default function TaxManagement() {
                   value={newTax.calculationType}
                   onChange={handleInputChange}
                   required
-                  className="w-full px-3 py-2 text-gray-900 border border-gray-300 rounded-md focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                  className="w-full px-3 py-2 text-gray-900 bg-white border border-gray-300 rounded-md focus:ring-2 focus:ring-red-500 focus:border-red-500"
                 >
                   <option value="">Select Calculation Type</option>
                   {calculationTypes.map(type => (

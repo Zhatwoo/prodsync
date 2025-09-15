@@ -1,8 +1,13 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { logout } from '../../lib/authUtils';
+import { useAuth } from '../../context/AuthContext';
 
 export default function AdministratorDashboard() {
+  const { user } = useAuth();
+  const router = useRouter();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
@@ -254,8 +259,53 @@ export default function AdministratorDashboard() {
     { name: 'Government & Compliance', employees: 12, growth: '+3%', color: 'bg-green-500', value: '$320K' }
   ];
 
+  const handleLogout = async () => {
+    const result = await logout();
+    if (result.success) {
+      router.push('/auth/login');
+    } else {
+      console.error('Logout failed:', result.error);
+    }
+  };
+
   return (
-    <div>
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+      {/* Header */}
+      <div className="bg-white shadow-sm border-b border-gray-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-16">
+            <div className="flex items-center">
+              <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-purple-600 rounded-xl flex items-center justify-center">
+                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                </svg>
+              </div>
+              <div className="ml-4">
+                <h1 className="text-2xl font-bold text-gray-900">Administrator Dashboard</h1>
+                <p className="text-sm text-gray-500">Comprehensive Management & Operations</p>
+              </div>
+            </div>
+            <div className="flex items-center space-x-4">
+              <div className="text-right">
+                <p className="text-sm text-gray-500">Welcome back,</p>
+                <p className="text-lg font-semibold text-gray-900">{user?.email || 'Administrator'}</p>
+              </div>
+              <div className="flex items-center space-x-2">
+                <button
+                  onClick={handleLogout}
+                  className="px-3 py-1 text-sm text-gray-600 hover:text-red-600 transition-colors"
+                >
+                  Logout
+                </button>
+                <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-purple-600 rounded-full flex items-center justify-center">
+                  <span className="text-white font-bold">AD</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* Dashboard Content */}
       <main className="p-6">
 
