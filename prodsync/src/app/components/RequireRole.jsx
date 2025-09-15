@@ -5,6 +5,7 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "../context/AuthContext";
+import RoleUnauthorized from "./RoleUnauthorized";
 
 export default function RequireRole({ children, allowed = ["admin"] }) {
   const { user, role, loading } = useAuth();
@@ -17,7 +18,8 @@ export default function RequireRole({ children, allowed = ["admin"] }) {
       } else if (!role) {
         router.push("/unauthorized");
       } else if (!allowed.includes(role)) {
-        router.push("/unauthorized");
+        // Don't redirect, show unauthorized component instead
+        return;
       }
     }
   }, [user, role, loading, router, allowed]);
@@ -33,8 +35,12 @@ export default function RequireRole({ children, allowed = ["admin"] }) {
     );
   }
 
-  if (!user || !role || !allowed.includes(role)) {
+  if (!user || !role) {
     return null; // Will redirect
+  }
+
+  if (!allowed.includes(role)) {
+    return <RoleUnauthorized requiredRoles={allowed} currentPage="this page" />;
   }
 
   return children;

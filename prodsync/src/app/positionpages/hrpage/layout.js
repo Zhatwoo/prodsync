@@ -10,7 +10,7 @@ export default function HrLayout({ children }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
+    <div className="min-h-screen bg-white flex flex-col">
       <Navbar />
       
       {/* Mobile sidebar overlay */}
@@ -53,10 +53,8 @@ export default function HrLayout({ children }) {
         </div>
 
         {/* Page Content */}
-        <div className="pb-4 sm:pb-6 lg:pb-8 px-2 sm:px-4 lg:px-6 xl:px-8">
-          <div className="max-w-7xl mx-auto">
-            {children}
-          </div>
+        <div className="flex-1">
+          {children}
         </div>
       </div>
 

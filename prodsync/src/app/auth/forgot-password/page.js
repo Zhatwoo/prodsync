@@ -70,12 +70,12 @@ export default function ForgotPasswordPage() {
               </h2>
               
               <p className="text-gray-600 mb-6">
-                We've sent a password reset link to <strong>{email}</strong>
+                We&apos;ve sent a password reset link to <strong>{email}</strong>
               </p>
               
               <div className="space-y-4">
                 <p className="text-sm text-gray-500">
-                  Didn't receive the email? Check your spam folder or{' '}
+                  Didn&apos;t receive the email? Check your spam folder or{' '}
                   <button 
                     onClick={() => setIsEmailSent(false)}
                     className="text-blue-600 hover:text-blue-500 transition-colors font-medium"
@@ -112,7 +112,7 @@ export default function ForgotPasswordPage() {
             Forgot your password?
           </h2>
           <p className="mt-2 text-sm text-gray-600">
-            No worries, we'll send you reset instructions.
+            No worries, we&apos;ll send you reset instructions.
           </p>
         </div>
 
@@ -186,7 +186,7 @@ export default function ForgotPasswordPage() {
               </h3>
               <div className="mt-2 text-sm text-blue-700">
                 <p>
-                  If you're having trouble accessing your account, contact our support team at{' '}
+                  If you&apos;re having trouble accessing your account, contact our support team at{' '}
                   <a href="mailto:support@prodsync.com" className="font-medium underline hover:text-blue-600 transition-colors">
                     support@prodsync.com
                   </a>

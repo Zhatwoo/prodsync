@@ -8,6 +8,7 @@ import BenefitsAllowances from '../../../components/hrui/payrollcomponents/Benef
 import Deductions from '../../../components/hrui/payrollcomponents/Deductions';
 import PayrollReports from '../../../components/hrui/payrollcomponents/PayrollReports';
 import TaxManagement from '../../../components/hrui/payrollcomponents/TaxManagement';
+import RequireRole from '../../../components/RequireRole';
 
 export default function PayrollPage() {
   const [activeTab, setActiveTab] = useState('payrollOverview');
@@ -42,9 +43,8 @@ export default function PayrollPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Main Content Area - Centered */}
-      <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-6 xl:px-8 py-4 sm:py-6 lg:py-8">
+    <RequireRole allowed={['hr', 'HR', 'HR Manager', 'admin', 'administrator']}>
+      <div className="w-full p-6 bg-white min-h-screen">
         {/* Header */}
         <div className="bg-white shadow-sm border border-gray-200 rounded-lg mb-4 sm:mb-6">
           <div className="px-4 sm:px-6 lg:px-8">
@@ -103,6 +103,6 @@ export default function PayrollPage() {
           </div>
         </div>
       </div>
-    </div>
+    </RequireRole>
   );
 }

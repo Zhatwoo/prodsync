@@ -24,6 +24,9 @@ export default function RoleManagement() {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterRole, setFilterRole] = useState('');
   const [activeTab, setActiveTab] = useState('users');
+  const [roleRequests, setRoleRequests] = useState([]);
+  const [selectedRequest, setSelectedRequest] = useState(null);
+  const [showRequestDetailsModal, setShowRequestDetailsModal] = useState(false);
 
   // Mock data for users
   useEffect(() => {
@@ -37,6 +40,59 @@ export default function RoleManagement() {
       { id: 7, name: 'Tom Anderson', email: 'tom.anderson@company.com', role: 'Audit', status: 'Active', lastLogin: '2024-01-12' }
     ];
     setUsers(mockUsers);
+
+    // Mock data for role requests
+    const mockRoleRequests = [
+      { 
+        id: 1, 
+        name: 'Alex Rodriguez', 
+        email: 'alex.rodriguez@company.com', 
+        requestedRole: 'HR Manager', 
+        status: 'Pending', 
+        requestDate: '2024-01-16',
+        department: 'Human Resources',
+        reason: 'New employee joining the HR team',
+        previousExperience: '5 years in HR management',
+        documents: ['Resume', 'ID Copy', 'Background Check']
+      },
+      { 
+        id: 2, 
+        name: 'Maria Garcia', 
+        email: 'maria.garcia@company.com', 
+        requestedRole: 'Sales Manager', 
+        status: 'Pending', 
+        requestDate: '2024-01-15',
+        department: 'Sales',
+        reason: 'Promotion from Sales Representative',
+        previousExperience: '3 years in sales',
+        documents: ['Performance Review', 'Promotion Letter']
+      },
+      { 
+        id: 3, 
+        name: 'James Wilson', 
+        email: 'james.wilson@company.com', 
+        requestedRole: 'Accounting', 
+        status: 'Approved', 
+        requestDate: '2024-01-14',
+        department: 'Finance',
+        reason: 'New accounting position',
+        previousExperience: 'CPA with 4 years experience',
+        documents: ['CPA Certificate', 'Resume', 'References']
+      },
+      { 
+        id: 4, 
+        name: 'Emily Chen', 
+        email: 'emily.chen@company.com', 
+        requestedRole: 'Front Desk', 
+        status: 'Rejected', 
+        requestDate: '2024-01-13',
+        department: 'Administration',
+        reason: 'Receptionist position',
+        previousExperience: '2 years customer service',
+        documents: ['Resume', 'Cover Letter']
+      }
+    ];
+    setRoleRequests(mockRoleRequests);
   }, []);
 
   const availablePermissions = [
@@ -93,6 +149,23 @@ export default function RoleManagement() {
   const handleViewRoleDetails = (role) => {
     setSelectedRoleDetails(role);
     setShowRoleDetailsModal(true);
+  };
+
+  const handleApproveRequest = (requestId) => {
+    setRoleRequests(roleRequests.map(request => 
+      request.id === requestId ? { ...request, status: 'Approved' } : request
+    ));
+  };
+
+  const handleRejectRequest = (requestId) => {
+    setRoleRequests(roleRequests.map(request => 
+      request.id === requestId ? { ...request, status: 'Rejected' } : request
+    ));
+  };
+
+  const handleViewRequestDetails = (request) => {
+    setSelectedRequest(request);
+    setShowRequestDetailsModal(true);
   };
 
   const togglePermission = (permission) => {
@@ -227,6 +300,22 @@ export default function RoleManagement() {
             >
               <span className="hidden sm:inline">Roles & Permissions</span>
               <span className="sm:hidden">Roles</span>
+            </button>
+            <button
+              onClick={() => setActiveTab('requests')}
+              className={`flex-1 py-2 sm:py-3 px-2 sm:px-4 rounded-lg font-semibold transition-all duration-200 text-xs sm:text-sm relative ${
+                activeTab === 'requests'
+                  ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-lg'
+                  : 'text-gray-600 hover:text-gray-900 hover:bg-white/50'
+              }`}
+            >
+              <span className="hidden sm:inline">Role Requests</span>
+              <span className="sm:hidden">Requests</span>
+              {roleRequests.filter(req => req.status === 'Pending').length > 0 && (
+                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                  {roleRequests.filter(req => req.status === 'Pending').length}
+                </span>
+              )}
             </button>
           </div>
         </div>
@@ -401,6 +490,101 @@ export default function RoleManagement() {
                 </div>
               </div>
             ))}
+          </div>
+        )}
+
+        {activeTab === 'requests' && (
+          <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-white/20 overflow-hidden">
+            <div className="p-3 sm:p-6 border-b border-gray-200/50">
+              <div className="flex flex-col gap-4">
+                <h2 className="text-xl sm:text-2xl font-bold text-gray-900">Role Requests</h2>
+                <p className="text-gray-600 text-sm sm:text-base">
+                  Review and approve role access requests from new users
+                </p>
+              </div>
+            </div>
+
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[800px]">
+                <thead className="bg-gray-50/50">
+                  <tr>
+                    <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs sm:text-sm font-semibold text-gray-700 uppercase tracking-wider">Requester</th>
+                    <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs sm:text-sm font-semibold text-gray-700 uppercase tracking-wider">Requested Role</th>
+                    <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs sm:text-sm font-semibold text-gray-700 uppercase tracking-wider">Department</th>
+                    <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs sm:text-sm font-semibold text-gray-700 uppercase tracking-wider">Status</th>
+                    <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs sm:text-sm font-semibold text-gray-700 uppercase tracking-wider hidden sm:table-cell">Request Date</th>
+                    <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs sm:text-sm font-semibold text-gray-700 uppercase tracking-wider">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-200/50">
+                  {roleRequests.map((request) => (
+                    <tr key={request.id} className="hover:bg-gray-50/50 transition-colors duration-200">
+                      <td className="px-3 sm:px-6 py-3 sm:py-4">
+                        <div className="flex items-center">
+                          <div className="w-8 h-8 sm:w-12 sm:h-12 bg-gradient-to-r from-orange-500 to-red-600 rounded-full flex items-center justify-center flex-shrink-0">
+                            <span className="text-white font-semibold text-sm sm:text-lg">
+                              {request.name.split(' ').map(n => n[0]).join('')}
+                            </span>
+                          </div>
+                          <div className="ml-2 sm:ml-4 min-w-0 flex-1">
+                            <div className="text-sm sm:text-lg font-semibold text-gray-900 truncate">{request.name}</div>
+                            <div className="text-xs sm:text-sm text-gray-600 truncate">{request.email}</div>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-3 sm:px-6 py-3 sm:py-4">
+                        <span className="inline-flex px-2 sm:px-3 py-1 text-xs sm:text-sm font-semibold rounded-full bg-blue-100 text-blue-800">
+                          {request.requestedRole}
+                        </span>
+                      </td>
+                      <td className="px-3 sm:px-6 py-3 sm:py-4 text-sm sm:text-base text-gray-900">
+                        {request.department}
+                      </td>
+                      <td className="px-3 sm:px-6 py-3 sm:py-4">
+                        <span className={`inline-flex px-2 sm:px-3 py-1 text-xs sm:text-sm font-semibold rounded-full ${
+                          request.status === 'Pending' 
+                            ? 'bg-yellow-100 text-yellow-800' 
+                            : request.status === 'Approved'
+                            ? 'bg-green-100 text-green-800'
+                            : 'bg-red-100 text-red-800'
+                        }`}>
+                          {request.status}
+                        </span>
+                      </td>
+                      <td className="px-3 sm:px-6 py-3 sm:py-4 text-xs sm:text-sm text-gray-600 hidden sm:table-cell">
+                        {request.requestDate}
+                      </td>
+                      <td className="px-3 sm:px-6 py-3 sm:py-4">
+                        <div className="flex flex-col sm:flex-row gap-1 sm:gap-2">
+                          <button
+                            onClick={() => handleViewRequestDetails(request)}
+                            className="px-2 sm:px-4 py-1 sm:py-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors font-medium text-xs sm:text-sm"
+                          >
+                            View
+                          </button>
+                          {request.status === 'Pending' && (
+                            <>
+                              <button
+                                onClick={() => handleApproveRequest(request.id)}
+                                className="px-2 sm:px-4 py-1 sm:py-2 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors font-medium text-xs sm:text-sm"
+                              >
+                                Approve
+                              </button>
+                              <button
+                                onClick={() => handleRejectRequest(request.id)}
+                                className="px-2 sm:px-4 py-1 sm:py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors font-medium text-xs sm:text-sm"
+                              >
+                                Reject
+                              </button>
+                            </>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
         )}
 
@@ -730,6 +914,127 @@ export default function RoleManagement() {
                   >
                     Edit Role
                   </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Role Request Details Modal */}
+        {showRequestDetailsModal && selectedRequest && (
+          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-2 sm:p-4 z-50">
+            <div className="bg-white/95 backdrop-blur-sm rounded-2xl max-w-2xl w-full max-h-[95vh] sm:max-h-[90vh] overflow-y-auto shadow-2xl border border-white/20 mx-2 sm:mx-4">
+              <div className="p-4 sm:p-6">
+                <div className="flex items-center justify-between mb-6">
+                  <h3 className="text-2xl font-bold text-gray-900">Role Request Details</h3>
+                  <button
+                    onClick={() => setShowRequestDetailsModal(false)}
+                    className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                  >
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+                
+                <div className="space-y-6">
+                  {/* Requester Header */}
+                  <div className="flex items-center p-4 bg-gradient-to-r from-orange-50 to-red-50 rounded-xl">
+                    <div className="w-16 h-16 bg-gradient-to-r from-orange-500 to-red-600 rounded-full flex items-center justify-center flex-shrink-0">
+                      <span className="text-white font-bold text-xl">
+                        {selectedRequest.name.split(' ').map(n => n[0]).join('')}
+                      </span>
+                    </div>
+                    <div className="ml-4">
+                      <h4 className="text-2xl font-bold text-gray-900">{selectedRequest.name}</h4>
+                      <p className="text-gray-600">{selectedRequest.email}</p>
+                    </div>
+                  </div>
+                  
+                  {/* Request Information */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="p-4 bg-gray-50 rounded-xl">
+                      <label className="block text-sm font-semibold text-black mb-2">Requested Role</label>
+                      <span className="inline-flex px-3 py-1 text-sm font-semibold rounded-full bg-blue-100 text-blue-800">
+                        {selectedRequest.requestedRole}
+                      </span>
+                    </div>
+                    <div className="p-4 bg-gray-50 rounded-xl">
+                      <label className="block text-sm font-semibold text-black mb-2">Department</label>
+                      <p className="text-lg font-medium text-black">{selectedRequest.department}</p>
+                    </div>
+                    <div className="p-4 bg-gray-50 rounded-xl">
+                      <label className="block text-sm font-semibold text-black mb-2">Request Date</label>
+                      <p className="text-lg font-medium text-black">{selectedRequest.requestDate}</p>
+                    </div>
+                    <div className="p-4 bg-gray-50 rounded-xl">
+                      <label className="block text-sm font-semibold text-black mb-2">Status</label>
+                      <span className={`inline-flex px-3 py-1 text-sm font-semibold rounded-full ${
+                        selectedRequest.status === 'Pending' 
+                          ? 'bg-yellow-100 text-yellow-800' 
+                          : selectedRequest.status === 'Approved'
+                          ? 'bg-green-100 text-green-800'
+                          : 'bg-red-100 text-red-800'
+                      }`}>
+                        {selectedRequest.status}
+                      </span>
+                    </div>
+                  </div>
+                  
+                  {/* Reason and Experience */}
+                  <div className="p-4 bg-gray-50 rounded-xl">
+                    <label className="block text-lg font-semibold text-black mb-3">Reason for Request</label>
+                    <p className="text-gray-900 mb-4">{selectedRequest.reason}</p>
+                    
+                    <label className="block text-lg font-semibold text-black mb-3">Previous Experience</label>
+                    <p className="text-gray-900">{selectedRequest.previousExperience}</p>
+                  </div>
+                  
+                  {/* Documents */}
+                  <div className="p-4 bg-gray-50 rounded-xl">
+                    <label className="block text-lg font-semibold text-black mb-4">Submitted Documents</label>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                      {selectedRequest.documents.map((doc, index) => (
+                        <div key={index} className="flex items-center p-2 bg-white rounded-lg border border-gray-200">
+                          <svg className="w-4 h-4 text-blue-600 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                          </svg>
+                          <span className="text-sm font-medium text-gray-900">{doc}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="flex justify-end gap-3 mt-8">
+                  <button
+                    onClick={() => setShowRequestDetailsModal(false)}
+                    className="px-6 py-3 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-colors font-semibold"
+                  >
+                    Close
+                  </button>
+                  {selectedRequest.status === 'Pending' && (
+                    <>
+                      <button
+                        onClick={() => {
+                          handleRejectRequest(selectedRequest.id);
+                          setShowRequestDetailsModal(false);
+                        }}
+                        className="px-6 py-3 bg-red-100 text-red-700 rounded-xl hover:bg-red-200 transition-colors font-semibold"
+                      >
+                        Reject Request
+                      </button>
+                      <button
+                        onClick={() => {
+                          handleApproveRequest(selectedRequest.id);
+                          setShowRequestDetailsModal(false);
+                        }}
+                        className="px-6 py-3 bg-gradient-to-r from-green-600 to-green-700 text-white rounded-xl hover:from-green-700 hover:to-green-800 transition-all duration-200 font-semibold shadow-lg"
+                      >
+                        Approve Request
+                      </button>
+                    </>
+                  )}
                 </div>
               </div>
             </div>
