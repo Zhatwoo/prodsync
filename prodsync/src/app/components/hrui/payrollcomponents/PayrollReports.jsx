@@ -164,7 +164,7 @@ export default function PayrollReports() {
               <select
                 value={selectedReport}
                 onChange={(e) => setSelectedReport(e.target.value)}
-                className="w-full px-3 py-2 text-gray-900 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-3 py-2 text-gray-900 bg-white border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               >
                 <option value="">Select Report Type</option>
                 {reportTypes.map(type => (
@@ -177,7 +177,7 @@ export default function PayrollReports() {
               <select
                 value={reportPeriod}
                 onChange={(e) => setReportPeriod(e.target.value)}
-                className="w-full px-3 py-2 text-gray-900 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-3 py-2 text-gray-900 bg-white border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               >
                 {periods.map(period => (
                   <option key={period} value={period}>{period}</option>

@@ -1,5 +1,6 @@
 import { Roboto } from "next/font/google";
 import "./globals.css";
+import { AuthProvider } from "./context/AuthContext";
 
 const roboto = Roboto({
   weight: ['300', '400', '500', '700', '900'],
@@ -18,7 +19,9 @@ export default function RootLayout({ children }) {
       <body
         className={`${roboto.variable} font-roboto antialiased`}
       >
-        {children}
+        <AuthProvider>
+          {children}
+        </AuthProvider>
       </body>
     </html>
   );

@@ -267,7 +267,7 @@ export default function BenefitsAllowances() {
                   value={newBenefit.type}
                   onChange={handleInputChange}
                   required
-                  className="w-full px-3 py-2 text-gray-900 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                  className="w-full px-3 py-2 text-gray-900 bg-white border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500"
                 >
                   <option value="">Select Type</option>
                   {benefitTypes.map(type => (
@@ -282,7 +282,7 @@ export default function BenefitsAllowances() {
                   value={newBenefit.category}
                   onChange={handleInputChange}
                   required
-                  className="w-full px-3 py-2 text-gray-900 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                  className="w-full px-3 py-2 text-gray-900 bg-white border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500"
                 >
                   <option value="">Select Category</option>
                   {categories.map(category => (
@@ -309,7 +309,7 @@ export default function BenefitsAllowances() {
                   value={newBenefit.frequency}
                   onChange={handleInputChange}
                   required
-                  className="w-full px-3 py-2 text-gray-900 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                  className="w-full px-3 py-2 text-gray-900 bg-white border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500"
                 >
                   <option value="">Select Frequency</option>
                   {frequencies.map(frequency => (

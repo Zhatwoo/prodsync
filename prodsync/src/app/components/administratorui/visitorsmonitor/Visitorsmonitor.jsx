@@ -36,7 +36,7 @@ import {
   onSnapshot,
   serverTimestamp
 } from 'firebase/firestore';
-import { db } from '../../../lib/firebase';
+import { db } from '../../../lib/firebaseClient';
 
 const Visitorsmonitor = () => {
   const [visitors, setVisitors] = useState([]);
@@ -289,10 +289,9 @@ const Visitorsmonitor = () => {
   }
 
   return (
-    <div className="p-6 bg-gray-50 min-h-screen">
-      <div className="max-w-7xl mx-auto">
+    <>
         {/* Header */}
-        <div className="mb-8">
+        <div className="p-6 mb-8">
           <div className="flex justify-between items-center">
             <div>
               <h1 className="text-3xl font-bold text-gray-900">Visitors Monitor</h1>
@@ -309,7 +308,7 @@ const Visitorsmonitor = () => {
         </div>
 
         {/* Tabs */}
-        <div className="mb-6">
+        <div className="px-6 mb-6">
           <div className="border-b border-gray-200">
             <nav className="-mb-px flex space-x-8">
               {[
@@ -336,7 +335,7 @@ const Visitorsmonitor = () => {
 
         {/* Overview Tab */}
         {activeTab === 'overview' && (
-          <div className="space-y-6">
+          <div className="px-6 space-y-6">
             {/* Statistics Cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
               <StatCard
@@ -459,7 +458,7 @@ const Visitorsmonitor = () => {
 
         {/* Visitors Tab */}
         {activeTab === 'visitors' && (
-          <div className="space-y-6">
+          <div className="px-6 space-y-6">
             {/* Filters */}
             <div className="bg-white rounded-lg shadow p-6">
               <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -643,7 +642,7 @@ const Visitorsmonitor = () => {
 
         {/* Reports Tab */}
         {activeTab === 'reports' && (
-          <div className="space-y-6">
+          <div className="px-6 space-y-6">
             <div className="bg-white rounded-lg shadow p-6">
               <h3 className="text-lg font-medium text-gray-900 mb-4">Visitor Reports</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -970,8 +969,7 @@ const Visitorsmonitor = () => {
             </button>
           </div>
         )}
-      </div>
-    </div>
+    </>
   );
 };
 

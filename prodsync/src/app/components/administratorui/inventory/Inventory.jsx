@@ -257,10 +257,9 @@ export default function Inventory() {
   };
 
   return (
-    <div className="p-6 bg-gray-50 min-h-screen">
-      <div className="max-w-7xl mx-auto">
+    <>
         {/* Header */}
-        <div className="mb-8">
+        <div className="p-6 mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Inventory Management</h1>
           <p className="text-gray-600">Manage corporate products, track stock levels, and monitor sales performance</p>
           
@@ -681,7 +680,6 @@ export default function Inventory() {
             </div>
           </div>
         )}
-      </div>
-    </div>
+    </>
   );
 }
