@@ -53,10 +53,8 @@ export default function AdministratorLayout({ children }) {
         </div>
 
         {/* Page Content */}
-        <div className="pb-4 sm:pb-6 lg:pb-8 px-2 sm:px-4 lg:px-6 xl:px-8">
-          <div className="max-w-7xl mx-auto">
-            {children}
-          </div>
+        <div className="pb-4 sm:pb-6 lg:pb-8">
+          {children}
         </div>
       </div>
 

@@ -31,7 +31,7 @@ import {
   where,
   onSnapshot
 } from 'firebase/firestore';
-import { db } from '../../../lib/firebase';
+import { db } from '../../../lib/firebaseClient';
 
 const GovernmentCompliance = () => {
   const [complianceItems, setComplianceItems] = useState([]);
@@ -271,10 +271,9 @@ const GovernmentCompliance = () => {
   const stats = getStats();
 
   return (
-    <div className="p-6 bg-gray-50 min-h-screen">
-      <div className="max-w-7xl mx-auto">
+    <>
         {/* Header */}
-        <div className="mb-8">
+        <div className="p-6 mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Government Compliance</h1>
           <p className="text-gray-600">Manage regulatory compliance, deadlines, and government requirements</p>
           
@@ -309,7 +308,7 @@ const GovernmentCompliance = () => {
         </div>
 
         {/* Tabs */}
-        <div className="mb-6">
+        <div className="px-6 mb-6">
           <div className="border-b border-gray-200">
             <nav className="-mb-px flex space-x-8">
               {[
@@ -337,7 +336,7 @@ const GovernmentCompliance = () => {
 
         {/* Overview Tab */}
         {activeTab === 'overview' && (
-          <div className="space-y-6">
+          <div className="px-6 space-y-6">
             {/* Stats Cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
               <div className="bg-white rounded-lg shadow p-6">
@@ -472,7 +471,7 @@ const GovernmentCompliance = () => {
 
         {/* Compliance Items Tab */}
         {activeTab === 'compliance' && (
-          <div className="space-y-6">
+          <div className="px-6 space-y-6">
             {/* Controls */}
             <div className="bg-white rounded-lg shadow p-6">
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
@@ -638,7 +637,7 @@ const GovernmentCompliance = () => {
 
         {/* Deadlines Tab */}
         {activeTab === 'deadlines' && (
-          <div className="space-y-6">
+          <div className="px-6 space-y-6">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {/* Overdue Items */}
               <div className="bg-white rounded-lg shadow">
@@ -699,7 +698,7 @@ const GovernmentCompliance = () => {
 
         {/* Reports Tab */}
         {activeTab === 'reports' && (
-          <div className="space-y-6">
+          <div className="px-6 space-y-6">
             <div className="bg-white rounded-lg shadow p-6">
               <h3 className="text-lg font-medium text-gray-900 mb-4">Compliance Reports</h3>
               <p className="text-gray-600">Reporting features will be implemented here.</p>
@@ -1053,8 +1052,7 @@ const GovernmentCompliance = () => {
             </div>
           </div>
         )}
-      </div>
-    </div>
+    </>
   );
 };
 

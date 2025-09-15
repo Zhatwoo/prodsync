@@ -30,7 +30,7 @@ import {
   where,
   onSnapshot
 } from 'firebase/firestore';
-import { db } from '../../../lib/firebase';
+import { db } from '../../../lib/firebaseClient';
 
 const Permits = () => {
   const [permits, setPermits] = useState([]);
@@ -275,10 +275,9 @@ const Permits = () => {
   const typeStats = getTypeStats();
 
   return (
-    <div className="p-6 bg-gray-50 min-h-screen">
-      <div className="max-w-7xl mx-auto">
+    <>
         {/* Header */}
-        <div className="mb-8">
+        <div className="p-6 mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Permits Management</h1>
           <p className="text-gray-600">Manage corporate permits, licenses, and regulatory compliance</p>
           
@@ -313,7 +312,7 @@ const Permits = () => {
         </div>
 
         {/* Tabs */}
-        <div className="mb-6">
+        <div className="px-6 mb-6">
           <div className="border-b border-gray-200">
             <nav className="-mb-px flex space-x-8">
               {[
@@ -340,7 +339,7 @@ const Permits = () => {
 
         {/* Overview Tab */}
         {activeTab === 'overview' && (
-          <div className="space-y-6">
+          <div className="px-6 space-y-6">
             {/* Stats Cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               <div className="bg-white rounded-lg shadow p-6">
@@ -463,7 +462,7 @@ const Permits = () => {
 
         {/* Permits Tab */}
         {activeTab === 'permits' && (
-          <div className="space-y-6">
+          <div className="px-6 space-y-6">
             {/* Controls */}
             <div className="bg-white rounded-lg shadow p-6">
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
@@ -612,7 +611,7 @@ const Permits = () => {
 
         {/* Reports Tab */}
         {activeTab === 'reports' && (
-          <div className="space-y-6">
+          <div className="px-6 space-y-6">
             <div className="bg-white rounded-lg shadow p-6">
               <h3 className="text-lg font-medium text-gray-900 mb-4">Permits Reports</h3>
               <p className="text-gray-600">Reports and analytics features will be implemented here.</p>
@@ -985,8 +984,7 @@ const Permits = () => {
             </div>
           </div>
         )}
-      </div>
-    </div>
+    </>
   );
 };
 

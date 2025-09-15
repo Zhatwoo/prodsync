@@ -233,7 +233,7 @@ export default function SalaryStructure() {
                   value={newStructure.department}
                   onChange={handleInputChange}
                   required
-                  className="w-full px-3 py-2 text-gray-900 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                  className="w-full px-3 py-2 text-gray-900 bg-white border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500"
                 >
                   <option value="">Select Department</option>
                   {departments.map(dept => (
@@ -248,7 +248,7 @@ export default function SalaryStructure() {
                   value={newStructure.level}
                   onChange={handleInputChange}
                   required
-                  className="w-full px-3 py-2 text-gray-900 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                  className="w-full px-3 py-2 text-gray-900 bg-white border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500"
                 >
                   <option value="">Select Level</option>
                   {levels.map(level => (
@@ -262,7 +262,7 @@ export default function SalaryStructure() {
                   name="currency"
                   value={newStructure.currency}
                   onChange={handleInputChange}
-                  className="w-full px-3 py-2 text-gray-900 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                  className="w-full px-3 py-2 text-gray-900 bg-white border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500"
                 >
                   {currencies.map(currency => (
                     <option key={currency} value={currency}>{currency}</option>

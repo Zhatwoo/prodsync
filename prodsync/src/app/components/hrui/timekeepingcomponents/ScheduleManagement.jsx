@@ -344,7 +344,7 @@ export default function ScheduleManagement() {
                   value={newSchedule.employeeName}
                   onChange={handleInputChange}
                   required
-                  className="w-full px-3 py-2 text-gray-900 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                  className="w-full px-3 py-2 text-gray-900 bg-white border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
                 >
                   <option value="">Select Employee</option>
                   {employees.map(employee => (
@@ -359,7 +359,7 @@ export default function ScheduleManagement() {
                   value={newSchedule.department}
                   onChange={handleInputChange}
                   required
-                  className="w-full px-3 py-2 text-gray-900 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                  className="w-full px-3 py-2 text-gray-900 bg-white border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
                 >
                   <option value="">Select Department</option>
                   {departments.map(dept => (
@@ -374,7 +374,7 @@ export default function ScheduleManagement() {
                   value={newSchedule.shiftType}
                   onChange={handleInputChange}
                   required
-                  className="w-full px-3 py-2 text-gray-900 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                  className="w-full px-3 py-2 text-gray-900 bg-white border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
                 >
                   <option value="">Select Shift Type</option>
                   {shiftTypes.map(type => (
@@ -390,7 +390,7 @@ export default function ScheduleManagement() {
                   value={newSchedule.date}
                   onChange={handleInputChange}
                   required
-                  className="w-full px-3 py-2 text-gray-900 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                  className="w-full px-3 py-2 text-gray-900 bg-white border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
                 />
               </div>
               <div>
@@ -401,7 +401,7 @@ export default function ScheduleManagement() {
                   value={newSchedule.startTime}
                   onChange={handleInputChange}
                   required
-                  className="w-full px-3 py-2 text-gray-900 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                  className="w-full px-3 py-2 text-gray-900 bg-white border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
                 />
               </div>
               <div>
@@ -412,7 +412,7 @@ export default function ScheduleManagement() {
                   value={newSchedule.endTime}
                   onChange={handleInputChange}
                   required
-                  className="w-full px-3 py-2 text-gray-900 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                  className="w-full px-3 py-2 text-gray-900 bg-white border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
                 />
               </div>
               <div className="md:col-span-2">

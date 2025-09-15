@@ -283,10 +283,9 @@ export default function AgentMonitoring() {
   };
 
   return (
-    <div className="p-6 bg-gray-50 min-h-screen">
-      <div className="max-w-7xl mx-auto">
+    <>
         {/* Header */}
-        <div className="mb-8">
+        <div className="p-6 mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Agent Monitoring Dashboard</h1>
           <p className="text-gray-600">Monitor sales agents, track client relationships, projects, and commission performance</p>
           
@@ -876,7 +875,6 @@ export default function AgentMonitoring() {
             </div>
           </div>
         )}
-      </div>
-    </div>
+    </>
   );
 }

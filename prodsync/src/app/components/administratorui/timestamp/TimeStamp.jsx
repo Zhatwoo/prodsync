@@ -210,7 +210,6 @@ export default function TimeStamp() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-4 sm:p-6">
-      <div className="max-w-4xl mx-auto">
         {/* Header */}
         <div className="bg-white rounded-xl shadow-lg border p-6 mb-6">
           <div className="flex items-center justify-between">
@@ -582,7 +581,6 @@ export default function TimeStamp() {
             </div>
           </div>
         </form>
-      </div>
     </div>
   );
 }

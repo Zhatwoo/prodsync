@@ -75,7 +75,8 @@ export default function AdministratorSidebar({ isCollapsed, onToggleCollapse }) 
     hrOperations: false,
     finance: false,
     operations: false,
-    technology: false
+    technology: false,
+    roleManagement: false
   });
   const pathname = usePathname();
 
@@ -168,6 +169,19 @@ export default function AdministratorSidebar({ isCollapsed, onToggleCollapse }) 
         { name: 'App Suite', href: '/administratorpage/appsuite', icon: '📱' },
         { name: 'Telephones', href: '/administratorpage/telephones', icon: '📞' }
       ]
+    },
+
+    // Role Management Section
+    roleManagement: {
+      title: 'Role Management',
+      icon: (
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
+        </svg>
+      ),
+      color: 'bg-gradient-to-r from-red-500 to-red-600',
+      href: '/administratorpage/rolemanagement',
+      items: []
     },
 
     // Sales Division
@@ -307,6 +321,14 @@ export default function AdministratorSidebar({ isCollapsed, onToggleCollapse }) 
                             <li>• Government Records Management</li>
                             <li>• Compliance Tracking</li>
                             <li>• Regulatory Reporting</li>
+                          </ul>
+                        )}
+                        {section.title === 'Role Management' && (
+                          <ul className="space-y-1">
+                            <li>• User Role Assignment</li>
+                            <li>• Permission Management</li>
+                            <li>• Access Control</li>
+                            <li>• Role Hierarchy</li>
                           </ul>
                         )}
                       </div>

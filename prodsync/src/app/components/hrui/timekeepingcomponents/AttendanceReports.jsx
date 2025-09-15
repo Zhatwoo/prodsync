@@ -265,7 +265,7 @@ export default function AttendanceReports() {
               <select
                 value={selectedReportType}
                 onChange={(e) => setSelectedReportType(e.target.value)}
-                className="w-full px-3 py-2 text-gray-900 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                className="w-full px-3 py-2 text-gray-900 bg-white border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
               >
                 {reportTypes.map(type => (
                   <option key={type.value} value={type.value}>{type.label}</option>
@@ -277,7 +277,7 @@ export default function AttendanceReports() {
               <select
                 value={selectedDepartment}
                 onChange={(e) => setSelectedDepartment(e.target.value)}
-                className="w-full px-3 py-2 text-gray-900 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                className="w-full px-3 py-2 text-gray-900 bg-white border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
               >
                 {departments.map(dept => (
                   <option key={dept} value={dept}>{dept}</option>
@@ -290,7 +290,7 @@ export default function AttendanceReports() {
                 type="date"
                 value={dateRange.startDate}
                 onChange={(e) => setDateRange(prev => ({ ...prev, startDate: e.target.value }))}
-                className="w-full px-3 py-2 text-gray-900 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                className="w-full px-3 py-2 text-gray-900 bg-white border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
               />
             </div>
             <div>
@@ -299,7 +299,7 @@ export default function AttendanceReports() {
                 type="date"
                 value={dateRange.endDate}
                 onChange={(e) => setDateRange(prev => ({ ...prev, endDate: e.target.value }))}
-                className="w-full px-3 py-2 text-gray-900 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                className="w-full px-3 py-2 text-gray-900 bg-white border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
               />
             </div>
           </div>

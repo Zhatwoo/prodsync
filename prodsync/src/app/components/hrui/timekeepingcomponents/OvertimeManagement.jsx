@@ -375,7 +375,7 @@ export default function OvertimeManagement() {
                   value={newRequest.employeeName}
                   onChange={handleInputChange}
                   required
-                  className="w-full px-3 py-2 text-gray-900 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                  className="w-full px-3 py-2 text-gray-900 bg-white border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
                 >
                   <option value="">Select Employee</option>
                   {employees.map(employee => (
@@ -390,7 +390,7 @@ export default function OvertimeManagement() {
                   value={newRequest.project}
                   onChange={handleInputChange}
                   required
-                  className="w-full px-3 py-2 text-gray-900 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                  className="w-full px-3 py-2 text-gray-900 bg-white border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
                 >
                   <option value="">Select Project</option>
                   {projects.map(project => (
@@ -406,7 +406,7 @@ export default function OvertimeManagement() {
                   value={newRequest.date}
                   onChange={handleInputChange}
                   required
-                  className="w-full px-3 py-2 text-gray-900 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                  className="w-full px-3 py-2 text-gray-900 bg-white border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
                 />
               </div>
               <div>
@@ -416,7 +416,7 @@ export default function OvertimeManagement() {
                   value={newRequest.rate}
                   onChange={handleInputChange}
                   required
-                  className="w-full px-3 py-2 text-gray-900 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                  className="w-full px-3 py-2 text-gray-900 bg-white border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
                 >
                   {overtimeRates.map(rate => (
                     <option key={rate.value} value={rate.value}>{rate.label}</option>
@@ -431,7 +431,7 @@ export default function OvertimeManagement() {
                   value={newRequest.startTime}
                   onChange={(e) => handleTimeChange('startTime', e.target.value)}
                   required
-                  className="w-full px-3 py-2 text-gray-900 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                  className="w-full px-3 py-2 text-gray-900 bg-white border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
                 />
               </div>
               <div>
@@ -442,7 +442,7 @@ export default function OvertimeManagement() {
                   value={newRequest.endTime}
                   onChange={(e) => handleTimeChange('endTime', e.target.value)}
                   required
-                  className="w-full px-3 py-2 text-gray-900 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                  className="w-full px-3 py-2 text-gray-900 bg-white border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
                 />
               </div>
               <div>

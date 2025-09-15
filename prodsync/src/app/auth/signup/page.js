@@ -1,8 +1,14 @@
 'use client';
+// change: signup page writes user + role to firestore
+// why: store role centrally so frontend can read & render the right dashboard
 
 import { useState } from 'react';
-import Link from 'next/link';
+import { createUserWithEmailAndPassword } from 'firebase/auth';
+import { auth, db } from '../../lib/firebaseClient';
+import { doc, setDoc } from 'firebase/firestore';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
+import { getDashboardRoute, availableRoles } from '../../lib/roleRoutes';
 
 export default function SignupPage() {
   const router = useRouter();
@@ -13,6 +19,7 @@ export default function SignupPage() {
     password: '',
     confirmPassword: '',
     company: '',
+    role: 'Sales', // default role
     agreeToTerms: false
   });
   const [errors, setErrors] = useState({});
@@ -87,15 +94,26 @@ export default function SignupPage() {
     setIsLoading(true);
     
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      console.log('Signup data:', formData);
-      // Handle successful signup here
-      
-      // Redirect to dashboard after successful signup
-      router.push('/dashboard');
+      // Create user with Firebase Auth
+      const userCred = await createUserWithEmailAndPassword(auth, formData.email, formData.password);
+      const uid = userCred.user.uid;
+
+      // Save user data and role in Firestore
+      await setDoc(doc(db, "users", uid), {
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        email: formData.email,
+        company: formData.company,
+        role: formData.role,
+        createdAt: new Date()
+      });
+
+      // Redirect to appropriate dashboard based on role
+      const redirectPath = getDashboardRoute(formData.role);
+      router.push(redirectPath);
     } catch (error) {
       console.error('Signup error:', error);
+      setErrors({ submit: error.message });
     } finally {
       setIsLoading(false);
     }
@@ -211,6 +229,26 @@ export default function SignupPage() {
               )}
             </div>
 
+            {/* Role Selection */}
+            <div>
+              <label htmlFor="role" className="block text-sm font-medium text-gray-700 mb-2">
+                Role
+              </label>
+              <select
+                id="role"
+                name="role"
+                value={formData.role}
+                onChange={handleChange}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+              >
+                {availableRoles.map((roleOption) => (
+                  <option key={roleOption.value} value={roleOption.value}>
+                    {roleOption.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+
             {/* Password Field */}
             <div>
               <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
@@ -281,6 +319,13 @@ export default function SignupPage() {
                 <p className="mt-1 text-sm text-red-600">{errors.agreeToTerms}</p>
               )}
             </div>
+
+            {/* Submit Error */}
+            {errors.submit && (
+              <div className="bg-red-50 border border-red-200 rounded-md p-3">
+                <p className="text-sm text-red-600">{errors.submit}</p>
+              </div>
+            )}
 
             {/* Submit Button */}
             <button
