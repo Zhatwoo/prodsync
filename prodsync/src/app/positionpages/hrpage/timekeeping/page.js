@@ -8,7 +8,6 @@ import LeaveManagement from '../../../components/hrui/timekeepingcomponents/Leav
 import OvertimeManagement from '../../../components/hrui/timekeepingcomponents/OvertimeManagement';
 import ScheduleManagement from '../../../components/hrui/timekeepingcomponents/ScheduleManagement';
 import AttendanceReports from '../../../components/hrui/timekeepingcomponents/AttendanceReports';
-import RequireRole from '../../../components/RequireRole';
 
 export default function TimekeepingPage() {
   const [activeTab, setActiveTab] = useState('attendanceOverview');
@@ -43,8 +42,9 @@ export default function TimekeepingPage() {
   };
 
   return (
-    <RequireRole allowed={['hr', 'HR', 'HR Manager', 'admin', 'administrator']}>
-      <div className="w-full p-6 bg-white min-h-screen">
+    <div className="min-h-screen bg-gray-50">
+      {/* Main Content Area - Centered */}
+      <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-6 xl:px-8 py-4 sm:py-6 lg:py-8">
         {/* Header */}
         <div className="bg-white shadow-sm border border-gray-200 rounded-lg mb-4 sm:mb-6">
           <div className="px-4 sm:px-6 lg:px-8">
@@ -112,6 +112,6 @@ export default function TimekeepingPage() {
           </div>
         </div>
       </div>
-    </RequireRole>
+    </div>
   );
 }

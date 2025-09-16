@@ -32,17 +32,24 @@ export default function LoginPage() {
     try {
       // Validate inputs
       if (!email || !password) {
-        setError("Please fill in all fields");
+        setError("Please enter both your email address and password to continue.");
         return;
       }
 
       // Check if Firebase is ready
       if (!auth) {
-        setError("Firebase authentication is not available. Please check your configuration.");
+        setError("Authentication service is currently unavailable. Please try again later or contact support.");
+        return;
+      }
+
+      // Additional check for auth initialization
+      if (!auth.app || !auth.app.options) {
+        setError("Firebase authentication is not properly initialized. Please refresh the page and try again.");
         return;
       }
 
       // 🔹 Login with Firebase Auth
+      console.log("Attempting login with:", { email, authDomain: auth.app.options.authDomain });
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
 
@@ -56,7 +63,7 @@ export default function LoginPage() {
       if (!contentType || !contentType.includes('application/json')) {
         const text = await res.text();
         console.error("Non-JSON response from API:", text);
-        setError("Server configuration error. Please contact administrator.");
+        setError("Server configuration error. Please contact your system administrator for assistance.");
         return;
       }
 
@@ -79,31 +86,37 @@ export default function LoginPage() {
       } else {
         // Handle specific error codes
         if (data.code === 'FIREBASE_NOT_CONFIGURED' || data.code === 'FIREBASE_NOT_INITIALIZED') {
-          setError("Server configuration error. Please contact administrator to set up Firebase.");
+          setError("System configuration error. Please contact your system administrator to resolve this issue.");
         } else if (data.code === 'USER_NOT_FOUND') {
-          setError("Your account is not set up in the system. Please contact administrator.");
+          setError("Your account is not properly configured in the system. Please contact your administrator to set up your account.");
         } else {
-          setError(data.error || "Failed to get user role. Please contact administrator.");
+          setError(data.error || "Unable to retrieve your account information. Please contact your system administrator for assistance.");
         }
       }
     } catch (error) {
       console.error("Login error:", error);
       
-      // Handle specific Firebase errors
-      let errorMessage = "Login failed. Please try again.";
+      // Handle specific Firebase errors with professional messages
+      let errorMessage = "Authentication failed. Please verify your credentials and try again.";
       
       if (error.code === 'auth/user-not-found') {
-        errorMessage = "No account found with this email address.";
+        errorMessage = "The email address you entered is not associated with any account. Please check your email or contact your administrator.";
       } else if (error.code === 'auth/wrong-password') {
-        errorMessage = "Incorrect password. Please try again.";
+        errorMessage = "The password you entered is incorrect. Please try again or use the 'Forgot Password' option.";
       } else if (error.code === 'auth/invalid-email') {
-        errorMessage = "Invalid email address format.";
+        errorMessage = "Please enter a valid email address format (e.g., user@company.com).";
+      } else if (error.code === 'auth/invalid-credential') {
+        errorMessage = "Invalid login credentials. Please check your email and password, then try again.";
       } else if (error.code === 'auth/too-many-requests') {
-        errorMessage = "Too many failed attempts. Please try again later.";
+        errorMessage = "Too many failed login attempts. Please wait a few minutes before trying again.";
       } else if (error.code === 'auth/network-request-failed') {
-        errorMessage = "Network error. Please check your connection.";
+        errorMessage = "Network connection error. Please check your internet connection and try again.";
+      } else if (error.code === 'auth/user-disabled') {
+        errorMessage = "This account has been disabled. Please contact your administrator for assistance.";
+      } else if (error.code === 'auth/operation-not-allowed') {
+        errorMessage = "Email/password authentication is not enabled. Please contact your administrator.";
       } else if (error.message) {
-        errorMessage = error.message;
+        errorMessage = "Authentication failed. Please try again or contact support if the problem persists.";
       }
       
       setError(errorMessage);
@@ -138,14 +151,14 @@ export default function LoginPage() {
 
           {/* Configuration Notice */}
           {!firebaseReady && (
-            <div className="mb-6 p-4 bg-yellow-50 border border-yellow-200 rounded-xl">
-              <div className="flex items-center">
-                <svg className="w-5 h-5 text-yellow-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="mb-6 p-4 bg-amber-50 border border-amber-300 rounded-xl shadow-sm">
+              <div className="flex items-start">
+                <svg className="w-5 h-5 text-amber-600 mr-3 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
                 </svg>
                 <div>
-                  <p className="text-sm text-yellow-700 font-medium">Firebase Configuration Required</p>
-                  <p className="text-xs text-yellow-600 mt-1">Please set up your Firebase environment variables to enable authentication.</p>
+                  <p className="text-sm text-amber-800 font-medium">Firebase Configuration Required</p>
+                  <p className="text-xs text-amber-700 mt-1 leading-relaxed">Please set up your Firebase environment variables to enable authentication.</p>
                 </div>
               </div>
             </div>
@@ -153,12 +166,14 @@ export default function LoginPage() {
 
           {/* Error Message */}
           {error && (
-            <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl">
-              <div className="flex items-center">
-                <svg className="w-5 h-5 text-red-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="mb-6 p-4 bg-red-50 border border-red-300 rounded-xl shadow-sm">
+              <div className="flex items-start">
+                <svg className="w-5 h-5 text-red-600 mr-3 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
-                <p className="text-sm text-red-700 font-medium">{error}</p>
+                <div>
+                  <p className="text-sm text-red-800 font-medium leading-relaxed">{error}</p>
+                </div>
               </div>
             </div>
           )}
@@ -180,7 +195,7 @@ export default function LoginPage() {
                   id="email"
                   type="email"
                   placeholder="Enter your email"
-                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white/50 backdrop-blur-sm"
+                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white text-gray-900 placeholder-gray-500"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
@@ -203,7 +218,7 @@ export default function LoginPage() {
                   id="password"
                   type={showPassword ? "text" : "password"}
                   placeholder="Enter your password"
-                  className="w-full pl-10 pr-12 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white/50 backdrop-blur-sm"
+                  className="w-full pl-10 pr-12 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white text-gray-900 placeholder-gray-500"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required

@@ -112,6 +112,26 @@ const Visitorsmonitor = () => {
     fetchVisitors();
   }, []);
 
+  // Handle escape key to close modal
+  useEffect(() => {
+    const handleEscapeKey = (event) => {
+      if (event.key === 'Escape') {
+        if (showModal) {
+          setShowModal(false);
+          setViewMode(false);
+          setEditingVisitor(null);
+          setSelectedVisitor(null);
+          resetForm();
+        }
+      }
+    };
+
+    if (showModal) {
+      document.addEventListener('keydown', handleEscapeKey);
+      return () => document.removeEventListener('keydown', handleEscapeKey);
+    }
+  }, [showModal]);
+
   const calculateStats = (visitorsData) => {
     const today = new Date().toDateString();
     const todayVisitors = visitorsData.filter(visitor => 
@@ -290,6 +310,61 @@ const Visitorsmonitor = () => {
 
   return (
     <>
+        <style jsx>{`
+          @keyframes modalSlideIn {
+            from {
+              opacity: 0;
+              transform: scale(0.8) translateY(-30px);
+            }
+            to {
+              opacity: 1;
+              transform: scale(1) translateY(0);
+            }
+          }
+          
+          @keyframes backdropFadeIn {
+            from {
+              backdrop-filter: blur(0px);
+            }
+            to {
+              backdrop-filter: blur(12px);
+            }
+          }
+          
+          .modal-animate {
+            animation: modalSlideIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+          }
+          
+          .backdrop-animate {
+            animation: backdropFadeIn 0.3s ease-out;
+          }
+          
+          /* Force text visibility for dropdowns and inputs */
+          input[type="text"], input[type="email"], input[type="tel"], input[type="datetime-local"], select, textarea {
+            color: #111827 !important;
+            background-color: #ffffff !important;
+          }
+          
+          input::placeholder {
+            color: #6b7280 !important;
+          }
+          
+          select option {
+            color: #111827 !important;
+            background-color: #ffffff !important;
+          }
+          
+          /* Specific targeting for search and filters */
+          .search-input, .filter-select {
+            color: #111827 !important;
+            background-color: #ffffff !important;
+          }
+          
+          .search-input::placeholder {
+            color: #6b7280 !important;
+          }
+        `}</style>
+        
         {/* Header */}
         <div className="p-6 mb-8">
           <div className="flex justify-between items-center">
@@ -473,7 +548,8 @@ const Visitorsmonitor = () => {
                       placeholder="Search visitors..."
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
-                      className="pl-10 w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="search-input pl-10 w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      style={{ color: '#111827', backgroundColor: '#ffffff' }}
                     />
                   </div>
                 </div>
@@ -484,7 +560,8 @@ const Visitorsmonitor = () => {
                   <select
                     value={filterStatus}
                     onChange={(e) => setFilterStatus(e.target.value)}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="filter-select w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    style={{ color: '#111827', backgroundColor: '#ffffff' }}
                   >
                     <option value="all">All Status</option>
                     <option value="scheduled">Scheduled</option>
@@ -502,6 +579,7 @@ const Visitorsmonitor = () => {
                     value={filterDate}
                     onChange={(e) => setFilterDate(e.target.value)}
                     className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    style={{ color: '#111827', backgroundColor: '#ffffff' }}
                   />
                 </div>
                 <div className="flex items-end">
@@ -680,8 +758,19 @@ const Visitorsmonitor = () => {
 
         {/* Modal */}
         {showModal && (
-          <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-            <div className="relative top-20 mx-auto p-5 border w-11/12 md:w-3/4 lg:w-1/2 shadow-lg rounded-md bg-white">
+          <div 
+            className="fixed inset-0 backdrop-blur-lg overflow-y-auto h-full w-full z-50 flex items-center justify-center p-4 backdrop-animate"
+            onClick={(e) => {
+              if (e.target === e.currentTarget) {
+                setShowModal(false);
+                setViewMode(false);
+                setEditingVisitor(null);
+                setSelectedVisitor(null);
+                resetForm();
+              }
+            }}
+          >
+            <div className="relative mx-auto p-5 border w-11/12 md:w-3/4 lg:w-1/2 shadow-2xl rounded-lg bg-white modal-animate">
               <div className="mt-3">
                 <div className="flex justify-between items-center mb-4">
                   <h3 className="text-lg font-medium text-gray-900">
@@ -759,6 +848,7 @@ const Visitorsmonitor = () => {
                           value={formData.firstName}
                           onChange={(e) => setFormData({...formData, firstName: e.target.value})}
                           className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          style={{ color: '#111827', backgroundColor: '#ffffff' }}
                         />
                       </div>
                       <div>
@@ -771,6 +861,7 @@ const Visitorsmonitor = () => {
                           value={formData.lastName}
                           onChange={(e) => setFormData({...formData, lastName: e.target.value})}
                           className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          style={{ color: '#111827', backgroundColor: '#ffffff' }}
                         />
                       </div>
                       <div>
@@ -783,6 +874,7 @@ const Visitorsmonitor = () => {
                           value={formData.email}
                           onChange={(e) => setFormData({...formData, email: e.target.value})}
                           className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          style={{ color: '#111827', backgroundColor: '#ffffff' }}
                         />
                       </div>
                       <div>
@@ -795,6 +887,7 @@ const Visitorsmonitor = () => {
                           value={formData.phone}
                           onChange={(e) => setFormData({...formData, phone: e.target.value})}
                           className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          style={{ color: '#111827', backgroundColor: '#ffffff' }}
                         />
                       </div>
                       <div>
@@ -807,6 +900,7 @@ const Visitorsmonitor = () => {
                           value={formData.company}
                           onChange={(e) => setFormData({...formData, company: e.target.value})}
                           className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          style={{ color: '#111827', backgroundColor: '#ffffff' }}
                         />
                       </div>
                       <div>
@@ -818,6 +912,7 @@ const Visitorsmonitor = () => {
                           value={formData.purpose}
                           onChange={(e) => setFormData({...formData, purpose: e.target.value})}
                           className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          style={{ color: '#111827', backgroundColor: '#ffffff' }}
                         >
                           <option value="">Select Purpose</option>
                           <option value="Meeting">Meeting</option>
@@ -838,6 +933,7 @@ const Visitorsmonitor = () => {
                           value={formData.hostEmployee}
                           onChange={(e) => setFormData({...formData, hostEmployee: e.target.value})}
                           className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          style={{ color: '#111827', backgroundColor: '#ffffff' }}
                         />
                       </div>
                       <div>
@@ -849,6 +945,7 @@ const Visitorsmonitor = () => {
                           value={formData.department}
                           onChange={(e) => setFormData({...formData, department: e.target.value})}
                           className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          style={{ color: '#111827', backgroundColor: '#ffffff' }}
                         />
                       </div>
                       <div>
@@ -861,6 +958,7 @@ const Visitorsmonitor = () => {
                           value={formData.expectedArrival}
                           onChange={(e) => setFormData({...formData, expectedArrival: e.target.value})}
                           className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          style={{ color: '#111827', backgroundColor: '#ffffff' }}
                         />
                       </div>
                       <div>
@@ -872,6 +970,7 @@ const Visitorsmonitor = () => {
                           value={formData.expectedDeparture}
                           onChange={(e) => setFormData({...formData, expectedDeparture: e.target.value})}
                           className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          style={{ color: '#111827', backgroundColor: '#ffffff' }}
                         />
                       </div>
                       <div>
@@ -883,6 +982,7 @@ const Visitorsmonitor = () => {
                           value={formData.idNumber}
                           onChange={(e) => setFormData({...formData, idNumber: e.target.value})}
                           className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          style={{ color: '#111827', backgroundColor: '#ffffff' }}
                         />
                       </div>
                       <div>
@@ -894,6 +994,7 @@ const Visitorsmonitor = () => {
                           value={formData.vehicleNumber}
                           onChange={(e) => setFormData({...formData, vehicleNumber: e.target.value})}
                           className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          style={{ color: '#111827', backgroundColor: '#ffffff' }}
                         />
                       </div>
                     </div>
@@ -906,6 +1007,7 @@ const Visitorsmonitor = () => {
                         value={formData.emergencyContact}
                         onChange={(e) => setFormData({...formData, emergencyContact: e.target.value})}
                         className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        style={{ color: '#111827', backgroundColor: '#ffffff' }}
                       />
                     </div>
                     <div>
@@ -917,6 +1019,7 @@ const Visitorsmonitor = () => {
                         value={formData.emergencyPhone}
                         onChange={(e) => setFormData({...formData, emergencyPhone: e.target.value})}
                         className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        style={{ color: '#111827', backgroundColor: '#ffffff' }}
                       />
                     </div>
                     <div>
@@ -929,6 +1032,7 @@ const Visitorsmonitor = () => {
                         onChange={(e) => setFormData({...formData, notes: e.target.value})}
                         className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                         placeholder="Additional notes or special instructions..."
+                        style={{ color: '#111827', backgroundColor: '#ffffff' }}
                       />
                     </div>
                     <div className="flex justify-end space-x-3 pt-4">

@@ -248,6 +248,32 @@ const Benefits = () => {
 
   return (
     <div className="p-6">
+      {/* Custom styles for modal animations */}
+      <style jsx>{`
+        @keyframes modalSlideIn {
+          from {
+            opacity: 0;
+            transform: translateY(20px) scale(0.95);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+          }
+        }
+        
+        .modal-popup {
+          animation: modalSlideIn 0.3s ease-out;
+        }
+        
+        .modal-backdrop {
+          animation: fadeIn 0.3s ease-out;
+        }
+        
+        @keyframes fadeIn {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+      `}</style>
       {/* Header */}
       <div className="mb-6">
         <div className="flex justify-between items-center">
@@ -556,189 +582,239 @@ const Benefits = () => {
 
       {/* Add/Edit Modal */}
       {showModal && (
-        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-          <div className="relative top-20 mx-auto p-5 border w-11/12 md:w-3/4 lg:w-1/2 shadow-lg rounded-md bg-white">
-            <div className="mt-3">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-medium text-gray-900">
-                  {editingBenefit ? 'Edit Benefit' : 'Add New Benefit'}
-                </h3>
+        <div 
+          className="fixed inset-0 backdrop-blur-sm flex items-center justify-center p-4 z-50 modal-backdrop"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              resetForm();
+            }
+          }}
+        >
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto modal-popup">
+            <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 rounded-t-xl">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-xl font-semibold text-gray-900">
+                    {editingBenefit ? 'Edit Benefit' : 'Add New Benefit'}
+                  </h3>
+                  <p className="text-sm text-gray-600 mt-1">
+                    {editingBenefit ? 'Update benefit information' : 'Create a new employee benefit'}
+                  </p>
+                </div>
                 <button
                   onClick={resetForm}
-                  className="text-gray-400 hover:text-gray-600"
+                  className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
                 >
                   <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                   </svg>
                 </button>
               </div>
+            </div>
+            
+            <div className="p-6">
 
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Benefit Name
-                    </label>
-                    <input
-                      type="text"
-                      name="name"
-                      value={formData.name}
-                      onChange={handleInputChange}
-                      required
-                      className="w-full px-3 py-2 text-gray-900 bg-white border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    />
-                  </div>
+              <form id="benefit-form" onSubmit={handleSubmit} className="space-y-6">
+                {/* Basic Information Section */}
+                <div className="bg-gray-50 rounded-lg p-4">
+                  <h4 className="text-lg font-medium text-gray-900 mb-4">Basic Information</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">
+                        Benefit Name *
+                      </label>
+                      <input
+                        type="text"
+                        name="name"
+                        value={formData.name}
+                        onChange={handleInputChange}
+                        required
+                        placeholder="e.g., Health Insurance Premium"
+                        className="w-full px-4 py-3 text-gray-900 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                      />
+                    </div>
 
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Category
-                    </label>
-                    <select
-                      name="category"
-                      value={formData.category}
-                      onChange={handleInputChange}
-                      required
-                      className="w-full px-3 py-2 text-gray-900 bg-white border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    >
-                      <option value="">Select Category</option>
-                      {categories.slice(1).map(category => (
-                        <option key={category.value} value={category.value}>
-                          {category.label}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">
+                        Category *
+                      </label>
+                      <select
+                        name="category"
+                        value={formData.category}
+                        onChange={handleInputChange}
+                        required
+                        className="w-full px-4 py-3 text-gray-900 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                      >
+                        <option value="">Select Category</option>
+                        {categories.slice(1).map(category => (
+                          <option key={category.value} value={category.value}>
+                            {category.label}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
 
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Monthly Cost ($)
-                    </label>
-                    <input
-                      type="number"
-                      name="cost"
-                      value={formData.cost}
-                      onChange={handleInputChange}
-                      required
-                      min="0"
-                      step="0.01"
-                      className="w-full px-3 py-2 text-gray-900 bg-white border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    />
-                  </div>
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">
+                        Monthly Cost ($) *
+                      </label>
+                      <input
+                        type="number"
+                        name="cost"
+                        value={formData.cost}
+                        onChange={handleInputChange}
+                        required
+                        min="0"
+                        step="0.01"
+                        placeholder="0.00"
+                        className="w-full px-4 py-3 text-gray-900 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                      />
+                    </div>
 
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Provider
-                    </label>
-                    <input
-                      type="text"
-                      name="provider"
-                      value={formData.provider}
-                      onChange={handleInputChange}
-                      required
-                      className="w-full px-3 py-2 text-gray-900 bg-white border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Effective Date
-                    </label>
-                    <input
-                      type="date"
-                      name="effectiveDate"
-                      value={formData.effectiveDate}
-                      onChange={handleInputChange}
-                      required
-                      className="w-full px-3 py-2 text-gray-900 bg-white border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Expiry Date
-                    </label>
-                    <input
-                      type="date"
-                      name="expiryDate"
-                      value={formData.expiryDate}
-                      onChange={handleInputChange}
-                      required
-                      className="w-full px-3 py-2 text-gray-900 bg-white border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    />
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">
+                        Provider *
+                      </label>
+                      <input
+                        type="text"
+                        name="provider"
+                        value={formData.provider}
+                        onChange={handleInputChange}
+                        required
+                        placeholder="e.g., Blue Cross Blue Shield"
+                        className="w-full px-4 py-3 text-gray-900 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                      />
+                    </div>
                   </div>
                 </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Description
-                  </label>
-                  <textarea
-                    name="description"
-                    value={formData.description}
-                    onChange={handleInputChange}
-                    required
-                    rows={3}
-                    className="w-full px-3 py-2 text-gray-900 bg-white border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
+                {/* Dates Section */}
+                <div className="bg-gray-50 rounded-lg p-4">
+                  <h4 className="text-lg font-medium text-gray-900 mb-4">Effective Dates</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">
+                        Effective Date *
+                      </label>
+                      <input
+                        type="date"
+                        name="effectiveDate"
+                        value={formData.effectiveDate}
+                        onChange={handleInputChange}
+                        required
+                        className="w-full px-4 py-3 text-gray-900 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">
+                        Expiry Date *
+                      </label>
+                      <input
+                        type="date"
+                        name="expiryDate"
+                        value={formData.expiryDate}
+                        onChange={handleInputChange}
+                        required
+                        className="w-full px-4 py-3 text-gray-900 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                      />
+                    </div>
+                  </div>
                 </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Coverage Details
-                  </label>
-                  <textarea
-                    name="coverage"
-                    value={formData.coverage}
-                    onChange={handleInputChange}
-                    required
-                    rows={2}
-                    className="w-full px-3 py-2 text-gray-900 bg-white border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
+                {/* Details Section */}
+                <div className="bg-gray-50 rounded-lg p-4">
+                  <h4 className="text-lg font-medium text-gray-900 mb-4">Benefit Details</h4>
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">
+                        Description *
+                      </label>
+                      <textarea
+                        name="description"
+                        value={formData.description}
+                        onChange={handleInputChange}
+                        required
+                        rows={3}
+                        placeholder="Provide a detailed description of this benefit..."
+                        className="w-full px-4 py-3 text-gray-900 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors resize-none"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">
+                        Coverage Details *
+                      </label>
+                      <textarea
+                        name="coverage"
+                        value={formData.coverage}
+                        onChange={handleInputChange}
+                        required
+                        rows={2}
+                        placeholder="Describe what is covered by this benefit..."
+                        className="w-full px-4 py-3 text-gray-900 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors resize-none"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">
+                        Eligibility Requirements *
+                      </label>
+                      <textarea
+                        name="eligibility"
+                        value={formData.eligibility}
+                        onChange={handleInputChange}
+                        required
+                        rows={2}
+                        placeholder="Describe who is eligible for this benefit..."
+                        className="w-full px-4 py-3 text-gray-900 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors resize-none"
+                      />
+                    </div>
+                  </div>
                 </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Eligibility
-                  </label>
-                  <textarea
-                    name="eligibility"
-                    value={formData.eligibility}
-                    onChange={handleInputChange}
-                    required
-                    rows={2}
-                    className="w-full px-3 py-2 text-gray-900 bg-white border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
-                </div>
-
-                <div className="flex items-center">
-                  <input
-                    type="checkbox"
-                    name="isActive"
-                    checked={formData.isActive}
-                    onChange={handleInputChange}
-                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                  />
-                  <label className="ml-2 block text-sm text-gray-700">
-                    Active Benefit
-                  </label>
-                </div>
-
-                <div className="flex justify-end space-x-3 pt-4">
-                  <button
-                    type="button"
-                    onClick={resetForm}
-                    className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-                  >
-                    {editingBenefit ? 'Update Benefit' : 'Add Benefit'}
-                  </button>
+                {/* Status Section */}
+                <div className="bg-gray-50 rounded-lg p-4">
+                  <h4 className="text-lg font-medium text-gray-900 mb-4">Status</h4>
+                  <div className="flex items-center space-x-3">
+                    <input
+                      type="checkbox"
+                      name="isActive"
+                      checked={formData.isActive}
+                      onChange={handleInputChange}
+                      className="h-5 w-5 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                    />
+                    <div>
+                      <label className="text-sm font-semibold text-gray-700">
+                        Active Benefit
+                      </label>
+                      <p className="text-xs text-gray-500">
+                        Check this box to make the benefit available for enrollment
+                      </p>
+                    </div>
+                  </div>
                 </div>
               </form>
+            </div>
+            
+            {/* Footer */}
+            <div className="sticky bottom-0 bg-white border-t border-gray-200 px-6 py-4 rounded-b-xl">
+              <div className="flex justify-end space-x-3">
+                <button
+                  type="button"
+                  onClick={resetForm}
+                  className="px-6 py-3 border border-gray-300 rounded-lg text-gray-700 font-medium hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  form="benefit-form"
+                  className="px-6 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
+                >
+                  {editingBenefit ? 'Update Benefit' : 'Add Benefit'}
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -746,87 +822,110 @@ const Benefits = () => {
 
       {/* View Modal */}
       {viewMode && selectedBenefit && (
-        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-          <div className="relative top-20 mx-auto p-5 border w-11/12 md:w-3/4 lg:w-1/2 shadow-lg rounded-md bg-white">
-            <div className="mt-3">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-medium text-gray-900">Benefit Details</h3>
+        <div 
+          className="fixed inset-0 backdrop-blur-sm flex items-center justify-center p-4 z-50 modal-backdrop"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              setViewMode(false);
+            }
+          }}
+        >
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto modal-popup">
+            <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 rounded-t-xl">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-xl font-semibold text-gray-900">Benefit Details</h3>
+                  <p className="text-sm text-gray-600 mt-1">View benefit information and details</p>
+                </div>
                 <button
                   onClick={() => setViewMode(false)}
-                  className="text-gray-400 hover:text-gray-600"
+                  className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
                 >
                   <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                   </svg>
                 </button>
               </div>
+            </div>
+            
+            <div className="p-6">
 
-              <div className="space-y-4">
-                <div className="flex items-center space-x-3">
-                  <div className="p-2 bg-blue-100 rounded-lg">
-                    {React.createElement(getCategoryIcon(selectedBenefit.category), {
-                      className: "h-6 w-6 text-blue-600"
-                    })}
-                  </div>
-                  <div>
-                    <h4 className="text-xl font-semibold text-gray-900">{selectedBenefit.name}</h4>
-                    <p className="text-sm text-gray-600 capitalize">{selectedBenefit.category}</p>
+              <div className="space-y-6">
+                {/* Header Section */}
+                <div className="bg-gray-50 rounded-lg p-4">
+                  <div className="flex items-center space-x-4">
+                    <div className="p-3 bg-blue-100 rounded-lg">
+                      {React.createElement(getCategoryIcon(selectedBenefit.category), {
+                        className: "h-8 w-8 text-blue-600"
+                      })}
+                    </div>
+                    <div>
+                      <h4 className="text-2xl font-bold text-gray-900">{selectedBenefit.name}</h4>
+                      <p className="text-sm text-gray-600 capitalize">{selectedBenefit.category}</p>
+                      <span className={`inline-block mt-2 px-3 py-1 text-sm font-medium rounded-full ${
+                        selectedBenefit.isActive 
+                          ? 'bg-green-100 text-green-800' 
+                          : 'bg-red-100 text-red-800'
+                      }`}>
+                        {selectedBenefit.isActive ? 'Active' : 'Inactive'}
+                      </span>
+                    </div>
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">Monthly Cost</label>
-                    <p className="text-lg font-semibold text-gray-900">${selectedBenefit.cost}</p>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">Provider</label>
-                    <p className="text-gray-900">{selectedBenefit.provider}</p>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">Effective Date</label>
-                    <p className="text-gray-900">{selectedBenefit.effectiveDate}</p>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">Expiry Date</label>
-                    <p className="text-gray-900">{selectedBenefit.expiryDate}</p>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">Enrolled Employees</label>
-                    <p className="text-gray-900">{selectedBenefit.enrolledEmployees}</p>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">Status</label>
-                    <span className={`px-2 py-1 text-xs font-medium rounded-full ${
-                      selectedBenefit.isActive 
-                        ? 'bg-green-100 text-green-800' 
-                        : 'bg-red-100 text-red-800'
-                    }`}>
-                      {selectedBenefit.isActive ? 'Active' : 'Inactive'}
-                    </span>
+                {/* Basic Information */}
+                <div className="bg-gray-50 rounded-lg p-4">
+                  <h5 className="text-lg font-semibold text-gray-900 mb-4">Basic Information</h5>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-1">Monthly Cost</label>
+                      <p className="text-xl font-bold text-gray-900">${selectedBenefit.cost}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-1">Provider</label>
+                      <p className="text-gray-900">{selectedBenefit.provider}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-1">Effective Date</label>
+                      <p className="text-gray-900">{selectedBenefit.effectiveDate}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-1">Expiry Date</label>
+                      <p className="text-gray-900">{selectedBenefit.expiryDate}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-1">Enrolled Employees</label>
+                      <p className="text-gray-900">{selectedBenefit.enrolledEmployees} employees</p>
+                    </div>
                   </div>
                 </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">Description</label>
-                  <p className="text-gray-900">{selectedBenefit.description}</p>
+                {/* Description */}
+                <div className="bg-gray-50 rounded-lg p-4">
+                  <h5 className="text-lg font-semibold text-gray-900 mb-2">Description</h5>
+                  <p className="text-gray-900 leading-relaxed">{selectedBenefit.description}</p>
                 </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">Coverage</label>
-                  <p className="text-gray-900">{selectedBenefit.coverage}</p>
+                {/* Coverage */}
+                <div className="bg-gray-50 rounded-lg p-4">
+                  <h5 className="text-lg font-semibold text-gray-900 mb-2">Coverage Details</h5>
+                  <p className="text-gray-900 leading-relaxed">{selectedBenefit.coverage}</p>
                 </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">Eligibility</label>
-                  <p className="text-gray-900">{selectedBenefit.eligibility}</p>
+                {/* Eligibility */}
+                <div className="bg-gray-50 rounded-lg p-4">
+                  <h5 className="text-lg font-semibold text-gray-900 mb-2">Eligibility Requirements</h5>
+                  <p className="text-gray-900 leading-relaxed">{selectedBenefit.eligibility}</p>
                 </div>
               </div>
-
-              <div className="flex justify-end space-x-3 pt-4">
+            </div>
+            
+            {/* Footer */}
+            <div className="sticky bottom-0 bg-white border-t border-gray-200 px-6 py-4 rounded-b-xl">
+              <div className="flex justify-end space-x-3">
                 <button
                   onClick={() => setViewMode(false)}
-                  className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
+                  className="px-6 py-3 border border-gray-300 rounded-lg text-gray-700 font-medium hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-colors"
                 >
                   Close
                 </button>
@@ -835,7 +934,7 @@ const Benefits = () => {
                     setViewMode(false);
                     handleEdit(selectedBenefit);
                   }}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                  className="px-6 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
                 >
                   Edit Benefit
                 </button>

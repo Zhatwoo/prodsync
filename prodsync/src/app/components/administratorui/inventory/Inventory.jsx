@@ -258,6 +258,64 @@ export default function Inventory() {
 
   return (
     <>
+      <style jsx>{`
+        @keyframes modalSlideIn {
+          from {
+            opacity: 0;
+            transform: scale(0.7) translateY(-50px);
+          }
+          to {
+            opacity: 1;
+            transform: scale(1) translateY(0);
+          }
+        }
+        
+        @keyframes backdropFadeIn {
+          from {
+            opacity: 0;
+            backdrop-filter: blur(0px);
+          }
+          to {
+            opacity: 1;
+            backdrop-filter: blur(12px);
+          }
+        }
+        
+        @keyframes modalBounce {
+          0% {
+            opacity: 0;
+            transform: scale(0.3) translateY(-100px);
+          }
+          50% {
+            opacity: 0.8;
+            transform: scale(1.05) translateY(-10px);
+          }
+          100% {
+            opacity: 1;
+            transform: scale(1) translateY(0);
+          }
+        }
+        
+        .modal-animate {
+          animation: modalBounce 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+        
+        .backdrop-animate {
+          animation: backdropFadeIn 0.4s ease-out;
+        }
+        
+        .modal-enter {
+          opacity: 0;
+          transform: scale(0.7) translateY(-50px);
+        }
+        
+        .modal-enter-active {
+          opacity: 1;
+          transform: scale(1) translateY(0);
+          transition: all 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+      `}</style>
+      
         {/* Header */}
         <div className="p-6 mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Inventory Management</h1>
@@ -451,14 +509,14 @@ export default function Inventory() {
                       placeholder="Search products..."
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-gray-900 placeholder-gray-500"
                     />
                   </div>
                   <div className="sm:w-48">
                     <select
                       value={selectedCategory}
                       onChange={(e) => setSelectedCategory(e.target.value)}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-gray-900"
                     >
                       <option value="all">All Categories</option>
                       {categories.map((category) => (
@@ -470,7 +528,7 @@ export default function Inventory() {
                     <select
                       value={selectedStatus}
                       onChange={(e) => setSelectedStatus(e.target.value)}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-gray-900"
                     >
                       <option value="all">All Status</option>
                       <option value="Available">Available</option>
@@ -508,19 +566,19 @@ export default function Inventory() {
                       <div className="space-y-2 mb-4">
                         <div className="flex justify-between">
                           <span className="text-sm text-gray-600">Category:</span>
-                          <span className="text-sm font-semibold">{product.category}</span>
+                          <span className="text-sm font-semibold text-gray-900">{product.category}</span>
                         </div>
                         <div className="flex justify-between">
                           <span className="text-sm text-gray-600">Stock:</span>
-                          <span className="text-sm font-semibold">{product.stock} units</span>
+                          <span className="text-sm font-semibold text-gray-900">{product.stock} units</span>
                         </div>
                         <div className="flex justify-between">
                           <span className="text-sm text-gray-600">Price:</span>
-                          <span className="text-sm font-semibold">{formatCurrency(product.price)}</span>
+                          <span className="text-sm font-semibold text-gray-900">{formatCurrency(product.price)}</span>
                         </div>
                         <div className="flex justify-between">
                           <span className="text-sm text-gray-600">Total Sold:</span>
-                          <span className="text-sm font-semibold">{product.totalSold}</span>
+                          <span className="text-sm font-semibold text-gray-900">{product.totalSold}</span>
                         </div>
                       </div>
 
@@ -576,15 +634,15 @@ export default function Inventory() {
                         <div className="space-y-2">
                           <div className="flex justify-between">
                             <span className="text-sm text-gray-600">Products:</span>
-                            <span className="text-sm font-semibold">{categoryProducts.length}</span>
+                            <span className="text-sm font-semibold text-gray-900">{categoryProducts.length}</span>
                           </div>
                           <div className="flex justify-between">
                             <span className="text-sm text-gray-600">Total Value:</span>
-                            <span className="text-sm font-semibold">{formatCurrency(totalValue)}</span>
+                            <span className="text-sm font-semibold text-gray-900">{formatCurrency(totalValue)}</span>
                           </div>
                           <div className="flex justify-between">
                             <span className="text-sm text-gray-600">Revenue:</span>
-                            <span className="text-sm font-semibold">{formatCurrency(totalRevenue)}</span>
+                            <span className="text-sm font-semibold text-gray-900">{formatCurrency(totalRevenue)}</span>
                           </div>
                         </div>
                       </div>
@@ -598,80 +656,161 @@ export default function Inventory() {
 
         {/* Add Product Modal */}
         {showAddModal && (
-          <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-            <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+          <div 
+            className="fixed inset-0 backdrop-blur-lg overflow-y-auto h-full w-full z-50 flex items-center justify-center p-4 backdrop-animate"
+            onClick={(e) => {
+              if (e.target === e.currentTarget) {
+                setShowAddModal(false);
+              }
+            }}
+          >
+            <div className="relative mx-auto p-6 border w-11/12 md:w-3/4 lg:w-2/3 xl:w-1/2 shadow-2xl rounded-lg bg-white modal-animate transform transition-all duration-300">
               <div className="mt-3">
-                <h3 className="text-lg font-medium text-gray-900 mb-4">Add New Product</h3>
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">Product Name *</label>
-                    <input
-                      type="text"
-                      value={newProduct.name}
-                      onChange={(e) => setNewProduct({...newProduct, name: e.target.value})}
-                      className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">Category *</label>
-                    <select
-                      value={newProduct.category}
-                      onChange={(e) => setNewProduct({...newProduct, category: e.target.value})}
-                      className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-                    >
-                      <option value="">Select Category</option>
-                      {categories.map((category) => (
-                        <option key={category} value={category}>{category}</option>
-                      ))}
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">SKU *</label>
-                    <input
-                      type="text"
-                      value={newProduct.sku}
-                      onChange={(e) => setNewProduct({...newProduct, sku: e.target.value})}
-                      className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">Price</label>
-                    <input
-                      type="number"
-                      value={newProduct.price}
-                      onChange={(e) => setNewProduct({...newProduct, price: e.target.value})}
-                      className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">Cost</label>
-                    <input
-                      type="number"
-                      value={newProduct.cost}
-                      onChange={(e) => setNewProduct({...newProduct, cost: e.target.value})}
-                      className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">Initial Stock</label>
-                    <input
-                      type="number"
-                      value={newProduct.stock}
-                      onChange={(e) => setNewProduct({...newProduct, stock: e.target.value})}
-                      className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-                    />
-                  </div>
-                </div>
-                <div className="flex justify-end space-x-3 mt-6">
+                <div className="flex items-center justify-between mb-6">
+                  <h3 className="text-xl font-semibold text-gray-900">Add New Product</h3>
                   <button
                     onClick={() => setShowAddModal(false)}
-                    className="px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400 transition-colors"
+                    className="text-gray-400 hover:text-gray-600 transition-colors"
+                  >
+                    <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+                <div className="space-y-6">
+                  {/* Basic Information */}
+                  <div className="bg-gray-50 p-4 rounded-lg">
+                    <h4 className="text-lg font-medium text-gray-900 mb-4">Basic Information</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Product Name <span className="text-red-500">*</span>
+                        </label>
+                        <input
+                          type="text"
+                          value={newProduct.name}
+                          onChange={(e) => setNewProduct({...newProduct, name: e.target.value})}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 text-gray-900"
+                          placeholder="e.g., Enterprise Software License"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          SKU <span className="text-red-500">*</span>
+                        </label>
+                        <input
+                          type="text"
+                          value={newProduct.sku}
+                          onChange={(e) => setNewProduct({...newProduct, sku: e.target.value})}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 text-gray-900"
+                          placeholder="e.g., ESL-001"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Category <span className="text-red-500">*</span>
+                        </label>
+                        <select
+                          value={newProduct.category}
+                          onChange={(e) => setNewProduct({...newProduct, category: e.target.value})}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 text-gray-900"
+                        >
+                          <option value="">Select Category</option>
+                          {categories.map((category) => (
+                            <option key={category} value={category}>{category}</option>
+                          ))}
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Supplier</label>
+                        <input
+                          type="text"
+                          value={newProduct.supplier}
+                          onChange={(e) => setNewProduct({...newProduct, supplier: e.target.value})}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 text-gray-900"
+                          placeholder="e.g., TechCorp Solutions"
+                        />
+                      </div>
+                    </div>
+                    <div className="mt-4">
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                      <textarea
+                        value={newProduct.description}
+                        onChange={(e) => setNewProduct({...newProduct, description: e.target.value})}
+                        rows={3}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 text-gray-900"
+                        placeholder="Product description..."
+                      />
+                    </div>
+                  </div>
+
+                  {/* Pricing and Stock */}
+                  <div className="bg-gray-50 p-4 rounded-lg">
+                    <h4 className="text-lg font-medium text-gray-900 mb-4">Pricing & Stock</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Price</label>
+                        <input
+                          type="number"
+                          value={newProduct.price}
+                          onChange={(e) => setNewProduct({...newProduct, price: e.target.value})}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 text-gray-900"
+                          placeholder="0"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Cost</label>
+                        <input
+                          type="number"
+                          value={newProduct.cost}
+                          onChange={(e) => setNewProduct({...newProduct, cost: e.target.value})}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 text-gray-900"
+                          placeholder="0"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Initial Stock</label>
+                        <input
+                          type="number"
+                          value={newProduct.stock}
+                          onChange={(e) => setNewProduct({...newProduct, stock: e.target.value})}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 text-gray-900"
+                          placeholder="0"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Min Stock</label>
+                        <input
+                          type="number"
+                          value={newProduct.minStock}
+                          onChange={(e) => setNewProduct({...newProduct, minStock: e.target.value})}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 text-gray-900"
+                          placeholder="0"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Max Stock</label>
+                        <input
+                          type="number"
+                          value={newProduct.maxStock}
+                          onChange={(e) => setNewProduct({...newProduct, maxStock: e.target.value})}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 text-gray-900"
+                          placeholder="0"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div className="flex justify-end space-x-3 mt-8">
+                  <button
+                    onClick={() => setShowAddModal(false)}
+                    className="px-6 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
                   >
                     Cancel
                   </button>
                   <button
                     onClick={handleAddProduct}
-                    className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors"
+                    className="px-6 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 transition-colors"
                   >
                     Add Product
                   </button>

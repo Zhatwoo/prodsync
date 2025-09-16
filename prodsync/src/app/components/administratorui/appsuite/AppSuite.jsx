@@ -24,6 +24,7 @@ import {
   CheckIcon,
   XCircleIcon
 } from '@heroicons/react/24/outline';
+import jsPDF from 'jspdf';
 
 const AppSuite = () => {
   const [activeTab, setActiveTab] = useState('overview');
@@ -36,17 +37,46 @@ const AppSuite = () => {
   const [selectedReport, setSelectedReport] = useState(null);
   const [showBulkActions, setShowBulkActions] = useState(false);
 
+  // Handle escape key to close modal
+  useEffect(() => {
+    const handleEscapeKey = (event) => {
+      if (event.key === 'Escape') {
+        if (showReportModal) {
+          setShowReportModal(false);
+          setSelectedReport(null);
+        }
+      }
+    };
+
+    if (showReportModal) {
+      document.addEventListener('keydown', handleEscapeKey);
+      return () => document.removeEventListener('keydown', handleEscapeKey);
+    }
+  }, [showReportModal]);
+
   // Sample data - in real app, this would come from API/database
   const [dailyReports, setDailyReports] = useState([
     {
       id: 'DR-001',
       employeeId: 'EMP-001',
-      employeeName: 'John Smith',
+      employeeName: 'Neo Dela Torre',
       department: 'Sales',
-      position: 'Sales Manager',
+      position: 'Software Developer',
       reportDate: '2024-01-25',
       submissionTime: '2024-01-25T17:30:00',
       status: 'submitted',
+      consultations: [
+        { time: '9:30', place: 'Office Meeting Room A', client: 'ABC Corporation' },
+        { time: '10:30', place: 'Client Office - Makati', client: 'XYZ Industries' },
+        { time: '11:30', place: 'Virtual Meeting', client: 'DEF Solutions' },
+        { time: '12:30', place: '', client: '' },
+        { time: '1:30', place: 'Office Conference Room', client: 'GHI Technologies' },
+        { time: '2:30', place: 'Client Site - BGC', client: 'JKL Enterprises' },
+        { time: '3:30', place: 'Virtual Meeting', client: 'MNO Systems' },
+        { time: '4:30', place: 'Office Meeting Room B', client: 'PQR Solutions' },
+        { time: '5:30', place: '', client: '' },
+        { time: '6:30', place: '', client: '' }
+      ],
       tasks: [
         { task: 'Client meeting with ABC Corp', status: 'completed', timeSpent: '2 hours' },
         { task: 'Follow up on pending proposals', status: 'completed', timeSpent: '1.5 hours' },
@@ -81,6 +111,18 @@ const AppSuite = () => {
       reportDate: '2024-01-25',
       submissionTime: '2024-01-25T18:15:00',
       status: 'approved',
+      consultations: [
+        { time: '9:30', place: 'Office Meeting Room A', client: 'Marketing Agency ABC' },
+        { time: '10:30', place: 'Virtual Meeting', client: 'Client XYZ' },
+        { time: '11:30', place: '', client: '' },
+        { time: '12:30', place: '', client: '' },
+        { time: '1:30', place: 'Office Conference Room', client: 'Brand Partners' },
+        { time: '2:30', place: 'Client Office - Ortigas', client: 'Digital Solutions Inc' },
+        { time: '3:30', place: 'Virtual Meeting', client: 'Creative Studio' },
+        { time: '4:30', place: '', client: '' },
+        { time: '5:30', place: '', client: '' },
+        { time: '6:30', place: '', client: '' }
+      ],
       tasks: [
         { task: 'Social media content creation', status: 'completed', timeSpent: '3 hours' },
         { task: 'Email campaign setup', status: 'completed', timeSpent: '2 hours' },
@@ -115,6 +157,18 @@ const AppSuite = () => {
       reportDate: '2024-01-25',
       submissionTime: '2024-01-25T19:00:00',
       status: 'pending',
+      consultations: [
+        { time: '9:30', place: 'Office Meeting Room A', client: 'Tech Solutions Corp' },
+        { time: '10:30', place: 'Virtual Meeting', client: 'Development Team' },
+        { time: '11:30', place: 'Office Conference Room', client: 'QA Department' },
+        { time: '12:30', place: '', client: '' },
+        { time: '1:30', place: 'Client Site - BGC', client: 'Software Company ABC' },
+        { time: '2:30', place: 'Virtual Meeting', client: 'External Developer' },
+        { time: '3:30', place: 'Office Meeting Room B', client: 'Project Manager' },
+        { time: '4:30', place: '', client: '' },
+        { time: '5:30', place: '', client: '' },
+        { time: '6:30', place: '', client: '' }
+      ],
       tasks: [
         { task: 'Bug fixes for user authentication', status: 'completed', timeSpent: '4 hours' },
         { task: 'Code review for new features', status: 'completed', timeSpent: '2 hours' },
@@ -149,6 +203,18 @@ const AppSuite = () => {
       reportDate: '2024-01-24',
       submissionTime: '2024-01-24T17:45:00',
       status: 'submitted',
+      consultations: [
+        { time: '9:30', place: 'Office Meeting Room A', client: 'New Employee - John' },
+        { time: '10:30', place: 'Office Conference Room', client: 'Benefits Provider' },
+        { time: '11:30', place: 'Virtual Meeting', client: 'HR Consultant' },
+        { time: '12:30', place: '', client: '' },
+        { time: '1:30', place: 'Office Meeting Room B', client: 'Department Manager' },
+        { time: '2:30', place: 'Virtual Meeting', client: 'Training Coordinator' },
+        { time: '3:30', place: '', client: '' },
+        { time: '4:30', place: '', client: '' },
+        { time: '5:30', place: '', client: '' },
+        { time: '6:30', place: '', client: '' }
+      ],
       tasks: [
         { task: 'New employee onboarding', status: 'completed', timeSpent: '3 hours' },
         { task: 'Benefits enrollment processing', status: 'completed', timeSpent: '2 hours' },
@@ -183,6 +249,18 @@ const AppSuite = () => {
       reportDate: '2024-01-24',
       submissionTime: '2024-01-24T18:30:00',
       status: 'approved',
+      consultations: [
+        { time: '9:30', place: 'Office Meeting Room A', client: 'Accounting Firm' },
+        { time: '10:30', place: 'Virtual Meeting', client: 'Bank Representative' },
+        { time: '11:30', place: 'Office Conference Room', client: 'Audit Team' },
+        { time: '12:30', place: '', client: '' },
+        { time: '1:30', place: 'Client Office - Makati', client: 'Investment Advisor' },
+        { time: '2:30', place: 'Virtual Meeting', client: 'Tax Consultant' },
+        { time: '3:30', place: 'Office Meeting Room B', client: 'Department Head' },
+        { time: '4:30', place: '', client: '' },
+        { time: '5:30', place: '', client: '' },
+        { time: '6:30', place: '', client: '' }
+      ],
       tasks: [
         { task: 'Monthly financial report preparation', status: 'completed', timeSpent: '4 hours' },
         { task: 'Budget variance analysis', status: 'completed', timeSpent: '2 hours' },
@@ -302,20 +380,124 @@ const AppSuite = () => {
     setShowBulkActions(false);
   };
 
+  const generateDailyReportPDF = (report) => {
+    const doc = new jsPDF();
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
+    
+    // Set font
+    doc.setFont('helvetica');
+    
+    // Header - Company Name (Light Blue Background)
+    doc.setFillColor(173, 216, 230); // Light blue
+    doc.rect(0, 0, pageWidth, 15, 'F');
+    doc.setTextColor(0, 0, 0);
+    doc.setFontSize(16);
+    doc.setFont('helvetica', 'bold');
+    doc.text('INSPIRE NEXT GLOBAL INC.', pageWidth / 2, 10, { align: 'center' });
+    
+    // Daily Report Title (Yellow Background)
+    doc.setFillColor(255, 255, 0); // Yellow
+    doc.rect(0, 15, pageWidth, 12, 'F');
+    doc.setTextColor(0, 0, 0);
+    doc.setFontSize(14);
+    doc.setFont('helvetica', 'bold');
+    doc.text('DAILY REPORT', pageWidth / 2, 22, { align: 'center' });
+    
+    // Employee Information Section
+    let yPos = 35;
+    doc.setFontSize(12);
+    doc.setFont('helvetica', 'normal');
+    doc.text(`EMPLOYEE NAME: ${report.employeeName}`, 20, yPos);
+    yPos += 8;
+    doc.text(`POSITION: ${report.position}`, 20, yPos);
+    
+    // Checked By Section (right side)
+    doc.text('CHECKED BY:', pageWidth - 60, 35);
+    doc.line(pageWidth - 60, 37, pageWidth - 20, 37);
+    
+    // Consultation Details Table Header
+    yPos = 50;
+    doc.setFontSize(11);
+    doc.setFont('helvetica', 'bold');
+    
+    // Table headers
+    doc.text('CONSULTATION PLACE', 20, yPos);
+    doc.text('TIME IN', pageWidth / 2 - 20, yPos);
+    doc.text('CLIENT NAME', pageWidth - 60, yPos);
+    
+    // Draw table lines
+    doc.line(20, yPos + 2, pageWidth - 20, yPos + 2);
+    
+    // Consultation data rows
+    yPos += 8;
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(10);
+    
+    const timeSlots = ['9:30', '10:30', '11:30', '12:30', '1:30', '2:30', '3:30', '4:30', '5:30', '6:30'];
+    
+    timeSlots.forEach((time, index) => {
+      const consultation = report.consultations ? report.consultations[index] : { place: '', client: '' };
+      
+      // Draw row lines
+      doc.line(20, yPos - 2, pageWidth - 20, yPos - 2);
+      doc.line(20, yPos + 4, pageWidth - 20, yPos + 4);
+      doc.line(20, yPos - 2, 20, yPos + 4);
+      doc.line(pageWidth / 2 - 20, yPos - 2, pageWidth / 2 - 20, yPos + 4);
+      doc.line(pageWidth - 60, yPos - 2, pageWidth - 60, yPos + 4);
+      doc.line(pageWidth - 20, yPos - 2, pageWidth - 20, yPos + 4);
+      
+      // Add text
+      doc.text(consultation.place || '', 22, yPos);
+      doc.text(time, pageWidth / 2 - 18, yPos);
+      doc.text(consultation.client || '', pageWidth - 58, yPos);
+      
+      yPos += 6;
+    });
+    
+    // Add report date
+    yPos += 10;
+    doc.setFontSize(10);
+    doc.text(`Report Date: ${report.reportDate}`, 20, yPos);
+    doc.text(`Report ID: ${report.id}`, pageWidth - 60, yPos);
+    
+    // Add status
+    yPos += 8;
+    doc.text(`Status: ${report.status.toUpperCase()}`, 20, yPos);
+    
+    // Add approval information if available
+    if (report.approvedBy) {
+      yPos += 8;
+      doc.text(`Approved By: ${report.approvedBy}`, 20, yPos);
+      if (report.approvedDate) {
+        const approvedDate = new Date(report.approvedDate).toLocaleDateString();
+        doc.text(`Approved Date: ${approvedDate}`, pageWidth - 80, yPos);
+      }
+    }
+    
+    // Save the PDF
+    const fileName = `Daily_Report_${report.id}_${report.employeeName.replace(/\s+/g, '_')}.pdf`;
+    doc.save(fileName);
+  };
+
   const handleDownloadReport = (reportId) => {
     const report = dailyReports.find(r => r.id === reportId);
     if (report) {
-      // In a real app, this would generate and download a PDF
-      console.log('Downloading report:', reportId);
-      alert(`Downloading report ${reportId}...`);
+      generateDailyReportPDF(report);
     }
   };
 
   const handleBulkDownload = () => {
     if (selectedReports.length > 0) {
-      // In a real app, this would generate and download a ZIP file
-      console.log('Bulk downloading reports:', selectedReports);
-      alert(`Downloading ${selectedReports.length} reports...`);
+      selectedReports.forEach((reportId, index) => {
+        // Add a small delay between downloads to avoid browser blocking
+        setTimeout(() => {
+          const report = dailyReports.find(r => r.id === reportId);
+          if (report) {
+            generateDailyReportPDF(report);
+          }
+        }, index * 500); // 500ms delay between each download
+      });
     }
   };
 
@@ -331,6 +513,74 @@ const AppSuite = () => {
   };
 
   return (
+    <>
+      <style jsx>{`
+        @keyframes modalSlideIn {
+          from {
+            opacity: 0;
+            transform: scale(0.8) translateY(-30px);
+          }
+          to {
+            opacity: 1;
+            transform: scale(1) translateY(0);
+          }
+        }
+        
+        @keyframes backdropFadeIn {
+          from {
+            backdrop-filter: blur(0px);
+          }
+          to {
+            backdrop-filter: blur(12px);
+          }
+        }
+        
+        .modal-animate {
+          animation: modalSlideIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        
+        .backdrop-animate {
+          animation: backdropFadeIn 0.3s ease-out;
+        }
+        
+        /* Force text visibility for dropdowns and inputs */
+        input[type="text"], input[type="email"], input[type="tel"], input[type="date"], select, textarea {
+          color: #111827 !important;
+          background-color: #ffffff !important;
+        }
+        
+        input::placeholder {
+          color: #6b7280 !important;
+        }
+        
+        select option {
+          color: #111827 !important;
+          background-color: #ffffff !important;
+        }
+        
+        /* Specific targeting for search and filters */
+        .search-input, .filter-select {
+          color: #111827 !important;
+          background-color: #ffffff !important;
+        }
+        
+        .search-input::placeholder {
+          color: #6b7280 !important;
+        }
+        
+        /* More specific selectors to override any existing styles */
+        div input[type="text"], div select, div input[type="date"] {
+          color: #111827 !important;
+          background-color: #ffffff !important;
+        }
+        
+        /* Target the specific filter section */
+        .px-6.py-4 input, .px-6.py-4 select {
+          color: #111827 !important;
+          background-color: #ffffff !important;
+        }
+      `}</style>
+      
     <div className="p-6 bg-gray-50 min-h-screen">
       {/* Header */}
       <div className="mb-8">
@@ -595,14 +845,24 @@ const AppSuite = () => {
                     placeholder="Search reports..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-10 pr-4 py-2 border border-gray-300 rounded-md w-full focus:ring-blue-500 focus:border-blue-500"
+                    className="search-input pl-10 pr-4 py-2 border border-gray-300 rounded-md w-full focus:ring-blue-500 focus:border-blue-500"
+                    style={{ 
+                      color: '#111827 !important', 
+                      backgroundColor: '#ffffff !important',
+                      WebkitTextFillColor: '#111827 !important'
+                    }}
                   />
                 </div>
               </div>
               <select
                 value={filterStatus}
                 onChange={(e) => setFilterStatus(e.target.value)}
-                className="px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                className="filter-select px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                style={{ 
+                  color: '#111827 !important', 
+                  backgroundColor: '#ffffff !important',
+                  WebkitTextFillColor: '#111827 !important'
+                }}
               >
                 <option value="all">All Status</option>
                 <option value="submitted">Submitted</option>
@@ -613,7 +873,12 @@ const AppSuite = () => {
               <select
                 value={filterDepartment}
                 onChange={(e) => setFilterDepartment(e.target.value)}
-                className="px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                className="filter-select px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                style={{ 
+                  color: '#111827 !important', 
+                  backgroundColor: '#ffffff !important',
+                  WebkitTextFillColor: '#111827 !important'
+                }}
               >
                 <option value="all">All Departments</option>
                 {departments.map(dept => (
@@ -625,6 +890,11 @@ const AppSuite = () => {
                 value={filterDate}
                 onChange={(e) => setFilterDate(e.target.value)}
                 className="px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                style={{ 
+                  color: '#111827 !important', 
+                  backgroundColor: '#ffffff !important',
+                  WebkitTextFillColor: '#111827 !important'
+                }}
               />
             </div>
           </div>
@@ -762,8 +1032,16 @@ const AppSuite = () => {
 
       {/* Report Detail Modal */}
       {showReportModal && selectedReport && (
-        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-          <div className="relative top-10 mx-auto p-5 border w-11/12 md:w-4/5 lg:w-3/4 shadow-lg rounded-md bg-white max-h-[90vh] overflow-y-auto">
+        <div 
+          className="fixed inset-0 backdrop-blur-lg overflow-y-auto h-full w-full z-50 flex items-center justify-center p-4 backdrop-animate"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              setShowReportModal(false);
+              setSelectedReport(null);
+            }
+          }}
+        >
+          <div className="relative mx-auto p-5 border w-11/12 md:w-4/5 lg:w-3/4 shadow-2xl rounded-lg bg-white max-h-[90vh] overflow-y-auto modal-animate">
             <div className="mt-3">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-medium text-gray-900">Daily Report Details</h3>
@@ -961,6 +1239,7 @@ const AppSuite = () => {
         </div>
       )}
     </div>
+    </>
   );
 };
 

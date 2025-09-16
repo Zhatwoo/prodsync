@@ -156,6 +156,32 @@ export default function AttendanceReports() {
     }
   };
 
+  const handleExportAllReports = () => {
+    const allReportsData = {
+      generatedAt: new Date().toISOString(),
+      totalReports: reports.length,
+      reports: reports
+    };
+    
+    const blob = new Blob([JSON.stringify(allReportsData, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `all-attendance-reports-${new Date().toISOString().split('T')[0]}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
+  const handleScheduleAutoReports = () => {
+    alert('Auto-report scheduling feature will be implemented soon!');
+  };
+
+  const handleReportTemplates = () => {
+    alert('Report templates feature will be implemented soon!');
+  };
+
   const getStatusColor = (status) => {
     switch (status) {
       case 'Completed': return 'bg-green-100 text-green-800';
@@ -182,8 +208,8 @@ export default function AttendanceReports() {
   const totalFileSize = reports.reduce((sum, r) => sum + parseFloat(r.fileSize), 0);
 
   return (
-    <div className="p-6">
-      <div className="mb-6">
+    <div className="h-full">
+      <div className="p-6 mb-6">
         <div className="flex justify-between items-center">
           <div>
             <h2 className="text-2xl font-bold text-gray-900">Attendance Reports</h2>
@@ -193,7 +219,7 @@ export default function AttendanceReports() {
       </div>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+      <div className="px-6 grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
         <div className="bg-white border border-gray-200 rounded-lg p-6">
           <div className="flex items-center">
             <div className="p-2 bg-blue-100 rounded-lg">
@@ -254,7 +280,7 @@ export default function AttendanceReports() {
       </div>
 
       {/* Report Generator */}
-      <div className="bg-white border border-gray-200 rounded-lg mb-6">
+      <div className="mx-6 bg-white border border-gray-200 rounded-lg mb-6">
         <div className="px-4 py-3 border-b border-gray-200 bg-gray-50">
           <h3 className="text-lg font-semibold text-gray-900">Generate New Report</h3>
         </div>
@@ -323,7 +349,7 @@ export default function AttendanceReports() {
       </div>
 
       {/* Reports List */}
-      <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
+      <div className="mx-6 bg-white border border-gray-200 rounded-lg overflow-hidden">
         <div className="px-6 py-4 border-b border-gray-200 bg-gray-50">
           <h3 className="text-lg font-semibold text-gray-900">Generated Reports</h3>
         </div>
@@ -407,20 +433,29 @@ export default function AttendanceReports() {
       </div>
 
       {/* Quick Actions */}
-      <div className="mt-6 bg-purple-50 rounded-lg p-4">
+      <div className="mx-6 mt-6 bg-purple-50 rounded-lg p-4">
         <div className="flex justify-between items-center">
           <div>
             <h3 className="text-lg font-semibold text-gray-900">Quick Actions</h3>
             <p className="text-sm text-gray-600">Common report generation tasks</p>
           </div>
           <div className="flex space-x-3">
-            <button className="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition-colors">
+            <button 
+              onClick={handleExportAllReports}
+              className="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition-colors"
+            >
               Export All Reports
             </button>
-            <button className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors">
+            <button 
+              onClick={handleScheduleAutoReports}
+              className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
+            >
               Schedule Auto Reports
             </button>
-            <button className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors">
+            <button 
+              onClick={handleReportTemplates}
+              className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+            >
               Report Templates
             </button>
           </div>

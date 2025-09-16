@@ -40,6 +40,11 @@ try {
   }
   
   console.log("Firebase initialized successfully");
+  console.log("Firebase config:", {
+    projectId: firebaseConfig.projectId,
+    authDomain: firebaseConfig.authDomain,
+    hasApiKey: !!firebaseConfig.apiKey
+  });
 } catch (error) {
   console.error("Firebase initialization error:", error);
   // Create mock objects for development

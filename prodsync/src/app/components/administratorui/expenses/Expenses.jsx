@@ -33,6 +33,17 @@ const Expenses = () => {
   const [showAddExpense, setShowAddExpense] = useState(false);
   const [selectedExpense, setSelectedExpense] = useState(null);
   const [selectedEmployee, setSelectedEmployee] = useState('all');
+  const [expenseForm, setExpenseForm] = useState({
+    employeeId: '',
+    category: '',
+    subcategory: '',
+    description: '',
+    amount: '',
+    date: '',
+    paymentMethod: 'Personal Card',
+    receipt: '',
+    notes: ''
+  });
 
   // Sample data - in real app, this would come from API/database
   const [expenses, setExpenses] = useState([
@@ -254,8 +265,121 @@ const Expenses = () => {
     })).sort((a, b) => b.total - a.total);
   };
 
+  const handleExpenseFormChange = (e) => {
+    const { name, value } = e.target;
+    setExpenseForm(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const handleAddExpense = (e) => {
+    e.preventDefault();
+    
+    const selectedEmp = employees.find(emp => emp.id === expenseForm.employeeId);
+    if (!selectedEmp) return;
+
+    const newExpense = {
+      id: `EXP-${String(expenses.length + 1).padStart(3, '0')}`,
+      employeeId: expenseForm.employeeId,
+      employeeName: selectedEmp.name,
+      department: selectedEmp.department,
+      category: expenseForm.category,
+      subcategory: expenseForm.subcategory,
+      description: expenseForm.description,
+      amount: parseFloat(expenseForm.amount),
+      currency: 'USD',
+      date: expenseForm.date,
+      submittedDate: new Date().toISOString().split('T')[0],
+      status: 'pending',
+      paymentMethod: expenseForm.paymentMethod,
+      receipt: expenseForm.receipt,
+      approvedBy: null,
+      approvedDate: null,
+      reimbursedAmount: 0,
+      reimbursedDate: null,
+      notes: expenseForm.notes
+    };
+
+    setExpenses(prev => [...prev, newExpense]);
+    setShowAddExpense(false);
+    setExpenseForm({
+      employeeId: '',
+      category: '',
+      subcategory: '',
+      description: '',
+      amount: '',
+      date: '',
+      paymentMethod: 'Personal Card',
+      receipt: '',
+      notes: ''
+    });
+  };
+
+  const resetExpenseForm = () => {
+    setExpenseForm({
+      employeeId: '',
+      category: '',
+      subcategory: '',
+      description: '',
+      amount: '',
+      date: '',
+      paymentMethod: 'Personal Card',
+      receipt: '',
+      notes: ''
+    });
+    setShowAddExpense(false);
+  };
+
+  const handleGenerateReport = (reportType) => {
+    // In a real app, this would generate and download a report
+    alert(`${reportType} report generated successfully!`);
+  };
+
+  // Custom styles for modal animations
+  const modalStyles = `
+    @keyframes modalSlideIn {
+      0% {
+        opacity: 0;
+        transform: translateY(30px) scale(0.9);
+      }
+      50% {
+        opacity: 0.8;
+        transform: translateY(-5px) scale(1.02);
+      }
+      100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+    .modal-popup {
+      animation: modalSlideIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    .modal-backdrop {
+      animation: fadeIn 0.3s ease-out;
+    }
+    @keyframes fadeIn {
+      from { 
+        opacity: 0; 
+        backdrop-filter: blur(0px);
+      }
+      to { 
+        opacity: 1; 
+        backdrop-filter: blur(4px);
+      }
+    }
+    .modal-popup:hover {
+      transform: scale(1.01);
+      transition: transform 0.2s ease;
+    }
+  `;
+
   return (
-    <div className="p-6 bg-gray-50 min-h-screen">
+    <>
+      {/* Custom styles for modal animations */}
+      <style jsx>{modalStyles}</style>
+      
+      <div className="p-6 bg-gray-50 min-h-screen">
       {/* Header */}
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900 mb-2">Expense Management</h1>
@@ -485,14 +609,14 @@ const Expenses = () => {
                     placeholder="Search expenses..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-10 pr-4 py-2 border border-gray-300 rounded-md w-full focus:ring-blue-500 focus:border-blue-500"
+                    className="pl-10 pr-4 py-2 bg-white text-gray-900 placeholder-gray-500 border border-gray-300 rounded-md w-full focus:ring-blue-500 focus:border-blue-500"
                   />
                 </div>
               </div>
               <select
                 value={filterStatus}
                 onChange={(e) => setFilterStatus(e.target.value)}
-                className="px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                className="px-3 py-2 bg-white text-gray-900 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
               >
                 <option value="all">All Status</option>
                 <option value="pending">Pending</option>
@@ -503,7 +627,7 @@ const Expenses = () => {
               <select
                 value={filterCategory}
                 onChange={(e) => setFilterCategory(e.target.value)}
-                className="px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                className="px-3 py-2 bg-white text-gray-900 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
               >
                 <option value="all">All Categories</option>
                 {categories.map(cat => (
@@ -513,7 +637,7 @@ const Expenses = () => {
               <select
                 value={selectedEmployee}
                 onChange={(e) => setSelectedEmployee(e.target.value)}
-                className="px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                className="px-3 py-2 bg-white text-gray-900 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
               >
                 <option value="all">All Employees</option>
                 {employees.map(emp => (
@@ -662,14 +786,20 @@ const Expenses = () => {
               <div className="border border-gray-200 rounded-lg p-4">
                 <h4 className="font-medium text-gray-900 mb-2">Monthly Summary</h4>
                 <p className="text-sm text-gray-600">Generate monthly expense reports by department and category</p>
-                <button className="mt-3 px-4 py-2 bg-blue-600 text-white rounded-md text-sm hover:bg-blue-700">
+                <button 
+                  onClick={() => handleGenerateReport('Monthly Summary')}
+                  className="mt-3 px-4 py-2 bg-blue-600 text-white rounded-md text-sm hover:bg-blue-700"
+                >
                   Generate Report
                 </button>
               </div>
               <div className="border border-gray-200 rounded-lg p-4">
                 <h4 className="font-medium text-gray-900 mb-2">Employee Summary</h4>
                 <p className="text-sm text-gray-600">View individual employee expense summaries and trends</p>
-                <button className="mt-3 px-4 py-2 bg-blue-600 text-white rounded-md text-sm hover:bg-blue-700">
+                <button 
+                  onClick={() => handleGenerateReport('Employee Summary')}
+                  className="mt-3 px-4 py-2 bg-blue-600 text-white rounded-md text-sm hover:bg-blue-700"
+                >
                   Generate Report
                 </button>
               </div>
@@ -834,7 +964,221 @@ const Expenses = () => {
           </div>
         </div>
       )}
-    </div>
+
+      {/* Add Expense Modal */}
+      {showAddExpense && (
+        <div 
+          className="fixed inset-0 backdrop-blur-sm flex items-center justify-center p-4 z-50 modal-backdrop"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              resetExpenseForm();
+            }
+          }}
+        >
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto modal-popup">
+            <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 rounded-t-xl">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-xl font-semibold text-gray-900">Add New Expense</h3>
+                  <p className="text-sm text-gray-600 mt-1">Create a new expense entry</p>
+                </div>
+                <button
+                  onClick={resetExpenseForm}
+                  className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                >
+                  <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+            
+            <div className="p-6">
+              <form id="expense-form" onSubmit={handleAddExpense} className="space-y-6">
+                {/* Basic Information */}
+                <div className="bg-gray-50 rounded-lg p-4">
+                  <h4 className="text-lg font-medium text-gray-900 mb-4">Expense Information</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">
+                        Employee *
+                      </label>
+                      <select
+                        name="employeeId"
+                        value={expenseForm.employeeId}
+                        onChange={handleExpenseFormChange}
+                        required
+                        className="w-full px-4 py-3 text-gray-900 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                      >
+                        <option value="">Select Employee</option>
+                        {employees.map(employee => (
+                          <option key={employee.id} value={employee.id}>
+                            {employee.name} ({employee.department})
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">
+                        Category *
+                      </label>
+                      <select
+                        name="category"
+                        value={expenseForm.category}
+                        onChange={handleExpenseFormChange}
+                        required
+                        className="w-full px-4 py-3 text-gray-900 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                      >
+                        <option value="">Select Category</option>
+                        {categories.map(category => (
+                          <option key={category.name} value={category.name}>
+                            {category.name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">
+                        Subcategory *
+                      </label>
+                      <select
+                        name="subcategory"
+                        value={expenseForm.subcategory}
+                        onChange={handleExpenseFormChange}
+                        required
+                        className="w-full px-4 py-3 text-gray-900 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                      >
+                        <option value="">Select Subcategory</option>
+                        {expenseForm.category && categories.find(cat => cat.name === expenseForm.category)?.subcategories.map(sub => (
+                          <option key={sub} value={sub}>
+                            {sub}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">
+                        Amount *
+                      </label>
+                      <input
+                        type="number"
+                        name="amount"
+                        value={expenseForm.amount}
+                        onChange={handleExpenseFormChange}
+                        required
+                        step="0.01"
+                        min="0"
+                        placeholder="0.00"
+                        className="w-full px-4 py-3 text-gray-900 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">
+                        Date *
+                      </label>
+                      <input
+                        type="date"
+                        name="date"
+                        value={expenseForm.date}
+                        onChange={handleExpenseFormChange}
+                        required
+                        className="w-full px-4 py-3 text-gray-900 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">
+                        Payment Method *
+                      </label>
+                      <select
+                        name="paymentMethod"
+                        value={expenseForm.paymentMethod}
+                        onChange={handleExpenseFormChange}
+                        required
+                        className="w-full px-4 py-3 text-gray-900 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                      >
+                        <option value="Personal Card">Personal Card</option>
+                        <option value="Corporate Card">Corporate Card</option>
+                        <option value="Cash">Cash</option>
+                        <option value="Bank Transfer">Bank Transfer</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className="mt-4">
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      Description *
+                    </label>
+                    <textarea
+                      name="description"
+                      value={expenseForm.description}
+                      onChange={handleExpenseFormChange}
+                      required
+                      rows={3}
+                      placeholder="Describe the expense..."
+                      className="w-full px-4 py-3 text-gray-900 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors resize-none"
+                    />
+                  </div>
+
+                  <div className="mt-4">
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      Receipt File
+                    </label>
+                    <input
+                      type="text"
+                      name="receipt"
+                      value={expenseForm.receipt}
+                      onChange={handleExpenseFormChange}
+                      placeholder="e.g., receipt_001.pdf"
+                      className="w-full px-4 py-3 text-gray-900 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                    />
+                  </div>
+
+                  <div className="mt-4">
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      Notes
+                    </label>
+                    <textarea
+                      name="notes"
+                      value={expenseForm.notes}
+                      onChange={handleExpenseFormChange}
+                      rows={2}
+                      placeholder="Additional notes or comments..."
+                      className="w-full px-4 py-3 text-gray-900 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors resize-none"
+                    />
+                  </div>
+                </div>
+              </form>
+            </div>
+            
+            {/* Footer */}
+            <div className="sticky bottom-0 bg-white border-t border-gray-200 px-6 py-4 rounded-b-xl">
+              <div className="flex justify-end space-x-3">
+                <button
+                  type="button"
+                  onClick={resetExpenseForm}
+                  className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  form="expense-form"
+                  className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors"
+                >
+                  Add Expense
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+      </div>
+    </>
   );
 };
 

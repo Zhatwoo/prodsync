@@ -283,8 +283,8 @@ export default function OvertimeManagement() {
   const totalOvertimePay = overtimeRequests.reduce((sum, req) => sum + (req.payAmount || 0), 0);
 
   return (
-    <div className="p-6">
-      <div className="mb-6">
+    <div className="h-full">
+      <div className="p-6 mb-6">
         <div className="flex justify-between items-center">
           <div>
             <h2 className="text-2xl font-bold text-gray-900">Overtime Management</h2>
@@ -300,7 +300,7 @@ export default function OvertimeManagement() {
       </div>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+      <div className="px-6 grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
         <div className="bg-white border border-gray-200 rounded-lg p-6">
           <div className="flex items-center">
             <div className="p-2 bg-yellow-100 rounded-lg">
@@ -360,7 +360,7 @@ export default function OvertimeManagement() {
 
       {/* Add/Edit Form */}
       {isAddingNew && (
-        <div className="bg-white border border-gray-200 rounded-lg mb-6">
+        <div className="mx-6 bg-white border border-gray-200 rounded-lg mb-6">
           <div className="px-4 py-3 border-b border-gray-200 bg-gray-50">
             <h3 className="text-lg font-semibold text-gray-900">
               {editingRequest ? 'Edit Overtime Request' : 'Add New Overtime Request'}
@@ -488,7 +488,7 @@ export default function OvertimeManagement() {
       )}
 
       {/* Overtime Requests List */}
-      <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
+      <div className="mx-6 bg-white border border-gray-200 rounded-lg overflow-hidden">
         <div className="px-6 py-4 border-b border-gray-200 bg-gray-50">
           <h3 className="text-lg font-semibold text-gray-900">Overtime Requests</h3>
         </div>

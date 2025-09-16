@@ -185,7 +185,66 @@ export default function RoleManagement() {
   });
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
+    <>
+      <style jsx>{`
+        @keyframes modalSlideIn {
+          from {
+            opacity: 0;
+            transform: scale(0.7) translateY(-50px);
+          }
+          to {
+            opacity: 1;
+            transform: scale(1) translateY(0);
+          }
+        }
+        
+        @keyframes backdropFadeIn {
+          from {
+            opacity: 0;
+            backdrop-filter: blur(0px);
+          }
+          to {
+            opacity: 1;
+            backdrop-filter: blur(12px);
+          }
+        }
+        
+        @keyframes modalBounce {
+          0% {
+            opacity: 0;
+            transform: scale(0.3) translateY(-100px);
+          }
+          50% {
+            opacity: 0.8;
+            transform: scale(1.05) translateY(-10px);
+          }
+          100% {
+            opacity: 1;
+            transform: scale(1) translateY(0);
+          }
+        }
+        
+        .modal-animate {
+          animation: modalBounce 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+        
+        .backdrop-animate {
+          animation: backdropFadeIn 0.4s ease-out;
+        }
+        
+        .modal-enter {
+          opacity: 0;
+          transform: scale(0.7) translateY(-50px);
+        }
+        
+        .modal-enter-active {
+          opacity: 1;
+          transform: scale(1) translateY(0);
+          transition: all 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+      `}</style>
+      
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
       <div className="w-full px-0 sm:px-1 lg:px-2 xl:px-2 py-4">
         {/* Header Section */}
         <div className="mb-6 sm:mb-8">
@@ -333,7 +392,7 @@ export default function RoleManagement() {
                       placeholder="Search users..."
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
-                      className="pl-10 pr-4 py-2 sm:py-3 w-full border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white/50 backdrop-blur-sm text-sm sm:text-base"
+                      className="pl-10 pr-4 py-2 sm:py-3 w-full border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white/50 backdrop-blur-sm text-sm sm:text-base text-gray-900 placeholder-gray-500"
                     />
                     <svg className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -342,7 +401,7 @@ export default function RoleManagement() {
                   <select
                     value={filterRole}
                     onChange={(e) => setFilterRole(e.target.value)}
-                    className="px-3 sm:px-4 py-2 sm:py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white/50 backdrop-blur-sm text-sm sm:text-base min-w-0 sm:w-auto"
+                    className="px-3 sm:px-4 py-2 sm:py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white/50 backdrop-blur-sm text-sm sm:text-base min-w-0 sm:w-auto text-gray-900"
                   >
                     <option value="">All Roles</option>
                     {roles.map(role => (
@@ -590,8 +649,8 @@ export default function RoleManagement() {
 
         {/* Add Role Modal */}
         {showAddRoleModal && (
-          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-2 sm:p-4 z-50">
-            <div className="bg-white/95 backdrop-blur-sm rounded-2xl max-w-lg w-full max-h-[95vh] sm:max-h-[90vh] overflow-y-auto shadow-2xl border border-white/20 mx-2 sm:mx-4">
+          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-2 sm:p-4 z-50 backdrop-animate">
+            <div className="bg-white/95 backdrop-blur-sm rounded-2xl max-w-lg w-full max-h-[95vh] sm:max-h-[90vh] overflow-y-auto shadow-2xl border border-white/20 mx-2 sm:mx-4 modal-animate transform transition-all duration-300">
               <div className="p-4 sm:p-6">
                 <div className="flex items-center justify-between mb-6">
                   <h3 className="text-2xl font-bold text-gray-900">Add New Role</h3>
@@ -667,8 +726,8 @@ export default function RoleManagement() {
 
         {/* Edit Role Modal */}
         {showEditRoleModal && (
-          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-2 sm:p-4 z-50">
-            <div className="bg-white/95 backdrop-blur-sm rounded-2xl max-w-lg w-full max-h-[95vh] sm:max-h-[90vh] overflow-y-auto shadow-2xl border border-white/20 mx-2 sm:mx-4">
+          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-2 sm:p-4 z-50 backdrop-animate">
+            <div className="bg-white/95 backdrop-blur-sm rounded-2xl max-w-lg w-full max-h-[95vh] sm:max-h-[90vh] overflow-y-auto shadow-2xl border border-white/20 mx-2 sm:mx-4 modal-animate transform transition-all duration-300">
               <div className="p-4 sm:p-6">
                 <div className="flex items-center justify-between mb-6">
                   <h3 className="text-2xl font-bold text-gray-900">Edit Role</h3>
@@ -742,8 +801,8 @@ export default function RoleManagement() {
 
         {/* User Details Modal */}
         {selectedUser && (
-          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-2 sm:p-4 z-50">
-            <div className="bg-white/95 backdrop-blur-sm rounded-2xl max-w-md w-full shadow-2xl border border-white/20 mx-2 sm:mx-4">
+          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-2 sm:p-4 z-50 backdrop-animate">
+            <div className="bg-white/95 backdrop-blur-sm rounded-2xl max-w-md w-full shadow-2xl border border-white/20 mx-2 sm:mx-4 modal-animate transform transition-all duration-300">
               <div className="p-4 sm:p-6">
                 <div className="flex items-center justify-between mb-6">
                   <h3 className="text-2xl font-bold text-gray-900">User Details</h3>
@@ -808,8 +867,8 @@ export default function RoleManagement() {
 
         {/* Role Details Modal */}
         {showRoleDetailsModal && selectedRoleDetails && (
-          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-2 sm:p-4 z-50">
-            <div className="bg-white/95 backdrop-blur-sm rounded-2xl max-w-2xl w-full max-h-[95vh] sm:max-h-[90vh] overflow-y-auto shadow-2xl border border-white/20 mx-2 sm:mx-4">
+          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-2 sm:p-4 z-50 backdrop-animate">
+            <div className="bg-white/95 backdrop-blur-sm rounded-2xl max-w-2xl w-full max-h-[95vh] sm:max-h-[90vh] overflow-y-auto shadow-2xl border border-white/20 mx-2 sm:mx-4 modal-animate transform transition-all duration-300">
               <div className="p-4 sm:p-6">
                 <div className="flex items-center justify-between mb-6">
                   <h3 className="text-2xl font-bold text-gray-900">Role Details</h3>
@@ -922,8 +981,8 @@ export default function RoleManagement() {
 
         {/* Role Request Details Modal */}
         {showRequestDetailsModal && selectedRequest && (
-          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-2 sm:p-4 z-50">
-            <div className="bg-white/95 backdrop-blur-sm rounded-2xl max-w-2xl w-full max-h-[95vh] sm:max-h-[90vh] overflow-y-auto shadow-2xl border border-white/20 mx-2 sm:mx-4">
+          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-2 sm:p-4 z-50 backdrop-animate">
+            <div className="bg-white/95 backdrop-blur-sm rounded-2xl max-w-2xl w-full max-h-[95vh] sm:max-h-[90vh] overflow-y-auto shadow-2xl border border-white/20 mx-2 sm:mx-4 modal-animate transform transition-all duration-300">
               <div className="p-4 sm:p-6">
                 <div className="flex items-center justify-between mb-6">
                   <h3 className="text-2xl font-bold text-gray-900">Role Request Details</h3>
@@ -1042,5 +1101,6 @@ export default function RoleManagement() {
         )}
       </div>
     </div>
+    </>
   );
 }

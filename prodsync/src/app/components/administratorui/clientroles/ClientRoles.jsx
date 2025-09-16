@@ -8,6 +8,7 @@ export default function ClientRoles() {
   const [selectedSalesRep, setSelectedSalesRep] = useState('all');
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
+  const [showAddSalesRepModal, setShowAddSalesRepModal] = useState(false);
   const [selectedClient, setSelectedClient] = useState(null);
   const [error, setError] = useState('');
 
@@ -167,6 +168,15 @@ export default function ClientRoles() {
     status: 'Active'
   });
 
+  const [newSalesRep, setNewSalesRep] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    department: 'Sales Division',
+    position: '',
+    avatar: '👨‍💼'
+  });
+
   // Statistics
   const getStats = () => {
     const totalClients = clients.length;
@@ -238,6 +248,33 @@ export default function ClientRoles() {
     }
   };
 
+  const handleAddSalesRep = () => {
+    if (!newSalesRep.name || !newSalesRep.email || !newSalesRep.position) {
+      setError('Please fill in all required fields (Name, Email, Position)');
+      return;
+    }
+
+    const salesRep = {
+      id: salesReps.length + 1,
+      ...newSalesRep,
+      clientsCount: 0,
+      totalRevenue: '$0',
+      performance: 0
+    };
+
+    setSalesReps([...salesReps, salesRep]);
+    setNewSalesRep({
+      name: '',
+      email: '',
+      phone: '',
+      department: 'Sales Division',
+      position: '',
+      avatar: '👨‍💼'
+    });
+    setShowAddSalesRepModal(false);
+    setError('');
+  };
+
   const getStatusColor = (status) => {
     switch (status) {
       case 'Active': return 'bg-green-100 text-green-800';
@@ -259,6 +296,64 @@ export default function ClientRoles() {
 
   return (
     <>
+      <style jsx>{`
+        @keyframes modalSlideIn {
+          from {
+            opacity: 0;
+            transform: scale(0.7) translateY(-50px);
+          }
+          to {
+            opacity: 1;
+            transform: scale(1) translateY(0);
+          }
+        }
+        
+        @keyframes backdropFadeIn {
+          from {
+            opacity: 0;
+            backdrop-filter: blur(0px);
+          }
+          to {
+            opacity: 1;
+            backdrop-filter: blur(12px);
+          }
+        }
+        
+        @keyframes modalBounce {
+          0% {
+            opacity: 0;
+            transform: scale(0.3) translateY(-100px);
+          }
+          50% {
+            opacity: 0.8;
+            transform: scale(1.05) translateY(-10px);
+          }
+          100% {
+            opacity: 1;
+            transform: scale(1) translateY(0);
+          }
+        }
+        
+        .modal-animate {
+          animation: modalBounce 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+        
+        .backdrop-animate {
+          animation: backdropFadeIn 0.4s ease-out;
+        }
+        
+        .modal-enter {
+          opacity: 0;
+          transform: scale(0.7) translateY(-50px);
+        }
+        
+        .modal-enter-active {
+          opacity: 1;
+          transform: scale(1) translateY(0);
+          transition: all 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+      `}</style>
+      
         {/* Header */}
         <div className="p-6 mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Client Roles Management</h1>
@@ -432,7 +527,10 @@ export default function ClientRoles() {
               <div>
                 <div className="flex justify-between items-center mb-6">
                   <h3 className="text-lg font-semibold text-gray-900">Sales Representatives</h3>
-                  <button className="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors">
+                  <button 
+                    onClick={() => setShowAddSalesRepModal(true)}
+                    className="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors"
+                  >
                     Add Sales Rep
                   </button>
                 </div>
@@ -451,15 +549,15 @@ export default function ClientRoles() {
                       <div className="space-y-2 mb-4">
                         <div className="flex justify-between">
                           <span className="text-sm text-gray-600">Clients:</span>
-                          <span className="text-sm font-semibold">{rep.clientsCount}</span>
+                          <span className="text-sm font-semibold text-gray-900">{rep.clientsCount}</span>
                         </div>
                         <div className="flex justify-between">
                           <span className="text-sm text-gray-600">Revenue:</span>
-                          <span className="text-sm font-semibold">{rep.totalRevenue}</span>
+                          <span className="text-sm font-semibold text-gray-900">{rep.totalRevenue}</span>
                         </div>
                         <div className="flex justify-between">
                           <span className="text-sm text-gray-600">Performance:</span>
-                          <span className="text-sm font-semibold">{rep.performance}%</span>
+                          <span className="text-sm font-semibold text-gray-900">{rep.performance}%</span>
                         </div>
                       </div>
                       <div className="flex space-x-2">
@@ -486,14 +584,14 @@ export default function ClientRoles() {
                       placeholder="Search clients..."
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-gray-900 placeholder-gray-500"
                     />
                   </div>
                   <div className="sm:w-48">
                     <select
                       value={selectedSalesRep}
                       onChange={(e) => setSelectedSalesRep(e.target.value)}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-gray-900"
                     >
                       <option value="all">All Sales Reps</option>
                       {salesReps.map((rep) => (
@@ -584,7 +682,7 @@ export default function ClientRoles() {
                       type="text"
                       value={newClient.name}
                       onChange={(e) => setNewClient({...newClient, name: e.target.value})}
-                      className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                      className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-gray-900"
                     />
                   </div>
                   <div>
@@ -593,7 +691,7 @@ export default function ClientRoles() {
                       type="text"
                       value={newClient.industry}
                       onChange={(e) => setNewClient({...newClient, industry: e.target.value})}
-                      className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                      className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-gray-900"
                     />
                   </div>
                   <div>
@@ -602,7 +700,7 @@ export default function ClientRoles() {
                       type="text"
                       value={newClient.contactPerson}
                       onChange={(e) => setNewClient({...newClient, contactPerson: e.target.value})}
-                      className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                      className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-gray-900"
                     />
                   </div>
                   <div>
@@ -611,7 +709,7 @@ export default function ClientRoles() {
                       type="email"
                       value={newClient.email}
                       onChange={(e) => setNewClient({...newClient, email: e.target.value})}
-                      className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                      className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-gray-900"
                     />
                   </div>
                   <div>
@@ -620,7 +718,7 @@ export default function ClientRoles() {
                       type="tel"
                       value={newClient.phone}
                       onChange={(e) => setNewClient({...newClient, phone: e.target.value})}
-                      className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                      className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-gray-900"
                     />
                   </div>
                   <div>
@@ -628,7 +726,7 @@ export default function ClientRoles() {
                     <select
                       value={newClient.salesRepId}
                       onChange={(e) => setNewClient({...newClient, salesRepId: e.target.value})}
-                      className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                      className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-gray-900"
                     >
                       <option value="">Select Sales Rep</option>
                       {salesReps.map((rep) => (
@@ -649,6 +747,139 @@ export default function ClientRoles() {
                     className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors"
                   >
                     Add Client
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Add Sales Rep Modal */}
+        {showAddSalesRepModal && (
+          <div 
+            className="fixed inset-0 backdrop-blur-lg overflow-y-auto h-full w-full z-50 flex items-center justify-center p-4 backdrop-animate"
+            onClick={(e) => {
+              if (e.target === e.currentTarget) {
+                setShowAddSalesRepModal(false);
+              }
+            }}
+          >
+            <div className="relative mx-auto p-6 border w-11/12 md:w-3/4 lg:w-2/3 xl:w-1/2 shadow-2xl rounded-lg bg-white modal-animate transform transition-all duration-300">
+              <div className="mt-3">
+                <div className="flex items-center justify-between mb-6">
+                  <h3 className="text-xl font-semibold text-gray-900">Add New Sales Representative</h3>
+                  <button
+                    onClick={() => setShowAddSalesRepModal(false)}
+                    className="text-gray-400 hover:text-gray-600 transition-colors"
+                  >
+                    <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+                
+                <div className="space-y-6">
+                  {/* Basic Information */}
+                  <div className="bg-gray-50 p-4 rounded-lg">
+                    <h4 className="text-lg font-medium text-gray-900 mb-4">Basic Information</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Full Name <span className="text-red-500">*</span>
+                        </label>
+                        <input
+                          type="text"
+                          value={newSalesRep.name}
+                          onChange={(e) => setNewSalesRep({...newSalesRep, name: e.target.value})}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 text-gray-900"
+                          placeholder="e.g., John Smith"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Email Address <span className="text-red-500">*</span>
+                        </label>
+                        <input
+                          type="email"
+                          value={newSalesRep.email}
+                          onChange={(e) => setNewSalesRep({...newSalesRep, email: e.target.value})}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 text-gray-900"
+                          placeholder="e.g., john.smith@company.com"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
+                        <input
+                          type="tel"
+                          value={newSalesRep.phone}
+                          onChange={(e) => setNewSalesRep({...newSalesRep, phone: e.target.value})}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 text-gray-900"
+                          placeholder="e.g., +1 (555) 123-4567"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Position <span className="text-red-500">*</span>
+                        </label>
+                        <input
+                          type="text"
+                          value={newSalesRep.position}
+                          onChange={(e) => setNewSalesRep({...newSalesRep, position: e.target.value})}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 text-gray-900"
+                          placeholder="e.g., Sales Manager"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Department and Avatar */}
+                  <div className="bg-gray-50 p-4 rounded-lg">
+                    <h4 className="text-lg font-medium text-gray-900 mb-4">Additional Information</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Department</label>
+                        <select
+                          value={newSalesRep.department}
+                          onChange={(e) => setNewSalesRep({...newSalesRep, department: e.target.value})}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 text-gray-900"
+                        >
+                          <option value="Sales Division">Sales Division</option>
+                          <option value="Business Development">Business Development</option>
+                          <option value="Account Management">Account Management</option>
+                          <option value="Customer Success">Customer Success</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Avatar</label>
+                        <select
+                          value={newSalesRep.avatar}
+                          onChange={(e) => setNewSalesRep({...newSalesRep, avatar: e.target.value})}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 text-gray-900"
+                        >
+                          <option value="👨‍💼">👨‍💼 Business Professional</option>
+                          <option value="👩‍💼">👩‍💼 Business Professional</option>
+                          <option value="👨‍💻">👨‍💻 Tech Professional</option>
+                          <option value="👩‍💻">👩‍💻 Tech Professional</option>
+                          <option value="👨‍🎓">👨‍🎓 Graduate</option>
+                          <option value="👩‍🎓">👩‍🎓 Graduate</option>
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="mt-8 flex justify-end space-x-3">
+                  <button
+                    onClick={() => setShowAddSalesRepModal(false)}
+                    className="px-6 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleAddSalesRep}
+                    className="px-6 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 transition-colors"
+                  >
+                    Add Sales Rep
                   </button>
                 </div>
               </div>

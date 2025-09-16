@@ -180,7 +180,7 @@ export default function Reinversmentrequest() {
                 <span className="text-white text-2xl">🔄</span>
               </div>
               <div>
-                <h1 className="text-2xl font-bold text-gray-900">Reinvestment Request</h1>
+                <h1 className="text-2xl font-bold text-black">Reinvestment Request</h1>
                 <p className="text-gray-600">Submit your reinvestment request with supporting documents</p>
               </div>
             </div>
@@ -213,7 +213,7 @@ export default function Reinversmentrequest() {
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Employee Information */}
           <div className="bg-white rounded-xl shadow-lg border p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+            <h2 className="text-lg font-semibold text-black mb-4 flex items-center">
               <span className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center mr-3">
                 <span className="text-blue-600 text-lg">👤</span>
               </span>
@@ -230,8 +230,8 @@ export default function Reinversmentrequest() {
                   name="employeeName"
                   value={formData.employeeName}
                   onChange={handleInputChange}
-                  className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all ${
-                    errors.employeeName ? 'border-red-300 bg-red-50' : 'border-gray-300'
+                  className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-black placeholder-gray-500 ${
+                    errors.employeeName ? 'border-red-300 bg-red-50' : 'border-gray-300 bg-white'
                   }`}
                   placeholder="Enter your full name"
                 />
@@ -249,8 +249,8 @@ export default function Reinversmentrequest() {
                   name="employeeId"
                   value={formData.employeeId}
                   onChange={handleInputChange}
-                  className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all ${
-                    errors.employeeId ? 'border-red-300 bg-red-50' : 'border-gray-300'
+                  className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-black placeholder-gray-500 ${
+                    errors.employeeId ? 'border-red-300 bg-red-50' : 'border-gray-300 bg-white'
                   }`}
                   placeholder="Enter your employee ID"
                 />
@@ -267,13 +267,13 @@ export default function Reinversmentrequest() {
                   name="department"
                   value={formData.department}
                   onChange={handleInputChange}
-                  className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all ${
-                    errors.department ? 'border-red-300 bg-red-50' : 'border-gray-300'
+                  className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-black ${
+                    errors.department ? 'border-red-300 bg-red-50' : 'border-gray-300 bg-white'
                   }`}
                 >
-                  <option value="">Select Department</option>
+                  <option value="" className="text-gray-500 bg-white">Select Department</option>
                   {departments.map((dept) => (
-                    <option key={dept} value={dept}>{dept}</option>
+                    <option key={dept} value={dept} className="text-black bg-white">{dept}</option>
                   ))}
                 </select>
                 {errors.department && (
@@ -290,7 +290,7 @@ export default function Reinversmentrequest() {
                   name="requestDate"
                   value={formData.requestDate}
                   onChange={handleInputChange}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-black bg-white"
                 />
               </div>
             </div>
@@ -298,7 +298,7 @@ export default function Reinversmentrequest() {
 
           {/* Expense Information */}
           <div className="bg-white rounded-xl shadow-lg border p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+            <h2 className="text-lg font-semibold text-black mb-4 flex items-center">
               <span className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center mr-3">
                 <span className="text-green-600 text-lg">💰</span>
               </span>
@@ -317,8 +317,8 @@ export default function Reinversmentrequest() {
                     name="expenseAmount"
                     value={formData.expenseAmount}
                     onChange={handleInputChange}
-                    className={`w-full pl-8 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all ${
-                      errors.expenseAmount ? 'border-red-300 bg-red-50' : 'border-gray-300'
+                    className={`w-full pl-8 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-black placeholder-gray-500 ${
+                      errors.expenseAmount ? 'border-red-300 bg-red-50' : 'border-gray-300 bg-white'
                     }`}
                     placeholder="0.00"
                     min="0"
@@ -343,10 +343,10 @@ export default function Reinversmentrequest() {
                   name="priority"
                   value={formData.priority}
                   onChange={handleInputChange}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-black bg-white"
                 >
                   {priorities.map((priority) => (
-                    <option key={priority.value} value={priority.value}>
+                    <option key={priority.value} value={priority.value} className="text-black bg-white">
                       {priority.label}
                     </option>
                   ))}
@@ -357,7 +357,7 @@ export default function Reinversmentrequest() {
 
           {/* Reason and Description */}
           <div className="bg-white rounded-xl shadow-lg border p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+            <h2 className="text-lg font-semibold text-black mb-4 flex items-center">
               <span className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center mr-3">
                 <span className="text-purple-600 text-lg">📝</span>
               </span>
@@ -374,8 +374,8 @@ export default function Reinversmentrequest() {
                   value={formData.reason}
                   onChange={handleInputChange}
                   rows={3}
-                  className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all resize-none ${
-                    errors.reason ? 'border-red-300 bg-red-50' : 'border-gray-300'
+                  className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all resize-none text-black placeholder-gray-500 ${
+                    errors.reason ? 'border-red-300 bg-red-50' : 'border-gray-300 bg-white'
                   }`}
                   placeholder="Please explain why you need this reinvestment..."
                 />
@@ -393,8 +393,8 @@ export default function Reinversmentrequest() {
                   value={formData.description}
                   onChange={handleInputChange}
                   rows={4}
-                  className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all resize-none ${
-                    errors.description ? 'border-red-300 bg-red-50' : 'border-gray-300'
+                  className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all resize-none text-black placeholder-gray-500 ${
+                    errors.description ? 'border-red-300 bg-red-50' : 'border-gray-300 bg-white'
                   }`}
                   placeholder="Provide detailed information about the expense, including what was purchased, when, and how it benefits the company..."
                 />
@@ -407,7 +407,7 @@ export default function Reinversmentrequest() {
 
           {/* Receipt Upload */}
           <div className="bg-white rounded-xl shadow-lg border p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+            <h2 className="text-lg font-semibold text-black mb-4 flex items-center">
               <span className="w-8 h-8 bg-orange-100 rounded-lg flex items-center justify-center mr-3">
                 <span className="text-orange-600 text-lg">📄</span>
               </span>
