@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import AttendanceModal from './navbarmodal/Timecard';
 import DailyReportModal from './navbarmodal/DailyReport';
 import TaskScheduleModal from './navbarmodal/TaskSchedule';
@@ -15,6 +15,7 @@ export default function Navbar() {
   const [isTaskScheduleModalOpen, setIsTaskScheduleModalOpen] = useState(false);
   const [isApplicationFormModalOpen, setIsApplicationFormModalOpen] = useState(false);
   const pathname = usePathname();
+  const router = useRouter();
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
@@ -160,6 +161,32 @@ export default function Navbar() {
     setIsApplicationFormModalOpen(false);
   };
 
+  const handleLogout = async () => {
+    try {
+      // Clear any stored authentication data
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      sessionStorage.clear();
+      
+      // Clear any cookies if you're using them
+      document.cookie.split(";").forEach((c) => {
+        document.cookie = c
+          .replace(/^ +/, "")
+          .replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
+      });
+      
+      // Show logout confirmation
+      alert('You have been logged out successfully.');
+      
+      // Redirect to login page
+      router.push('/auth/login');
+    } catch (error) {
+      console.error('Logout error:', error);
+      // Still redirect even if there's an error
+      router.push('/auth/login');
+    }
+  };
+
   const navigationItems = [
     {
       name: 'Timecard',
@@ -270,18 +297,17 @@ export default function Navbar() {
               <span className="absolute top-1 right-1 block h-2 w-2 rounded-full bg-red-500 shadow-lg"></span>
             </button>
 
-            {/* User Menu */}
-            <div className="relative">
-              <button className="flex items-center text-sm rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 hover:bg-blue-50 p-2 transition-colors">
-                <span className="sr-only">Open user menu</span>
-                <div className="h-8 w-8 rounded-full bg-gradient-to-br from-blue-600 to-blue-800 flex items-center justify-center shadow-lg">
-                  <span className="text-white text-sm font-semibold">U</span>
-                </div>
-                <svg className="ml-2 w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            {/* Logout Button */}
+            <button
+              onClick={handleLogout}
+              className="flex items-center px-4 py-2 text-sm font-medium text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all duration-200 border border-gray-200 hover:border-red-200"
+              title="Logout"
+            >
+              <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
                 </svg>
+              Logout
               </button>
-            </div>
           </div>
 
           {/* Mobile menu button */}
@@ -343,40 +369,20 @@ export default function Navbar() {
                 )
               ))}
               
-              {/* Mobile User Section */}
+              {/* Mobile Logout Button */}
               <div className="pt-4 pb-3 border-t border-gray-200">
-                <div className="flex items-center px-3">
-                  <div className="h-10 w-10 rounded-full bg-gradient-to-br from-blue-600 to-blue-800 flex items-center justify-center shadow-lg">
-                    <span className="text-white text-sm font-semibold">U</span>
-                  </div>
-                  <div className="ml-3">
-                    <div className="text-base font-medium text-gray-900">User Name</div>
-                    <div className="text-sm font-medium text-gray-500">user@example.com</div>
-                  </div>
-                </div>
-                <div className="mt-3 px-2 space-y-1">
-                  <Link
-                    href="/profile"
-                    className="block px-3 py-2 rounded-lg text-base font-medium text-gray-600 hover:text-blue-600 hover:bg-blue-50 transition-colors"
-                    onClick={() => setIsMenuOpen(false)}
-                  >
-                    Your Profile
-                  </Link>
-                  <Link
-                    href="/settings"
-                    className="block px-3 py-2 rounded-lg text-base font-medium text-gray-600 hover:text-blue-600 hover:bg-blue-50 transition-colors"
-                    onClick={() => setIsMenuOpen(false)}
-                  >
-                    Settings
-                  </Link>
-                  <Link
-                    href="/auth/login"
-                    className="block px-3 py-2 rounded-lg text-base font-medium text-gray-600 hover:text-blue-600 hover:bg-blue-50 transition-colors"
-                    onClick={() => setIsMenuOpen(false)}
-                  >
-                    Sign out
-                  </Link>
-                </div>
+                <button
+                  onClick={() => {
+                    handleLogout();
+                    setIsMenuOpen(false);
+                  }}
+                  className="flex items-center w-full px-3 py-2 rounded-lg text-base font-medium text-gray-600 hover:text-red-600 hover:bg-red-50 transition-colors"
+                >
+                  <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                  </svg>
+                  Logout
+                </button>
               </div>
             </div>
           </div>

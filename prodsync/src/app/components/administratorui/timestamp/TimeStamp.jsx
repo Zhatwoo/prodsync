@@ -218,13 +218,13 @@ export default function TimeStamp() {
                 <span className="text-white text-2xl">⏱️</span>
               </div>
               <div>
-                <h1 className="text-2xl font-bold text-gray-900">Sales Agent Timestamp</h1>
+                <h1 className="text-2xl font-bold text-black">Sales Agent Timestamp</h1>
                 <p className="text-gray-600">Track your field activities and location for sales operations</p>
               </div>
             </div>
             <div className="hidden sm:flex flex-col items-end">
               <div className="text-sm text-gray-700">Current Time</div>
-              <div className="text-lg font-mono font-semibold text-gray-900">
+              <div className="text-lg font-mono font-semibold text-black">
                 {formatDateTime(currentTime)}
               </div>
             </div>
@@ -252,7 +252,7 @@ export default function TimeStamp() {
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Agent Information */}
           <div className="bg-white rounded-xl shadow-lg border p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+            <h2 className="text-lg font-semibold text-black mb-4 flex items-center">
               <span className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center mr-3">
                 <span className="text-blue-600 text-lg">👤</span>
               </span>
@@ -269,8 +269,8 @@ export default function TimeStamp() {
                   name="agentName"
                   value={formData.agentName}
                   onChange={handleInputChange}
-                  className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all ${
-                    errors.agentName ? 'border-red-300 bg-red-50' : 'border-gray-300'
+                  className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-black ${
+                    errors.agentName ? 'border-red-300 bg-red-50' : 'border-gray-300 bg-white'
                   }`}
                   placeholder="Enter your full name"
                 />
@@ -288,8 +288,8 @@ export default function TimeStamp() {
                   name="agentId"
                   value={formData.agentId}
                   onChange={handleInputChange}
-                  className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all ${
-                    errors.agentId ? 'border-red-300 bg-red-50' : 'border-gray-300'
+                  className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-black ${
+                    errors.agentId ? 'border-red-300 bg-red-50' : 'border-gray-300 bg-white'
                   }`}
                   placeholder="Enter your agent ID"
                 />
@@ -302,7 +302,7 @@ export default function TimeStamp() {
 
           {/* Location & Status */}
           <div className="bg-white rounded-xl shadow-lg border p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+            <h2 className="text-lg font-semibold text-black mb-4 flex items-center">
               <span className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center mr-3">
                 <span className="text-green-600 text-lg">📍</span>
               </span>
@@ -319,8 +319,8 @@ export default function TimeStamp() {
                   name="currentLocation"
                   value={formData.currentLocation}
                   onChange={handleInputChange}
-                  className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all ${
-                    errors.currentLocation ? 'border-red-300 bg-red-50' : 'border-gray-300'
+                  className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-black ${
+                    errors.currentLocation ? 'border-red-300 bg-red-50' : 'border-gray-300 bg-white'
                   }`}
                   placeholder="e.g., Makati City, Taguig, Quezon City"
                 />
@@ -337,13 +337,13 @@ export default function TimeStamp() {
                   name="status"
                   value={formData.status}
                   onChange={handleInputChange}
-                  className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all ${
-                    errors.status ? 'border-red-300 bg-red-50' : 'border-gray-300'
+                  className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-black ${
+                    errors.status ? 'border-red-300 bg-red-50' : 'border-gray-300 bg-white'
                   }`}
                 >
-                  <option value="">Select Status</option>
+                  <option value="" className="text-gray-500 bg-white">Select Status</option>
                   {statusOptions.map((status) => (
-                    <option key={status.value} value={status.value}>
+                    <option key={status.value} value={status.value} className="text-black bg-white">
                       {status.icon} {status.label}
                     </option>
                   ))}
@@ -366,8 +366,8 @@ export default function TimeStamp() {
                     name="clientName"
                     value={formData.clientName}
                     onChange={handleInputChange}
-                    className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all ${
-                      errors.clientName ? 'border-red-300 bg-red-50' : 'border-gray-300'
+                    className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-black ${
+                      errors.clientName ? 'border-red-300 bg-red-50' : 'border-gray-300 bg-white'
                     }`}
                     placeholder="Enter client name"
                   />
@@ -384,13 +384,13 @@ export default function TimeStamp() {
                     name="visitPurpose"
                     value={formData.visitPurpose}
                     onChange={handleInputChange}
-                    className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all ${
-                      errors.visitPurpose ? 'border-red-300 bg-red-50' : 'border-gray-300'
+                    className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-black ${
+                      errors.visitPurpose ? 'border-red-300 bg-red-50' : 'border-gray-300 bg-white'
                     }`}
                   >
-                    <option value="">Select Purpose</option>
+                    <option value="" className="text-gray-500 bg-white">Select Purpose</option>
                     {visitPurposes.map((purpose) => (
-                      <option key={purpose} value={purpose}>
+                      <option key={purpose} value={purpose} className="text-black bg-white">
                         {purpose}
                       </option>
                     ))}
@@ -405,7 +405,7 @@ export default function TimeStamp() {
 
           {/* Timestamp */}
           <div className="bg-white rounded-xl shadow-lg border p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+            <h2 className="text-lg font-semibold text-black mb-4 flex items-center">
               <span className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center mr-3">
                 <span className="text-purple-600 text-lg">🕐</span>
               </span>
@@ -422,8 +422,8 @@ export default function TimeStamp() {
                   name="timestamp"
                   value={formData.timestamp}
                   onChange={handleInputChange}
-                  className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all ${
-                    errors.timestamp ? 'border-red-300 bg-red-50' : 'border-gray-300'
+                  className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-black ${
+                    errors.timestamp ? 'border-red-300 bg-red-50' : 'border-gray-300 bg-white'
                   }`}
                 />
                 {errors.timestamp && (
@@ -442,7 +442,7 @@ export default function TimeStamp() {
 
           {/* Notes */}
           <div className="bg-white rounded-xl shadow-lg border p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+            <h2 className="text-lg font-semibold text-black mb-4 flex items-center">
               <span className="w-8 h-8 bg-yellow-100 rounded-lg flex items-center justify-center mr-3">
                 <span className="text-yellow-600 text-lg">📝</span>
               </span>
@@ -458,7 +458,7 @@ export default function TimeStamp() {
                 value={formData.notes}
                 onChange={handleInputChange}
                 rows={3}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all resize-none"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all resize-none text-black bg-white"
                 placeholder="Add any additional notes about your current activity..."
               />
             </div>
@@ -466,7 +466,7 @@ export default function TimeStamp() {
 
           {/* Photo Upload */}
           <div className="bg-white rounded-xl shadow-lg border p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+            <h2 className="text-lg font-semibold text-black mb-4 flex items-center">
               <span className="w-8 h-8 bg-orange-100 rounded-lg flex items-center justify-center mr-3">
                 <span className="text-orange-600 text-lg">📸</span>
               </span>

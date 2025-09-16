@@ -99,6 +99,24 @@ const Permits = () => {
     fetchPermits();
   }, []);
 
+  // Handle escape key to close modals
+  useEffect(() => {
+    const handleEscapeKey = (event) => {
+      if (event.key === 'Escape') {
+        if (showModal) {
+          resetForm();
+        } else if (viewMode) {
+          setViewMode(false);
+        }
+      }
+    };
+
+    if (showModal || viewMode) {
+      document.addEventListener('keydown', handleEscapeKey);
+      return () => document.removeEventListener('keydown', handleEscapeKey);
+    }
+  }, [showModal, viewMode]);
+
   const permitTypes = [
     { value: 'business', label: 'Business License', icon: BuildingOfficeIcon },
     { value: 'construction', label: 'Construction Permit', icon: DocumentTextIcon },
@@ -276,6 +294,61 @@ const Permits = () => {
 
   return (
     <>
+        <style jsx>{`
+          @keyframes modalSlideIn {
+            from {
+              opacity: 0;
+              transform: scale(0.8) translateY(-30px);
+            }
+            to {
+              opacity: 1;
+              transform: scale(1) translateY(0);
+            }
+          }
+          
+          @keyframes backdropFadeIn {
+            from {
+              backdrop-filter: blur(0px);
+            }
+            to {
+              backdrop-filter: blur(12px);
+            }
+          }
+          
+          .modal-animate {
+            animation: modalSlideIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+          }
+          
+          .backdrop-animate {
+            animation: backdropFadeIn 0.3s ease-out;
+          }
+          
+          /* Force text visibility */
+          input[type="text"], input[type="email"], input[type="tel"], input[type="number"], input[type="date"], select, textarea {
+            color: #111827 !important;
+            background-color: #ffffff !important;
+          }
+          
+          input::placeholder {
+            color: #6b7280 !important;
+          }
+          
+          select option {
+            color: #111827 !important;
+            background-color: #ffffff !important;
+          }
+          
+          /* Specific targeting for search and filters */
+          .search-input, .filter-select {
+            color: #111827 !important;
+            background-color: #ffffff !important;
+          }
+          
+          .search-input::placeholder {
+            color: #6b7280 !important;
+          }
+        `}</style>
+        
         {/* Header */}
         <div className="p-6 mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Permits Management</h1>
@@ -406,13 +479,25 @@ const Permits = () => {
                       return (
                         <div key={status.value} className="flex items-center justify-between">
                           <div className="flex items-center">
-                            <IconComponent className={`h-5 w-5 text-${status.color}-600 mr-3`} />
+                            <IconComponent className={`h-5 w-5 mr-3 ${
+                              status.color === 'yellow' ? 'text-yellow-600' :
+                              status.color === 'green' ? 'text-green-600' :
+                              status.color === 'red' ? 'text-red-600' :
+                              status.color === 'blue' ? 'text-blue-600' :
+                              'text-gray-600'
+                            }`} />
                             <span className="text-sm font-medium text-gray-900 capitalize">{status.label}</span>
                           </div>
                           <div className="flex items-center space-x-3">
                             <div className="w-20 bg-gray-200 rounded-full h-2">
                               <div 
-                                className={`bg-${status.color}-600 h-2 rounded-full`}
+                                className={`h-2 rounded-full ${
+                                  status.color === 'yellow' ? 'bg-yellow-600' :
+                                  status.color === 'green' ? 'bg-green-600' :
+                                  status.color === 'red' ? 'bg-red-600' :
+                                  status.color === 'blue' ? 'bg-blue-600' :
+                                  'bg-gray-600'
+                                }`}
                                 style={{ width: `${percentage}%` }}
                               ></div>
                             </div>
@@ -473,7 +558,8 @@ const Permits = () => {
                       placeholder="Search permits..."
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
-                      className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="search-input pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 placeholder-gray-500 bg-white"
+                      style={{ color: '#111827', backgroundColor: '#ffffff' }}
                     />
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                       <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -485,7 +571,8 @@ const Permits = () => {
                   <select
                     value={filterStatus}
                     onChange={(e) => setFilterStatus(e.target.value)}
-                    className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="filter-select px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 bg-white"
+                    style={{ color: '#111827', backgroundColor: '#ffffff' }}
                   >
                     <option value="all">All Status</option>
                     {statusOptions.slice(1).map(status => (
@@ -498,7 +585,8 @@ const Permits = () => {
                   <select
                     value={filterType}
                     onChange={(e) => setFilterType(e.target.value)}
-                    className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="filter-select px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 bg-white"
+                    style={{ color: '#111827', backgroundColor: '#ffffff' }}
                   >
                     <option value="all">All Types</option>
                     {permitTypes.map(type => (
@@ -567,7 +655,13 @@ const Permits = () => {
                               <div className="ml-4">
                                 <div className="flex items-center">
                                   <p className="text-sm font-medium text-gray-900">{permit.permitNumber}</p>
-                                  <span className={`ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-${statusColor}-100 text-${statusColor}-800`}>
+                                  <span className={`ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                                    statusColor === 'yellow' ? 'bg-yellow-100 text-yellow-800' :
+                                    statusColor === 'green' ? 'bg-green-100 text-green-800' :
+                                    statusColor === 'red' ? 'bg-red-100 text-red-800' :
+                                    statusColor === 'blue' ? 'bg-blue-100 text-blue-800' :
+                                    'bg-gray-100 text-gray-800'
+                                  }`}>
                                     <StatusIcon className="h-3 w-3 mr-1" />
                                     {permit.status}
                                   </span>
@@ -621,8 +715,15 @@ const Permits = () => {
 
         {/* Add/Edit Modal */}
         {showModal && (
-          <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-            <div className="relative top-20 mx-auto p-5 border w-11/12 md:w-3/4 lg:w-1/2 shadow-lg rounded-md bg-white">
+          <div 
+            className="fixed inset-0 backdrop-blur-lg overflow-y-auto h-full w-full z-50 flex items-center justify-center p-4 backdrop-animate"
+            onClick={(e) => {
+              if (e.target === e.currentTarget) {
+                resetForm();
+              }
+            }}
+          >
+            <div className="relative mx-auto p-5 border w-11/12 md:w-3/4 lg:w-1/2 shadow-2xl rounded-lg bg-white modal-animate">
               <div className="mt-3">
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-lg font-medium text-gray-900">
@@ -650,7 +751,7 @@ const Permits = () => {
                         value={formData.permitNumber}
                         onChange={handleInputChange}
                         disabled={!editingPermit}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 text-gray-900 placeholder-gray-500 bg-white"
                       />
                     </div>
 
@@ -663,7 +764,7 @@ const Permits = () => {
                         value={formData.permitType}
                         onChange={handleInputChange}
                         required
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 bg-white"
                       >
                         <option value="">Select Type</option>
                         {permitTypes.map(type => (
@@ -684,7 +785,7 @@ const Permits = () => {
                         value={formData.applicantName}
                         onChange={handleInputChange}
                         required
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 bg-white"
                       />
                     </div>
 
@@ -698,7 +799,7 @@ const Permits = () => {
                         value={formData.companyName}
                         onChange={handleInputChange}
                         required
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 bg-white"
                       />
                     </div>
 
@@ -712,7 +813,7 @@ const Permits = () => {
                         value={formData.contactEmail}
                         onChange={handleInputChange}
                         required
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 bg-white"
                       />
                     </div>
 
@@ -726,7 +827,7 @@ const Permits = () => {
                         value={formData.contactPhone}
                         onChange={handleInputChange}
                         required
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 bg-white"
                       />
                     </div>
 
@@ -740,7 +841,7 @@ const Permits = () => {
                         value={formData.applicationDate}
                         onChange={handleInputChange}
                         required
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 bg-white"
                       />
                     </div>
 
@@ -754,7 +855,7 @@ const Permits = () => {
                         value={formData.expiryDate}
                         onChange={handleInputChange}
                         required
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 bg-white"
                       />
                     </div>
 
@@ -769,7 +870,7 @@ const Permits = () => {
                         onChange={handleInputChange}
                         min="0"
                         step="0.01"
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 bg-white"
                       />
                     </div>
 
@@ -782,7 +883,7 @@ const Permits = () => {
                         value={formData.status}
                         onChange={handleInputChange}
                         required
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 bg-white"
                       >
                         {statusOptions.slice(1).map(status => (
                           <option key={status.value} value={status.value}>
@@ -803,7 +904,7 @@ const Permits = () => {
                       onChange={handleInputChange}
                       required
                       rows={2}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 bg-white"
                     />
                   </div>
 
@@ -817,7 +918,7 @@ const Permits = () => {
                       onChange={handleInputChange}
                       required
                       rows={3}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 bg-white"
                     />
                   </div>
 
@@ -830,7 +931,7 @@ const Permits = () => {
                       name="issuedBy"
                       value={formData.issuedBy}
                       onChange={handleInputChange}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 bg-white"
                     />
                   </div>
 
@@ -843,7 +944,7 @@ const Permits = () => {
                       value={formData.notes}
                       onChange={handleInputChange}
                       rows={2}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 bg-white"
                     />
                   </div>
 
@@ -870,8 +971,15 @@ const Permits = () => {
 
         {/* View Modal */}
         {viewMode && selectedPermit && (
-          <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-            <div className="relative top-20 mx-auto p-5 border w-11/12 md:w-3/4 lg:w-1/2 shadow-lg rounded-md bg-white">
+          <div 
+            className="fixed inset-0 backdrop-blur-lg overflow-y-auto h-full w-full z-50 flex items-center justify-center p-4 backdrop-animate"
+            onClick={(e) => {
+              if (e.target === e.currentTarget) {
+                setViewMode(false);
+              }
+            }}
+          >
+            <div className="relative mx-auto p-5 border w-11/12 md:w-3/4 lg:w-1/2 shadow-2xl rounded-lg bg-white modal-animate">
               <div className="mt-3">
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-lg font-medium text-gray-900">Permit Details</h3>
@@ -929,7 +1037,13 @@ const Permits = () => {
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700">Status</label>
-                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-${getStatusColor(selectedPermit.status)}-100 text-${getStatusColor(selectedPermit.status)}-800`}>
+                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                        getStatusColor(selectedPermit.status) === 'yellow' ? 'bg-yellow-100 text-yellow-800' :
+                        getStatusColor(selectedPermit.status) === 'green' ? 'bg-green-100 text-green-800' :
+                        getStatusColor(selectedPermit.status) === 'red' ? 'bg-red-100 text-red-800' :
+                        getStatusColor(selectedPermit.status) === 'blue' ? 'bg-blue-100 text-blue-800' :
+                        'bg-gray-100 text-gray-800'
+                      }`}>
                         {React.createElement(getStatusIcon(selectedPermit.status), {
                           className: "h-3 w-3 mr-1"
                         })}
