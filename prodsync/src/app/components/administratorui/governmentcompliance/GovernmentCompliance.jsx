@@ -46,6 +46,30 @@ const GovernmentCompliance = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  // Custom styles for modal animations
+  const modalStyles = `
+    @keyframes modalSlideIn {
+      from {
+        opacity: 0;
+        transform: translateY(20px) scale(0.95);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+    .modal-popup {
+      animation: modalSlideIn 0.3s ease-out;
+    }
+    .modal-backdrop {
+      animation: fadeIn 0.3s ease-out;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+  `;
+
   // Form state
   const [formData, setFormData] = useState({
     title: '',
@@ -272,6 +296,9 @@ const GovernmentCompliance = () => {
 
   return (
     <>
+      {/* Custom styles for modal animations */}
+      <style jsx>{modalStyles}</style>
+      
         {/* Header */}
         <div className="p-6 mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Government Compliance</h1>
@@ -482,7 +509,7 @@ const GovernmentCompliance = () => {
                       placeholder="Search compliance items..."
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
-                      className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="pl-10 pr-4 py-2 bg-white text-gray-900 placeholder-gray-500 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     />
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                       <MagnifyingGlassIcon className="h-5 w-5 text-gray-400" />
@@ -492,7 +519,7 @@ const GovernmentCompliance = () => {
                   <select
                     value={filterStatus}
                     onChange={(e) => setFilterStatus(e.target.value)}
-                    className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="px-4 py-2 bg-white text-gray-900 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   >
                     {statusOptions.map(status => (
                       <option key={status.value} value={status.value}>
@@ -504,7 +531,7 @@ const GovernmentCompliance = () => {
                   <select
                     value={filterCategory}
                     onChange={(e) => setFilterCategory(e.target.value)}
-                    className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="px-4 py-2 bg-white text-gray-900 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   >
                     {categories.map(category => (
                       <option key={category.value} value={category.value}>
@@ -708,236 +735,273 @@ const GovernmentCompliance = () => {
 
         {/* Add/Edit Modal */}
         {showModal && (
-          <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-            <div className="relative top-20 mx-auto p-5 border w-11/12 md:w-3/4 lg:w-1/2 shadow-lg rounded-md bg-white">
-              <div className="mt-3">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-lg font-medium text-gray-900">
-                    {editingItem ? 'Edit Compliance Item' : 'Add New Compliance Item'}
-                  </h3>
+          <div 
+            className="fixed inset-0 backdrop-blur-sm flex items-center justify-center p-4 z-50 modal-backdrop"
+            onClick={(e) => {
+              if (e.target === e.currentTarget) {
+                resetForm();
+              }
+            }}
+          >
+            <div className="bg-white rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto modal-popup">
+              <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 rounded-t-xl">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="text-xl font-semibold text-gray-900">
+                      {editingItem ? 'Edit Compliance Item' : 'Add New Compliance Item'}
+                    </h3>
+                    <p className="text-sm text-gray-600 mt-1">
+                      {editingItem ? 'Update compliance item information' : 'Create a new government compliance requirement'}
+                    </p>
+                  </div>
                   <button
                     onClick={resetForm}
-                    className="text-gray-400 hover:text-gray-600"
+                    className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
                   >
                     <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                     </svg>
                   </button>
                 </div>
+              </div>
+              
+              <div className="p-6">
 
-                <form onSubmit={handleSubmit} className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Title
-                      </label>
-                      <input
-                        type="text"
-                        name="title"
-                        value={formData.title}
-                        onChange={handleInputChange}
-                        required
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      />
-                    </div>
+                <form id="compliance-form" onSubmit={handleSubmit} className="space-y-6">
+                  {/* Basic Information Section */}
+                  <div className="bg-gray-50 rounded-lg p-4">
+                    <h4 className="text-lg font-medium text-gray-900 mb-4">Basic Information</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">
+                          Title *
+                        </label>
+                        <input
+                          type="text"
+                          name="title"
+                          value={formData.title}
+                          onChange={handleInputChange}
+                          required
+                          placeholder="e.g., Annual Tax Filing"
+                          className="w-full px-4 py-3 text-gray-900 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                        />
+                      </div>
 
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Category
-                      </label>
-                      <select
-                        name="category"
-                        value={formData.category}
-                        onChange={handleInputChange}
-                        required
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      >
-                        <option value="">Select Category</option>
-                        {categories.slice(1).map(category => (
-                          <option key={category.value} value={category.value}>
-                            {category.label}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">
+                          Category *
+                        </label>
+                        <select
+                          name="category"
+                          value={formData.category}
+                          onChange={handleInputChange}
+                          required
+                          className="w-full px-4 py-3 text-gray-900 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                        >
+                          <option value="">Select Category</option>
+                          {categories.slice(1).map(category => (
+                            <option key={category.value} value={category.value}>
+                              {category.label}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
 
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Agency
-                      </label>
-                      <input
-                        type="text"
-                        name="agency"
-                        value={formData.agency}
-                        onChange={handleInputChange}
-                        required
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      />
-                    </div>
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">
+                          Agency *
+                        </label>
+                        <input
+                          type="text"
+                          name="agency"
+                          value={formData.agency}
+                          onChange={handleInputChange}
+                          required
+                          placeholder="e.g., BIR, DOLE, DENR"
+                          className="w-full px-4 py-3 text-gray-900 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                        />
+                      </div>
 
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Regulation
-                      </label>
-                      <input
-                        type="text"
-                        name="regulation"
-                        value={formData.regulation}
-                        onChange={handleInputChange}
-                        required
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      />
-                    </div>
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">
+                          Regulation *
+                        </label>
+                        <input
+                          type="text"
+                          name="regulation"
+                          value={formData.regulation}
+                          onChange={handleInputChange}
+                          required
+                          placeholder="e.g., RA 8424, Labor Code"
+                          className="w-full px-4 py-3 text-gray-900 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                        />
+                      </div>
 
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Due Date
-                      </label>
-                      <input
-                        type="date"
-                        name="dueDate"
-                        value={formData.dueDate}
-                        onChange={handleInputChange}
-                        required
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      />
-                    </div>
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">
+                          Due Date *
+                        </label>
+                        <input
+                          type="date"
+                          name="dueDate"
+                          value={formData.dueDate}
+                          onChange={handleInputChange}
+                          required
+                          className="w-full px-4 py-3 text-gray-900 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                        />
+                      </div>
 
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Status
-                      </label>
-                      <select
-                        name="status"
-                        value={formData.status}
-                        onChange={handleInputChange}
-                        required
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      >
-                        {statusOptions.slice(1).map(status => (
-                          <option key={status.value} value={status.value}>
-                            {status.label}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">
+                          Status *
+                        </label>
+                        <select
+                          name="status"
+                          value={formData.status}
+                          onChange={handleInputChange}
+                          required
+                          className="w-full px-4 py-3 text-gray-900 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                        >
+                          {statusOptions.slice(1).map(status => (
+                            <option key={status.value} value={status.value}>
+                              {status.label}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
 
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Priority
-                      </label>
-                      <select
-                        name="priority"
-                        value={formData.priority}
-                        onChange={handleInputChange}
-                        required
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      >
-                        {priorityOptions.map(priority => (
-                          <option key={priority.value} value={priority.value}>
-                            {priority.label}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">
+                          Priority *
+                        </label>
+                        <select
+                          name="priority"
+                          value={formData.priority}
+                          onChange={handleInputChange}
+                          required
+                          className="w-full px-4 py-3 text-gray-900 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                        >
+                          {priorityOptions.map(priority => (
+                            <option key={priority.value} value={priority.value}>
+                              {priority.label}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
 
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Responsible Person
-                      </label>
-                      <input
-                        type="text"
-                        name="responsiblePerson"
-                        value={formData.responsiblePerson}
-                        onChange={handleInputChange}
-                        required
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      />
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">
+                          Responsible Person *
+                        </label>
+                        <input
+                          type="text"
+                          name="responsiblePerson"
+                          value={formData.responsiblePerson}
+                          onChange={handleInputChange}
+                          required
+                          placeholder="e.g., John Doe"
+                          className="w-full px-4 py-3 text-gray-900 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                        />
+                      </div>
                     </div>
                   </div>
 
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Description
-                    </label>
-                    <textarea
-                      name="description"
-                      value={formData.description}
-                      onChange={handleInputChange}
-                      required
-                      rows={3}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    />
-                  </div>
+                  {/* Additional Details Section */}
+                  <div className="bg-gray-50 rounded-lg p-4">
+                    <h4 className="text-lg font-medium text-gray-900 mb-4">Additional Details</h4>
+                    <div className="space-y-4">
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">
+                          Description *
+                        </label>
+                        <textarea
+                          name="description"
+                          value={formData.description}
+                          onChange={handleInputChange}
+                          required
+                          rows={3}
+                          placeholder="Describe the compliance requirement..."
+                          className="w-full px-4 py-3 text-gray-900 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors resize-none"
+                        />
+                      </div>
 
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Contact Information
-                    </label>
-                    <input
-                      type="text"
-                      name="contactInfo"
-                      value={formData.contactInfo}
-                      onChange={handleInputChange}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    />
-                  </div>
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">
+                          Contact Information
+                        </label>
+                        <input
+                          type="text"
+                          name="contactInfo"
+                          value={formData.contactInfo}
+                          onChange={handleInputChange}
+                          placeholder="e.g., email@agency.gov.ph, (02) 123-4567"
+                          className="w-full px-4 py-3 text-gray-900 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                        />
+                      </div>
 
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Document URL
-                    </label>
-                    <input
-                      type="url"
-                      name="documentUrl"
-                      value={formData.documentUrl}
-                      onChange={handleInputChange}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    />
-                  </div>
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">
+                          Document URL
+                        </label>
+                        <input
+                          type="url"
+                          name="documentUrl"
+                          value={formData.documentUrl}
+                          onChange={handleInputChange}
+                          placeholder="https://example.com/document.pdf"
+                          className="w-full px-4 py-3 text-gray-900 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                        />
+                      </div>
 
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Notes
-                    </label>
-                    <textarea
-                      name="notes"
-                      value={formData.notes}
-                      onChange={handleInputChange}
-                      rows={2}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    />
-                  </div>
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">
+                          Notes
+                        </label>
+                        <textarea
+                          name="notes"
+                          value={formData.notes}
+                          onChange={handleInputChange}
+                          rows={2}
+                          placeholder="Additional notes or comments..."
+                          className="w-full px-4 py-3 text-gray-900 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors resize-none"
+                        />
+                      </div>
 
-                  <div className="flex items-center">
-                    <input
-                      type="checkbox"
-                      name="isActive"
-                      checked={formData.isActive}
-                      onChange={handleInputChange}
-                      className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                    />
-                    <label className="ml-2 block text-sm text-gray-700">
-                      Active Compliance Item
-                    </label>
-                  </div>
-
-                  <div className="flex justify-end space-x-3 pt-4">
-                    <button
-                      type="button"
-                      onClick={resetForm}
-                      className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      type="submit"
-                      className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-                    >
-                      {editingItem ? 'Update Item' : 'Add Item'}
-                    </button>
+                      <div className="flex items-center">
+                        <input
+                          type="checkbox"
+                          name="isActive"
+                          checked={formData.isActive}
+                          onChange={handleInputChange}
+                          className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                        />
+                        <label className="ml-2 block text-sm font-medium text-gray-700">
+                          Active Compliance Item
+                        </label>
+                      </div>
+                    </div>
                   </div>
                 </form>
+              </div>
+              
+              {/* Footer */}
+              <div className="sticky bottom-0 bg-white border-t border-gray-200 px-6 py-4 rounded-b-xl">
+                <div className="flex justify-end space-x-3">
+                  <button
+                    type="button"
+                    onClick={resetForm}
+                    className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    form="compliance-form"
+                    className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors"
+                  >
+                    {editingItem ? 'Update Item' : 'Add Item'}
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -945,20 +1009,33 @@ const GovernmentCompliance = () => {
 
         {/* View Modal */}
         {viewMode && selectedItem && (
-          <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-            <div className="relative top-20 mx-auto p-5 border w-11/12 md:w-3/4 lg:w-1/2 shadow-lg rounded-md bg-white">
-              <div className="mt-3">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-lg font-medium text-gray-900">Compliance Item Details</h3>
+          <div 
+            className="fixed inset-0 backdrop-blur-sm flex items-center justify-center p-4 z-50 modal-backdrop"
+            onClick={(e) => {
+              if (e.target === e.currentTarget) {
+                setViewMode(false);
+              }
+            }}
+          >
+            <div className="bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto modal-popup">
+              <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 rounded-t-xl">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="text-xl font-semibold text-gray-900">Compliance Item Details</h3>
+                    <p className="text-sm text-gray-600 mt-1">View compliance requirement information</p>
+                  </div>
                   <button
                     onClick={() => setViewMode(false)}
-                    className="text-gray-400 hover:text-gray-600"
+                    className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
                   >
                     <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                     </svg>
                   </button>
                 </div>
+              </div>
+              
+              <div className="p-6">
 
                 <div className="space-y-4">
                   <div className="flex items-center space-x-3">
@@ -1031,10 +1108,14 @@ const GovernmentCompliance = () => {
                   )}
                 </div>
 
-                <div className="flex justify-end space-x-3 pt-4">
+              </div>
+              
+              {/* Footer */}
+              <div className="sticky bottom-0 bg-white border-t border-gray-200 px-6 py-4 rounded-b-xl">
+                <div className="flex justify-end space-x-3">
                   <button
                     onClick={() => setViewMode(false)}
-                    className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
+                    className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-colors"
                   >
                     Close
                   </button>
@@ -1043,7 +1124,7 @@ const GovernmentCompliance = () => {
                       setViewMode(false);
                       handleEdit(selectedItem);
                     }}
-                    className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                    className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors"
                   >
                     Edit Item
                   </button>

@@ -138,6 +138,20 @@ export default function TimeTracking() {
     setTimeEntries(prev => [newEntry, ...prev]);
   };
 
+  const handleViewEntry = (entry) => {
+    alert(`Viewing time entry details:\nEmployee: ${entry.employeeName}\nProject: ${entry.project}\nDuration: ${entry.duration}h\nDate: ${entry.date}`);
+  };
+
+  const handleEditEntry = (entry) => {
+    alert(`Editing time entry for ${entry.employeeName} - ${entry.project} (${entry.duration}h)`);
+  };
+
+  const handleDeleteEntry = (entry) => {
+    if (confirm(`Are you sure you want to delete this time entry for ${entry.employeeName}?`)) {
+      setTimeEntries(prev => prev.filter(e => e.id !== entry.id));
+    }
+  };
+
   const getStatusColor = (status) => {
     switch (status) {
       case 'Completed': return 'bg-green-100 text-green-800';
@@ -151,8 +165,8 @@ export default function TimeTracking() {
   const activeEntries = timeEntries.filter(entry => entry.status === 'In Progress').length;
 
   return (
-    <div className="p-6">
-      <div className="mb-6">
+    <div className="h-full">
+      <div className="p-6 mb-6">
         <div className="flex justify-between items-center">
           <div>
             <h2 className="text-2xl font-bold text-gray-900">Time Tracking</h2>
@@ -172,7 +186,7 @@ export default function TimeTracking() {
       </div>
 
       {/* Time Tracker */}
-      <div className="bg-white border border-gray-200 rounded-lg mb-6">
+      <div className="mx-6 bg-white border border-gray-200 rounded-lg mb-6">
         <div className="px-4 py-3 border-b border-gray-200 bg-gray-50">
           <h3 className="text-lg font-semibold text-gray-900">Time Tracker</h3>
         </div>
@@ -236,7 +250,7 @@ export default function TimeTracking() {
       </div>
 
       {/* Time Entries */}
-      <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
+      <div className="mx-6 bg-white border border-gray-200 rounded-lg overflow-hidden">
         <div className="px-6 py-4 border-b border-gray-200 bg-gray-50">
           <h3 className="text-lg font-semibold text-gray-900">Time Entries</h3>
         </div>
@@ -288,9 +302,24 @@ export default function TimeTracking() {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                     <div className="flex space-x-2">
-                      <button className="text-blue-600 hover:text-blue-900">View</button>
-                      <button className="text-green-600 hover:text-green-900">Edit</button>
-                      <button className="text-red-600 hover:text-red-900">Delete</button>
+                      <button 
+                        onClick={() => handleViewEntry(entry)}
+                        className="text-blue-600 hover:text-blue-900"
+                      >
+                        View
+                      </button>
+                      <button 
+                        onClick={() => handleEditEntry(entry)}
+                        className="text-green-600 hover:text-green-900"
+                      >
+                        Edit
+                      </button>
+                      <button 
+                        onClick={() => handleDeleteEntry(entry)}
+                        className="text-red-600 hover:text-red-900"
+                      >
+                        Delete
+                      </button>
                     </div>
                   </td>
                 </tr>
@@ -301,7 +330,7 @@ export default function TimeTracking() {
       </div>
 
       {/* Summary */}
-      <div className="mt-6 bg-purple-50 rounded-lg p-4">
+      <div className="mx-6 mt-6 bg-purple-50 rounded-lg p-4">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-center">
           <div>
             <div className="text-2xl font-bold text-purple-600">{timeEntries.length}</div>

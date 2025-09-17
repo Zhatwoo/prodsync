@@ -147,7 +147,7 @@ export default function SalesSidebar({ isCollapsed, onToggleCollapse }) {
       isCollapsed ? 'w-14 sm:w-16' : 'w-60 sm:w-64 md:w-72'
     }`}>
       {/* Sidebar Header */}
-      <div className="flex items-center justify-between h-14 sm:h-16 md:h-20 px-1 sm:px-2 md:px-3 border-b border-gray-200 bg-white">
+      <div className="relative flex items-center h-14 sm:h-16 px-1 sm:px-2 md:px-3 border-b border-gray-200 bg-white">
         {!isCollapsed && (
           <div className="flex items-center space-x-1 sm:space-x-2 md:space-x-3">
             <div className="w-7 h-7 sm:w-8 sm:h-8 md:w-10 md:h-10 bg-gradient-to-r from-emerald-500 to-emerald-600 rounded-lg sm:rounded-xl flex items-center justify-center">
@@ -156,8 +156,7 @@ export default function SalesSidebar({ isCollapsed, onToggleCollapse }) {
               </svg>
             </div>
             <div className="hidden sm:block">
-              <h1 className="text-sm sm:text-base md:text-lg lg:text-xl font-bold text-gray-900">Sales Portal</h1>
-              <p className="text-xs text-gray-500">Sales Dashboard</p>
+              <h1 className="text-sm sm:text-base md:text-lg lg:text-xl font-bold text-gray-900 whitespace-nowrap">Sales Portal</h1>
             </div>
           </div>
         )}
@@ -177,10 +176,11 @@ export default function SalesSidebar({ isCollapsed, onToggleCollapse }) {
           }
           position="cursor"
         >
-          <button
-            onClick={toggleSidebar}
-            className="p-1 sm:p-1.5 rounded-lg text-gray-500 hover:text-gray-700 hover:bg-gray-100 transition-all duration-200 flex-shrink-0"
-          >
+           <button
+             onClick={toggleSidebar}
+             className="absolute p-1 sm:p-1.5 rounded-lg text-gray-500 hover:text-gray-700 hover:bg-gray-100 transition-all duration-200 flex-shrink-0"
+             style={{ right: '20%', top: '80%', transform: 'translate(50%, -50%)' }}
+           >
             <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
             </svg>
@@ -397,17 +397,9 @@ export default function SalesSidebar({ isCollapsed, onToggleCollapse }) {
       {/* User Profile Section */}
       <div className="flex-shrink-0 p-1 sm:p-2 border-t border-gray-200 bg-white">
         <div className="flex items-center">
-          <div className="w-7 h-7 sm:w-8 sm:h-8 bg-gradient-to-r from-emerald-500 to-emerald-600 rounded-lg flex items-center justify-center flex-shrink-0">
-            <span className="text-white text-xs font-bold">SL</span>
-          </div>
           {!isCollapsed && (
-            <div className="ml-1.5 sm:ml-2 md:ml-3 flex-1 min-w-0">
-              <p className="text-xs sm:text-sm font-semibold text-gray-900 truncate">Sales Lead</p>
-              <p className="text-xs text-gray-700 truncate">sales@company.com</p>
-              <div className="flex items-center mt-0.5 sm:mt-1">
-                <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-green-400 rounded-full mr-1 sm:mr-1.5 md:mr-2 flex-shrink-0"></div>
-                <span className="text-xs text-green-600 font-medium">Online</span>
-              </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-xs sm:text-sm text-gray-700 truncate">sales@company.com</p>
             </div>
           )}
         </div>

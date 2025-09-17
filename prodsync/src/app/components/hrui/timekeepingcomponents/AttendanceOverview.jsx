@@ -107,6 +107,68 @@ export default function AttendanceOverview() {
     }, 1000);
   };
 
+  const handleExportReport = () => {
+    // Generate and download attendance report
+    const reportData = {
+      date: selectedDate,
+      totalEmployees,
+      presentEmployees,
+      absentEmployees,
+      lateEmployees,
+      attendanceRate,
+      data: attendanceData
+    };
+    
+    const blob = new Blob([JSON.stringify(reportData, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `attendance-report-${selectedDate}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
+  const handleViewEmployee = (employee) => {
+    alert(`Viewing details for ${employee.employeeName} (${employee.employeeId})`);
+  };
+
+  const handleEditEmployee = (employee) => {
+    alert(`Editing attendance for ${employee.employeeName} (${employee.employeeId})`);
+  };
+
+  const handleEmployeeReport = (employee) => {
+    alert(`Generating report for ${employee.employeeName} (${employee.employeeId})`);
+  };
+
+  const handleBulkCheckin = () => {
+    const selectedEmployees = attendanceData.filter(emp => emp.status === 'Absent');
+    if (selectedEmployees.length === 0) {
+      alert('No absent employees to check in');
+      return;
+    }
+    alert(`Bulk check-in initiated for ${selectedEmployees.length} absent employees`);
+  };
+
+  const handleApproveOvertime = () => {
+    const overtimeEmployees = attendanceData.filter(emp => emp.overtimeHours > 0);
+    if (overtimeEmployees.length === 0) {
+      alert('No overtime to approve');
+      return;
+    }
+    alert(`Approving overtime for ${overtimeEmployees.length} employees`);
+  };
+
+  const handleSendReminders = () => {
+    const lateEmployees = attendanceData.filter(emp => emp.lateMinutes > 0);
+    if (lateEmployees.length === 0) {
+      alert('No late employees to remind');
+      return;
+    }
+    alert(`Sending reminders to ${lateEmployees.length} late employees`);
+  };
+
   const getStatusColor = (status) => {
     switch (status) {
       case 'Present': return 'bg-green-100 text-green-800';
@@ -124,8 +186,8 @@ export default function AttendanceOverview() {
   const attendanceRate = totalEmployees > 0 ? Math.round((presentEmployees / totalEmployees) * 100) : 0;
 
   return (
-    <div className="p-6">
-      <div className="mb-6">
+    <div className="h-full">
+      <div className="p-6 mb-6">
         <div className="flex justify-between items-center">
           <div>
             <h2 className="text-2xl font-bold text-gray-900">Attendance Overview</h2>
@@ -138,7 +200,10 @@ export default function AttendanceOverview() {
               onChange={(e) => handleDateChange(e.target.value)}
               className="px-3 py-2 text-gray-900 bg-white border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
             />
-            <button className="bg-purple-600 text-white px-4 py-2 rounded-md hover:bg-purple-700 transition-colors">
+            <button 
+              onClick={handleExportReport}
+              className="bg-purple-600 text-white px-4 py-2 rounded-md hover:bg-purple-700 transition-colors"
+            >
               Export Report
             </button>
           </div>
@@ -146,7 +211,7 @@ export default function AttendanceOverview() {
       </div>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+      <div className="px-6 grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
         <div className="bg-white border border-gray-200 rounded-lg p-6">
           <div className="flex items-center">
             <div className="p-2 bg-green-100 rounded-lg">
@@ -205,7 +270,7 @@ export default function AttendanceOverview() {
       </div>
 
       {/* Attendance Table */}
-      <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
+      <div className="mx-6 bg-white border border-gray-200 rounded-lg overflow-hidden">
         <div className="px-6 py-4 border-b border-gray-200 bg-gray-50">
           <h3 className="text-lg font-semibold text-gray-900">
             Daily Attendance - {new Date(selectedDate).toLocaleDateString()}
@@ -272,9 +337,24 @@ export default function AttendanceOverview() {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                       <div className="flex space-x-2">
-                        <button className="text-blue-600 hover:text-blue-900">View</button>
-                        <button className="text-green-600 hover:text-green-900">Edit</button>
-                        <button className="text-purple-600 hover:text-purple-900">Report</button>
+                        <button 
+                          onClick={() => handleViewEmployee(employee)}
+                          className="text-blue-600 hover:text-blue-900"
+                        >
+                          View
+                        </button>
+                        <button 
+                          onClick={() => handleEditEmployee(employee)}
+                          className="text-green-600 hover:text-green-900"
+                        >
+                          Edit
+                        </button>
+                        <button 
+                          onClick={() => handleEmployeeReport(employee)}
+                          className="text-purple-600 hover:text-purple-900"
+                        >
+                          Report
+                        </button>
                       </div>
                     </td>
                   </tr>
@@ -286,20 +366,29 @@ export default function AttendanceOverview() {
       </div>
 
       {/* Quick Actions */}
-      <div className="mt-6 bg-purple-50 rounded-lg p-4">
+      <div className="mx-6 mt-6 bg-purple-50 rounded-lg p-4">
         <div className="flex justify-between items-center">
           <div>
             <h3 className="text-lg font-semibold text-gray-900">Quick Actions</h3>
             <p className="text-sm text-gray-600">Common attendance management tasks</p>
           </div>
           <div className="flex space-x-3">
-            <button className="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition-colors">
+            <button 
+              onClick={handleBulkCheckin}
+              className="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition-colors"
+            >
               Bulk Check-in
             </button>
-            <button className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors">
+            <button 
+              onClick={handleApproveOvertime}
+              className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
+            >
               Approve Overtime
             </button>
-            <button className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors">
+            <button 
+              onClick={handleSendReminders}
+              className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+            >
               Send Reminders
             </button>
           </div>

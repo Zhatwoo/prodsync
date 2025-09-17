@@ -26,6 +26,62 @@ const AccountPayables = () => {
   const [showAddVendor, setShowAddVendor] = useState(false);
   const [showAddInvoice, setShowAddInvoice] = useState(false);
   const [selectedInvoice, setSelectedInvoice] = useState(null);
+  const [invoiceForm, setInvoiceForm] = useState({
+    vendorId: '',
+    invoiceNumber: '',
+    date: '',
+    dueDate: '',
+    amount: '',
+    description: '',
+    category: ''
+  });
+  const [vendorForm, setVendorForm] = useState({
+    name: '',
+    contact: '',
+    email: '',
+    phone: '',
+    address: '',
+    taxId: '',
+    paymentTerms: 'Net 30'
+  });
+
+  // Custom styles for modal animations
+  const modalStyles = `
+    @keyframes modalSlideIn {
+      0% {
+        opacity: 0;
+        transform: translateY(30px) scale(0.9);
+      }
+      50% {
+        opacity: 0.8;
+        transform: translateY(-5px) scale(1.02);
+      }
+      100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+    .modal-popup {
+      animation: modalSlideIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    .modal-backdrop {
+      animation: fadeIn 0.3s ease-out;
+    }
+    @keyframes fadeIn {
+      from { 
+        opacity: 0; 
+        backdrop-filter: blur(0px);
+      }
+      to { 
+        opacity: 1; 
+        backdrop-filter: blur(4px);
+      }
+    }
+    .modal-popup:hover {
+      transform: scale(1.01);
+      transition: transform 0.2s ease;
+    }
+  `;
 
   // Sample data - in real app, this would come from API/database
   const [vendors, setVendors] = useState([
@@ -211,9 +267,118 @@ const AccountPayables = () => {
     }
   };
 
+  const handleInvoiceFormChange = (e) => {
+    const { name, value } = e.target;
+    setInvoiceForm(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const handleAddInvoice = (e) => {
+    e.preventDefault();
+    
+    const selectedVendor = vendors.find(v => v.id === parseInt(invoiceForm.vendorId));
+    if (!selectedVendor) return;
+
+    const newInvoice = {
+      id: `INV-${Date.now()}`,
+      vendorId: parseInt(invoiceForm.vendorId),
+      vendorName: selectedVendor.name,
+      invoiceNumber: invoiceForm.invoiceNumber,
+      date: invoiceForm.date,
+      dueDate: invoiceForm.dueDate,
+      amount: parseFloat(invoiceForm.amount),
+      status: 'pending',
+      description: invoiceForm.description,
+      category: invoiceForm.category,
+      approvedBy: null,
+      approvedDate: null
+    };
+
+    setInvoices(prev => [...prev, newInvoice]);
+    setShowAddInvoice(false);
+    setInvoiceForm({
+      vendorId: '',
+      invoiceNumber: '',
+      date: '',
+      dueDate: '',
+      amount: '',
+      description: '',
+      category: ''
+    });
+  };
+
+  const resetInvoiceForm = () => {
+    setInvoiceForm({
+      vendorId: '',
+      invoiceNumber: '',
+      date: '',
+      dueDate: '',
+      amount: '',
+      description: '',
+      category: ''
+    });
+    setShowAddInvoice(false);
+  };
+
+  const handleVendorFormChange = (e) => {
+    const { name, value } = e.target;
+    setVendorForm(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const handleAddVendor = (e) => {
+    e.preventDefault();
+    
+    const newVendor = {
+      id: Math.max(...vendors.map(v => v.id)) + 1,
+      name: vendorForm.name,
+      contact: vendorForm.contact,
+      email: vendorForm.email,
+      phone: vendorForm.phone,
+      address: vendorForm.address,
+      taxId: vendorForm.taxId,
+      paymentTerms: vendorForm.paymentTerms,
+      totalOwed: 0,
+      lastPayment: null
+    };
+
+    setVendors(prev => [...prev, newVendor]);
+    setShowAddVendor(false);
+    setVendorForm({
+      name: '',
+      contact: '',
+      email: '',
+      phone: '',
+      address: '',
+      taxId: '',
+      paymentTerms: 'Net 30'
+    });
+  };
+
+  const resetVendorForm = () => {
+    setVendorForm({
+      name: '',
+      contact: '',
+      email: '',
+      phone: '',
+      address: '',
+      taxId: '',
+      paymentTerms: 'Net 30'
+    });
+    setShowAddVendor(false);
+  };
+
   return (
-    <div className="p-6 bg-gray-50 min-h-screen">
-      {/* Header */}
+    <>
+      {/* Custom styles for modal animations */}
+      <style jsx>{modalStyles}</style>
+      
+      <div className="p-6 bg-gray-50 min-h-screen">
+        {/* Header */}
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900 mb-2">Account Payables</h1>
         <p className="text-gray-600">Manage vendor invoices, payments, and financial obligations</p>
@@ -430,7 +595,7 @@ const AccountPayables = () => {
                     placeholder="Search invoices..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-10 pr-4 py-2 border border-gray-300 rounded-md w-full focus:ring-blue-500 focus:border-blue-500"
+                    className="pl-10 pr-4 py-2 bg-white text-gray-900 placeholder-gray-500 border border-gray-300 rounded-md w-full focus:ring-blue-500 focus:border-blue-500"
                   />
                 </div>
               </div>
@@ -438,7 +603,7 @@ const AccountPayables = () => {
                 <select
                   value={filterStatus}
                   onChange={(e) => setFilterStatus(e.target.value)}
-                  className="px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                  className="px-3 py-2 bg-white text-gray-900 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
                 >
                   <option value="all">All Status</option>
                   <option value="pending">Pending</option>
@@ -779,7 +944,356 @@ const AccountPayables = () => {
           </div>
         </div>
       )}
-    </div>
+
+      {/* Add Invoice Modal */}
+      {showAddInvoice && (
+        <div 
+          className="fixed inset-0 backdrop-blur-sm flex items-center justify-center p-4 z-50 modal-backdrop"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              resetInvoiceForm();
+            }
+          }}
+        >
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto modal-popup">
+            <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 rounded-t-xl">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-xl font-semibold text-gray-900">Add New Invoice</h3>
+                  <p className="text-sm text-gray-600 mt-1">Create a new invoice entry</p>
+                </div>
+                <button
+                  onClick={resetInvoiceForm}
+                  className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                >
+                  <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+            
+            <div className="p-6">
+              <form id="invoice-form" onSubmit={handleAddInvoice} className="space-y-6">
+                {/* Basic Information */}
+                <div className="bg-gray-50 rounded-lg p-4">
+                  <h4 className="text-lg font-medium text-gray-900 mb-4">Invoice Information</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">
+                        Vendor *
+                      </label>
+                      <select
+                        name="vendorId"
+                        value={invoiceForm.vendorId}
+                        onChange={handleInvoiceFormChange}
+                        required
+                        className="w-full px-4 py-3 text-gray-900 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                      >
+                        <option value="">Select Vendor</option>
+                        {vendors.map(vendor => (
+                          <option key={vendor.id} value={vendor.id}>
+                            {vendor.name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">
+                        Invoice Number *
+                      </label>
+                      <input
+                        type="text"
+                        name="invoiceNumber"
+                        value={invoiceForm.invoiceNumber}
+                        onChange={handleInvoiceFormChange}
+                        required
+                        placeholder="e.g., INV-2024-001"
+                        className="w-full px-4 py-3 text-gray-900 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">
+                        Invoice Date *
+                      </label>
+                      <input
+                        type="date"
+                        name="date"
+                        value={invoiceForm.date}
+                        onChange={handleInvoiceFormChange}
+                        required
+                        className="w-full px-4 py-3 text-gray-900 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">
+                        Due Date *
+                      </label>
+                      <input
+                        type="date"
+                        name="dueDate"
+                        value={invoiceForm.dueDate}
+                        onChange={handleInvoiceFormChange}
+                        required
+                        className="w-full px-4 py-3 text-gray-900 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">
+                        Amount *
+                      </label>
+                      <input
+                        type="number"
+                        name="amount"
+                        value={invoiceForm.amount}
+                        onChange={handleInvoiceFormChange}
+                        required
+                        step="0.01"
+                        min="0"
+                        placeholder="0.00"
+                        className="w-full px-4 py-3 text-gray-900 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">
+                        Category *
+                      </label>
+                      <select
+                        name="category"
+                        value={invoiceForm.category}
+                        onChange={handleInvoiceFormChange}
+                        required
+                        className="w-full px-4 py-3 text-gray-900 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                      >
+                        <option value="">Select Category</option>
+                        <option value="Technology">Technology</option>
+                        <option value="Office Supplies">Office Supplies</option>
+                        <option value="Marketing">Marketing</option>
+                        <option value="Utilities">Utilities</option>
+                        <option value="Professional Services">Professional Services</option>
+                        <option value="Equipment">Equipment</option>
+                        <option value="Other">Other</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className="mt-4">
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      Description *
+                    </label>
+                    <textarea
+                      name="description"
+                      value={invoiceForm.description}
+                      onChange={handleInvoiceFormChange}
+                      required
+                      rows={3}
+                      placeholder="Describe the goods or services..."
+                      className="w-full px-4 py-3 text-gray-900 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors resize-none"
+                    />
+                  </div>
+                </div>
+              </form>
+            </div>
+            
+            {/* Footer */}
+            <div className="sticky bottom-0 bg-white border-t border-gray-200 px-6 py-4 rounded-b-xl">
+              <div className="flex justify-end space-x-3">
+                <button
+                  type="button"
+                  onClick={resetInvoiceForm}
+                  className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  form="invoice-form"
+                  className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors"
+                >
+                  Add Invoice
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Add Vendor Modal */}
+      {showAddVendor && (
+        <div 
+          className="fixed inset-0 backdrop-blur-sm flex items-center justify-center p-4 z-50 modal-backdrop"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              resetVendorForm();
+            }
+          }}
+        >
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto modal-popup">
+            <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 rounded-t-xl">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-xl font-semibold text-gray-900">Add New Vendor</h3>
+                  <p className="text-sm text-gray-600 mt-1">Create a new vendor entry</p>
+                </div>
+                <button
+                  onClick={resetVendorForm}
+                  className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                >
+                  <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+            
+            <div className="p-6">
+              <form id="vendor-form" onSubmit={handleAddVendor} className="space-y-6">
+                {/* Basic Information */}
+                <div className="bg-gray-50 rounded-lg p-4">
+                  <h4 className="text-lg font-medium text-gray-900 mb-4">Vendor Information</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">
+                        Company Name *
+                      </label>
+                      <input
+                        type="text"
+                        name="name"
+                        value={vendorForm.name}
+                        onChange={handleVendorFormChange}
+                        required
+                        placeholder="e.g., ABC Corporation"
+                        className="w-full px-4 py-3 text-gray-900 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">
+                        Contact Person *
+                      </label>
+                      <input
+                        type="text"
+                        name="contact"
+                        value={vendorForm.contact}
+                        onChange={handleVendorFormChange}
+                        required
+                        placeholder="e.g., John Smith"
+                        className="w-full px-4 py-3 text-gray-900 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">
+                        Email Address *
+                      </label>
+                      <input
+                        type="email"
+                        name="email"
+                        value={vendorForm.email}
+                        onChange={handleVendorFormChange}
+                        required
+                        placeholder="e.g., contact@company.com"
+                        className="w-full px-4 py-3 text-gray-900 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">
+                        Phone Number *
+                      </label>
+                      <input
+                        type="tel"
+                        name="phone"
+                        value={vendorForm.phone}
+                        onChange={handleVendorFormChange}
+                        required
+                        placeholder="e.g., +1 (555) 123-4567"
+                        className="w-full px-4 py-3 text-gray-900 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">
+                        Tax ID *
+                      </label>
+                      <input
+                        type="text"
+                        name="taxId"
+                        value={vendorForm.taxId}
+                        onChange={handleVendorFormChange}
+                        required
+                        placeholder="e.g., 12-3456789"
+                        className="w-full px-4 py-3 text-gray-900 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">
+                        Payment Terms *
+                      </label>
+                      <select
+                        name="paymentTerms"
+                        value={vendorForm.paymentTerms}
+                        onChange={handleVendorFormChange}
+                        required
+                        className="w-full px-4 py-3 text-gray-900 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                      >
+                        <option value="Net 15">Net 15</option>
+                        <option value="Net 30">Net 30</option>
+                        <option value="Net 45">Net 45</option>
+                        <option value="Net 60">Net 60</option>
+                        <option value="Due on Receipt">Due on Receipt</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className="mt-4">
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      Address *
+                    </label>
+                    <textarea
+                      name="address"
+                      value={vendorForm.address}
+                      onChange={handleVendorFormChange}
+                      required
+                      rows={3}
+                      placeholder="Enter complete business address..."
+                      className="w-full px-4 py-3 text-gray-900 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors resize-none"
+                    />
+                  </div>
+                </div>
+              </form>
+            </div>
+            
+            {/* Footer */}
+            <div className="sticky bottom-0 bg-white border-t border-gray-200 px-6 py-4 rounded-b-xl">
+              <div className="flex justify-end space-x-3">
+                <button
+                  type="button"
+                  onClick={resetVendorForm}
+                  className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  form="vendor-form"
+                  className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors"
+                >
+                  Add Vendor
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+      </div>
+    </>
   );
 };
 

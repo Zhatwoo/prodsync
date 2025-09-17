@@ -34,6 +34,17 @@ const Telephone = () => {
   const [showAddTelephone, setShowAddTelephone] = useState(false);
   const [selectedTelephone, setSelectedTelephone] = useState(null);
   const [showCallLogs, setShowCallLogs] = useState(false);
+  const [newTelephone, setNewTelephone] = useState({
+    extension: '',
+    user: '',
+    department: '',
+    position: '',
+    ipAddress: '',
+    macAddress: '',
+    model: '',
+    location: '',
+    notes: ''
+  });
 
   // Sample data - in real app, this would come from API/database
   const [telephones, setTelephones] = useState([
@@ -309,6 +320,56 @@ const Telephone = () => {
     ));
   };
 
+  const handleAddTelephone = () => {
+    if (!newTelephone.extension || !newTelephone.user || !newTelephone.department) {
+      alert('Please fill in all required fields (Extension, User, Department)');
+      return;
+    }
+
+    const newId = `TEL-${String(telephones.length + 1).padStart(3, '0')}`;
+    const telephone = {
+      id: newId,
+      extension: newTelephone.extension,
+      user: newTelephone.user,
+      department: newTelephone.department,
+      position: newTelephone.position,
+      ipAddress: newTelephone.ipAddress,
+      macAddress: newTelephone.macAddress,
+      model: newTelephone.model || 'Cisco IP Phone 7965',
+      status: 'active',
+      lastActivity: new Date().toISOString(),
+      totalCalls: 0,
+      todayCalls: 0,
+      isInCall: false,
+      currentCall: null,
+      location: newTelephone.location,
+      assignedDate: new Date().toISOString().split('T')[0],
+      warrantyExpiry: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // 1 year from now
+      notes: newTelephone.notes
+    };
+
+    setTelephones(prev => [...prev, telephone]);
+    setShowAddTelephone(false);
+    setNewTelephone({
+      extension: '',
+      user: '',
+      department: '',
+      position: '',
+      ipAddress: '',
+      macAddress: '',
+      model: '',
+      location: '',
+      notes: ''
+    });
+  };
+
+  const handleInputChange = (field, value) => {
+    setNewTelephone(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+
   const formatDateTime = (dateTimeString) => {
     if (!dateTimeString) return 'Never';
     const date = new Date(dateTimeString);
@@ -327,7 +388,66 @@ const Telephone = () => {
   };
 
   return (
-    <div className="p-6 bg-gray-50 min-h-screen">
+    <>
+      <style jsx>{`
+        @keyframes modalSlideIn {
+          from {
+            opacity: 0;
+            transform: scale(0.7) translateY(-50px);
+          }
+          to {
+            opacity: 1;
+            transform: scale(1) translateY(0);
+          }
+        }
+        
+        @keyframes backdropFadeIn {
+          from {
+            opacity: 0;
+            backdrop-filter: blur(0px);
+          }
+          to {
+            opacity: 1;
+            backdrop-filter: blur(12px);
+          }
+        }
+        
+        @keyframes modalBounce {
+          0% {
+            opacity: 0;
+            transform: scale(0.3) translateY(-100px);
+          }
+          50% {
+            opacity: 0.8;
+            transform: scale(1.05) translateY(-10px);
+          }
+          100% {
+            opacity: 1;
+            transform: scale(1) translateY(0);
+          }
+        }
+        
+        .modal-animate {
+          animation: modalBounce 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+        
+        .backdrop-animate {
+          animation: backdropFadeIn 0.4s ease-out;
+        }
+        
+        .modal-enter {
+          opacity: 0;
+          transform: scale(0.7) translateY(-50px);
+        }
+        
+        .modal-enter-active {
+          opacity: 1;
+          transform: scale(1) translateY(0);
+          transition: all 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+      `}</style>
+      
+      <div className="p-6 bg-gray-50 min-h-screen">
       {/* Header */}
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900 mb-2">Telephone Management</h1>
@@ -563,6 +683,7 @@ const Telephone = () => {
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     className="pl-10 pr-4 py-2 border border-gray-300 rounded-md w-full focus:ring-blue-500 focus:border-blue-500"
+                    style={{ color: '#111827', backgroundColor: '#ffffff' }}
                   />
                 </div>
               </div>
@@ -570,6 +691,7 @@ const Telephone = () => {
                 value={filterStatus}
                 onChange={(e) => setFilterStatus(e.target.value)}
                 className="px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                style={{ color: '#111827', backgroundColor: '#ffffff' }}
               >
                 <option value="all">All Status</option>
                 <option value="active">Active</option>
@@ -581,6 +703,7 @@ const Telephone = () => {
                 value={filterDepartment}
                 onChange={(e) => setFilterDepartment(e.target.value)}
                 className="px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                style={{ color: '#111827', backgroundColor: '#ffffff' }}
               >
                 <option value="all">All Departments</option>
                 {departments.map(dept => (
@@ -923,7 +1046,178 @@ const Telephone = () => {
           </div>
         </div>
       )}
+
+      {/* Add Telephone Modal */}
+      {showAddTelephone && (
+        <div 
+          className="fixed inset-0 backdrop-blur-lg overflow-y-auto h-full w-full z-50 flex items-center justify-center p-4 backdrop-animate"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              setShowAddTelephone(false);
+            }
+          }}
+        >
+          <div className="relative mx-auto p-6 border w-11/12 md:w-3/4 lg:w-2/3 xl:w-1/2 shadow-2xl rounded-lg bg-white modal-animate transform transition-all duration-300">
+            <div className="mt-3">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-xl font-semibold text-gray-900">Add New Telephone</h3>
+                <button
+                  onClick={() => setShowAddTelephone(false)}
+                  className="text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  <XMarkIcon className="h-6 w-6" />
+                </button>
+              </div>
+              
+              <div className="space-y-6">
+                {/* Basic Information */}
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <h4 className="text-lg font-medium text-gray-900 mb-4">Basic Information</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Extension Number <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        value={newTelephone.extension}
+                        onChange={(e) => handleInputChange('extension', e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                        placeholder="e.g., 1001"
+                        style={{ color: '#111827', backgroundColor: '#ffffff' }}
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        User Name <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        value={newTelephone.user}
+                        onChange={(e) => handleInputChange('user', e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                        placeholder="e.g., John Smith"
+                        style={{ color: '#111827', backgroundColor: '#ffffff' }}
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Department <span className="text-red-500">*</span>
+                      </label>
+                      <select
+                        value={newTelephone.department}
+                        onChange={(e) => handleInputChange('department', e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                        style={{ color: '#111827', backgroundColor: '#ffffff' }}
+                      >
+                        <option value="">Select Department</option>
+                        {departments.map(dept => (
+                          <option key={dept} value={dept}>{dept}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Position</label>
+                      <input
+                        type="text"
+                        value={newTelephone.position}
+                        onChange={(e) => handleInputChange('position', e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                        placeholder="e.g., Sales Manager"
+                        style={{ color: '#111827', backgroundColor: '#ffffff' }}
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Technical Information */}
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <h4 className="text-lg font-medium text-gray-900 mb-4">Technical Information</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">IP Address</label>
+                      <input
+                        type="text"
+                        value={newTelephone.ipAddress}
+                        onChange={(e) => handleInputChange('ipAddress', e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                        placeholder="e.g., 192.168.1.101"
+                        style={{ color: '#111827', backgroundColor: '#ffffff' }}
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">MAC Address</label>
+                      <input
+                        type="text"
+                        value={newTelephone.macAddress}
+                        onChange={(e) => handleInputChange('macAddress', e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                        placeholder="e.g., 00:1B:44:11:3A:B7"
+                        style={{ color: '#111827', backgroundColor: '#ffffff' }}
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Phone Model</label>
+                      <input
+                        type="text"
+                        value={newTelephone.model}
+                        onChange={(e) => handleInputChange('model', e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                        placeholder="e.g., Cisco IP Phone 7965"
+                        style={{ color: '#111827', backgroundColor: '#ffffff' }}
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Location</label>
+                      <input
+                        type="text"
+                        value={newTelephone.location}
+                        onChange={(e) => handleInputChange('location', e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                        placeholder="e.g., Office Floor 1 - Room 101"
+                        style={{ color: '#111827', backgroundColor: '#ffffff' }}
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Additional Information */}
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <h4 className="text-lg font-medium text-gray-900 mb-4">Additional Information</h4>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Notes</label>
+                    <textarea
+                      value={newTelephone.notes}
+                      onChange={(e) => handleInputChange('notes', e.target.value)}
+                      rows={3}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                      placeholder="Additional notes about this telephone..."
+                      style={{ color: '#111827', backgroundColor: '#ffffff' }}
+                    />
+                  </div>
+                </div>
+              </div>
+              
+              <div className="mt-8 flex justify-end space-x-3">
+                <button
+                  onClick={() => setShowAddTelephone(false)}
+                  className="px-6 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleAddTelephone}
+                  className="px-6 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 transition-colors"
+                >
+                  Add Telephone
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
+    </>
   );
 };
 
