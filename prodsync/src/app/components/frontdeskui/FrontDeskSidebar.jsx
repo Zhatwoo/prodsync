@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useAuth } from '../../context/AuthContext';
 
 // Tooltip Component
 const Tooltip = ({ children, content, position = 'right' }) => {
@@ -75,6 +76,7 @@ export default function FrontDeskSidebar({ isCollapsed, onToggleCollapse }) {
     visitorsMonitor: true
   });
   const pathname = usePathname();
+  const { user } = useAuth();
 
   const toggleSection = (section) => {
     setExpandedSections(prev => ({
@@ -132,7 +134,6 @@ export default function FrontDeskSidebar({ isCollapsed, onToggleCollapse }) {
             </div>
             <div className="hidden sm:block">
               <h1 className="text-sm sm:text-base md:text-lg lg:text-xl font-bold text-gray-900">Front Desk</h1>
-              <p className="text-xs text-gray-500">Reception & Monitoring</p>
             </div>
           </div>
         )}
@@ -409,8 +410,10 @@ export default function FrontDeskSidebar({ isCollapsed, onToggleCollapse }) {
           </div>
           {!isCollapsed && (
             <div className="ml-1.5 sm:ml-2 md:ml-3 flex-1 min-w-0">
-              <p className="text-xs sm:text-sm font-semibold text-gray-900 truncate">Front Desk Staff</p>
-              <p className="text-xs text-gray-700 truncate">frontdesk@company.com</p>
+              <p className="text-xs sm:text-sm font-semibold text-gray-900 truncate">
+                {user?.firstName && user?.lastName ? `${user.firstName} ${user.lastName}` : 'Front Desk Staff'}
+              </p>
+              <p className="text-xs text-gray-700 truncate">{user?.email || 'frontdesk@company.com'}</p>
               <div className="flex items-center mt-0.5 sm:mt-1">
                 <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-green-400 rounded-full mr-1 sm:mr-1.5 md:mr-2 flex-shrink-0"></div>
                 <span className="text-xs text-green-600 font-medium">Online</span>

@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useAuth } from '../../context/AuthContext';
 
 // Tooltip Component
 const Tooltip = ({ children, content, position = 'right' }) => {
@@ -70,6 +71,7 @@ const Tooltip = ({ children, content, position = 'right' }) => {
 };
 
 export default function AdministratorSidebar({ isCollapsed, onToggleCollapse }) {
+  const { user } = useAuth();
   const [expandedSections, setExpandedSections] = useState({
     sales: true,
     hrOperations: false,
@@ -222,8 +224,7 @@ export default function AdministratorSidebar({ isCollapsed, onToggleCollapse }) 
               </svg>
             </div>
             <div className="hidden sm:block">
-              <h1 className="text-sm sm:text-base md:text-lg lg:text-xl font-bold text-gray-900">Admin Portal</h1>
-              <p className="text-xs text-gray-500">Administrator Dashboard</p>
+              <h1 className="text-sm sm:text-base md:text-lg lg:text-xl font-bold text-gray-900">Administrator Portal</h1>
             </div>
           </div>
         )}
@@ -234,24 +235,26 @@ export default function AdministratorSidebar({ isCollapsed, onToggleCollapse }) 
             </svg>
           </div>
         )}
-        <Tooltip 
-          content={
-            <div>
-              <div className="font-semibold mb-1">{isCollapsed ? 'Expand Sidebar' : 'Collapse Sidebar'}</div>
-              <div className="text-xs opacity-75">Toggle sidebar visibility</div>
-            </div>
-          }
-          position="cursor"
-        >
-          <button
-            onClick={toggleSidebar}
-            className="p-1 sm:p-1.5 rounded-lg text-gray-500 hover:text-gray-700 hover:bg-gray-100 transition-all duration-200 flex-shrink-0"
+        <div className="ml-[25%]">
+          <Tooltip 
+            content={
+              <div>
+                <div className="font-semibold mb-1">{isCollapsed ? 'Expand Sidebar' : 'Collapse Sidebar'}</div>
+                <div className="text-xs opacity-75">Toggle sidebar visibility</div>
+              </div>
+            }
+            position="cursor"
           >
-            <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
-            </svg>
-          </button>
-        </Tooltip>
+            <button
+              onClick={toggleSidebar}
+              className="p-1 sm:p-1.5 rounded-lg text-gray-500 hover:text-gray-700 hover:bg-gray-100 transition-all duration-200 flex-shrink-0"
+            >
+              <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
+              </svg>
+            </button>
+          </Tooltip>
+        </div>
       </div>
 
       {/* Navigation */}
@@ -514,7 +517,7 @@ export default function AdministratorSidebar({ isCollapsed, onToggleCollapse }) 
           {!isCollapsed && (
             <div className="ml-1.5 sm:ml-2 md:ml-3 flex-1 min-w-0">
               <p className="text-xs sm:text-sm font-semibold text-gray-900 truncate">Administrator</p>
-              <p className="text-xs text-gray-700 truncate">admin@company.com</p>
+              <p className="text-xs text-gray-700 truncate">{user?.email || 'admin@company.com'}</p>
               <div className="flex items-center mt-0.5 sm:mt-1">
                 <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-green-400 rounded-full mr-1 sm:mr-1.5 md:mr-2 flex-shrink-0"></div>
                 <span className="text-xs text-green-600 font-medium">Online</span>
