@@ -3,7 +3,7 @@ import RequireRole from '../../components/RequireRole';
 
 export default function SalesPage() {
   return (
-    <RequireRole allowed={['staff', 'admin']}>
+    <RequireRole allowed={['Sales', 'sales', 'staff', 'admin']}>
       <SalesDashboard />
     </RequireRole>
   );
