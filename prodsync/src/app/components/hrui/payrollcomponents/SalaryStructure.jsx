@@ -1,6 +1,9 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc, query, orderBy, serverTimestamp } from 'firebase/firestore';
+import { db } from '../../../lib/firebaseClient';
+import DeleteConfirmation from '../../DeleteConfirmation';
 
 export default function SalaryStructure() {
   const [salaryStructures, setSalaryStructures] = useState([]);
@@ -16,95 +19,109 @@ export default function SalaryStructure() {
     currency: 'USD',
     description: ''
   });
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [structureToDelete, setStructureToDelete] = useState(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
-  // Sample salary structure data
+  // Fetch salary structures and employee data from Firebase
   useEffect(() => {
-    const sampleStructures = [
-      {
-        id: 1,
-        position: 'Software Engineer',
-        department: 'IT',
-        level: 'Mid-level',
-        baseSalary: 75000,
-        minSalary: 60000,
-        maxSalary: 90000,
-        currency: 'USD',
-        description: 'Standard software engineering position',
-        employeeCount: 8,
-        status: 'Active'
-      },
-      {
-        id: 2,
-        position: 'HR Manager',
-        department: 'HR',
-        level: 'Senior',
-        baseSalary: 85000,
-        minSalary: 70000,
-        maxSalary: 100000,
-        currency: 'USD',
-        description: 'Human resources management role',
-        employeeCount: 1,
-        status: 'Active'
-      },
-      {
-        id: 3,
-        position: 'Marketing Specialist',
-        department: 'Marketing',
-        level: 'Mid-level',
-        baseSalary: 60000,
-        minSalary: 45000,
-        maxSalary: 75000,
-        currency: 'USD',
-        description: 'Marketing and campaign management',
-        employeeCount: 5,
-        status: 'Active'
-      },
-      {
-        id: 4,
-        position: 'Accountant',
-        department: 'Finance',
-        level: 'Mid-level',
-        baseSalary: 65000,
-        minSalary: 50000,
-        maxSalary: 80000,
-        currency: 'USD',
-        description: 'Financial accounting and reporting',
-        employeeCount: 3,
-        status: 'Active'
-      },
-      {
-        id: 5,
-        position: 'Sales Manager',
-        department: 'Sales',
-        level: 'Senior',
-        baseSalary: 80000,
-        minSalary: 65000,
-        maxSalary: 120000,
-        currency: 'USD',
-        description: 'Sales team leadership and management',
-        employeeCount: 1,
-        status: 'Active'
-      },
-      {
-        id: 6,
-        position: 'Customer Service Rep',
-        department: 'Operations',
-        level: 'Entry-level',
-        baseSalary: 40000,
-        minSalary: 35000,
-        maxSalary: 50000,
-        currency: 'USD',
-        description: 'Customer support and service',
-        employeeCount: 6,
-        status: 'Active'
+    const fetchSalaryStructures = async () => {
+      try {
+        setLoading(true);
+        
+        // Fetch salary structures
+        const structuresRef = collection(db, 'salaryStructures');
+        const q = query(structuresRef, orderBy('createdAt', 'desc'));
+        const querySnapshot = await getDocs(q);
+        
+        const structuresData = [];
+        querySnapshot.forEach((doc) => {
+          structuresData.push({
+            id: doc.id,
+            ...doc.data()
+          });
+        });
+        
+        // Fetch employees to count how many are in each position
+        const employeesRef = collection(db, 'employees');
+        const employeesQuery = query(employeesRef, orderBy('createdAt', 'desc'));
+        const employeesSnapshot = await getDocs(employeesQuery);
+        
+        const employeeCounts = {};
+        employeesSnapshot.forEach((doc) => {
+          const employee = doc.data();
+          const position = employee.position;
+          if (position) {
+            employeeCounts[position] = (employeeCounts[position] || 0) + 1;
+          }
+        });
+        
+        // Update structures with employee counts
+        const updatedStructures = structuresData.map(structure => ({
+          ...structure,
+          employeeCount: employeeCounts[structure.position] || 0
+        }));
+        
+        setSalaryStructures(updatedStructures);
+        setError(null);
+      } catch (err) {
+        console.error('Error fetching salary structures:', err);
+        setError('Failed to load salary structures');
+      } finally {
+        setLoading(false);
       }
-    ];
-    setSalaryStructures(sampleStructures);
+    };
+
+    fetchSalaryStructures();
   }, []);
 
-  const departments = ['IT', 'HR', 'Marketing', 'Finance', 'Sales', 'Operations', 'Customer Service'];
+  const [departments, setDepartments] = useState(['IT', 'HR', 'Marketing', 'Finance', 'Sales', 'Operations', 'Customer Service']);
   const levels = ['Entry-level', 'Mid-level', 'Senior', 'Executive'];
   const currencies = ['USD', 'EUR', 'GBP', 'CAD', 'AUD'];
+
+  // Fetch departments and positions from Firebase
+  useEffect(() => {
+    const fetchDepartmentsAndPositions = async () => {
+      try {
+        // Fetch departments
+        const departmentsRef = collection(db, 'departments');
+        const departmentsQuery = query(departmentsRef, orderBy('createdAt', 'desc'));
+        const departmentsSnapshot = await getDocs(departmentsQuery);
+        
+        const departmentsData = [];
+        departmentsSnapshot.forEach((doc) => {
+          departmentsData.push(doc.data().name);
+        });
+        
+        if (departmentsData.length > 0) {
+          setDepartments(departmentsData);
+        }
+        
+        // Also fetch positions to show actual positions from employee records
+        const positionsRef = collection(db, 'positions');
+        const positionsQuery = query(positionsRef, orderBy('createdAt', 'desc'));
+        const positionsSnapshot = await getDocs(positionsQuery);
+        
+        const positionsData = [];
+        positionsSnapshot.forEach((doc) => {
+          positionsData.push(doc.data().title);
+        });
+        
+        // Update departments to include positions if needed
+        if (positionsData.length > 0) {
+          const uniquePositions = [...new Set(positionsData)];
+          // You could also set positions state here if needed
+        }
+      } catch (err) {
+        console.error('Error fetching departments and positions:', err);
+        // Keep default departments if fetch fails
+      }
+    };
+
+    fetchDepartmentsAndPositions();
+  }, []);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -114,41 +131,59 @@ export default function SalaryStructure() {
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (editingStructure) {
-      // Update existing structure
-      setSalaryStructures(prev => prev.map(structure => 
-        structure.id === editingStructure.id 
-          ? { ...structure, ...newStructure, baseSalary: parseFloat(newStructure.baseSalary), minSalary: parseFloat(newStructure.minSalary), maxSalary: parseFloat(newStructure.maxSalary) }
-          : structure
-      ));
-      setEditingStructure(null);
-    } else {
-      // Add new structure
-      const structure = {
-        id: salaryStructures.length + 1,
+    try {
+      const structureData = {
         ...newStructure,
         baseSalary: parseFloat(newStructure.baseSalary),
         minSalary: parseFloat(newStructure.minSalary),
         maxSalary: parseFloat(newStructure.maxSalary),
-        employeeCount: 0,
-        status: 'Active'
+        status: 'Active',
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp()
       };
-      setSalaryStructures(prev => [...prev, structure]);
+
+      if (editingStructure) {
+        // Update existing structure
+        const structureRef = doc(db, 'salaryStructures', editingStructure.id);
+        await updateDoc(structureRef, {
+          ...structureData,
+          updatedAt: serverTimestamp()
+        });
+        
+        setSalaryStructures(prev => prev.map(structure => 
+          structure.id === editingStructure.id 
+            ? { ...structure, ...structureData }
+            : structure
+        ));
+        setEditingStructure(null);
+      } else {
+        // Add new structure
+        const docRef = await addDoc(collection(db, 'salaryStructures'), structureData);
+        const newSalaryStructure = {
+          id: docRef.id,
+          ...structureData
+        };
+        setSalaryStructures(prev => [newSalaryStructure, ...prev]);
+      }
+      
+      setNewStructure({
+        position: '',
+        department: '',
+        level: '',
+        baseSalary: '',
+        minSalary: '',
+        maxSalary: '',
+        currency: 'USD',
+        description: ''
+      });
+      setIsAddingNew(false);
+      alert('Salary structure saved successfully!');
+    } catch (err) {
+      console.error('Error saving salary structure:', err);
+      alert('Failed to save salary structure');
     }
-    
-    setNewStructure({
-      position: '',
-      department: '',
-      level: '',
-      baseSalary: '',
-      minSalary: '',
-      maxSalary: '',
-      currency: 'USD',
-      description: ''
-    });
-    setIsAddingNew(false);
   };
 
   const handleEdit = (structure) => {
@@ -166,9 +201,26 @@ export default function SalaryStructure() {
     setIsAddingNew(true);
   };
 
-  const handleDelete = (id) => {
-    if (confirm('Are you sure you want to delete this salary structure?')) {
-      setSalaryStructures(prev => prev.filter(structure => structure.id !== id));
+  const handleDelete = (structure) => {
+    setStructureToDelete(structure);
+    setShowDeleteModal(true);
+  };
+
+  const confirmDeleteStructure = async () => {
+    if (!structureToDelete) return;
+    
+    setIsDeleting(true);
+    try {
+      await deleteDoc(doc(db, 'salaryStructures', structureToDelete.id));
+      setSalaryStructures(prev => prev.filter(structure => structure.id !== structureToDelete.id));
+      setShowDeleteModal(false);
+      setStructureToDelete(null);
+      alert('Salary structure deleted successfully!');
+    } catch (err) {
+      console.error('Error deleting salary structure:', err);
+      alert('Failed to delete salary structure');
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -186,6 +238,26 @@ export default function SalaryStructure() {
       description: ''
     });
   };
+
+  if (loading) {
+    return (
+      <div className="p-6">
+        <div className="flex justify-center items-center h-64">
+          <div className="text-lg text-gray-600">Loading salary structures...</div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="p-6">
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+          <div className="text-red-800">{error}</div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-6">
@@ -348,6 +420,7 @@ export default function SalaryStructure() {
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Base Salary</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Salary Range</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Employees</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Last Updated</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
               </tr>
             </thead>
@@ -384,6 +457,16 @@ export default function SalaryStructure() {
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-sm text-gray-900">{structure.employeeCount}</div>
                   </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="text-sm text-gray-900">
+                      {structure.updatedAt?.toDate ? 
+                        structure.updatedAt.toDate().toLocaleDateString() + ' ' + structure.updatedAt.toDate().toLocaleTimeString() :
+                        structure.createdAt?.toDate ? 
+                        structure.createdAt.toDate().toLocaleDateString() + ' ' + structure.createdAt.toDate().toLocaleTimeString() :
+                        'N/A'
+                      }
+                    </div>
+                  </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                     <div className="flex space-x-2">
                       <button 
@@ -393,7 +476,7 @@ export default function SalaryStructure() {
                         Edit
                       </button>
                       <button 
-                        onClick={() => handleDelete(structure.id)}
+                        onClick={() => handleDelete(structure)}
                         className="text-red-600 hover:text-red-900"
                       >
                         Delete
@@ -428,6 +511,20 @@ export default function SalaryStructure() {
           </div>
         </div>
       </div>
+
+      {/* Delete Confirmation Modal */}
+      <DeleteConfirmation
+        isOpen={showDeleteModal}
+        onClose={() => {
+          setShowDeleteModal(false);
+          setStructureToDelete(null);
+        }}
+        onConfirm={confirmDeleteStructure}
+        title="Delete Salary Structure"
+        message="Are you sure you want to delete this salary structure? This action cannot be undone."
+        itemName={structureToDelete?.position}
+        isLoading={isDeleting}
+      />
     </div>
   );
 }

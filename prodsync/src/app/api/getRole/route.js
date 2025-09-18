@@ -1,18 +1,30 @@
 // src/app/api/getRole/route.js
 import { NextResponse } from "next/server";
-import { dbAdmin, isFirebaseAdminConfigured } from "@/lib/firebaseAdmin";
+import { getDbAdmin, isFirebaseAdminConfigured } from "../../lib/firebaseAdmin";
 
 export async function GET(request) {
   try {
     // Check if Firebase Admin is configured
     if (!isFirebaseAdminConfigured()) {
+      console.error("Firebase Admin configuration check failed:", {
+        hasProjectId: !!process.env.FIREBASE_PROJECT_ID,
+        hasClientEmail: !!process.env.FIREBASE_CLIENT_EMAIL,
+        hasPrivateKey: !!process.env.FIREBASE_PRIVATE_KEY
+      });
       return NextResponse.json({ 
         error: "Firebase Admin configuration is missing. Please set up environment variables.",
-        code: "FIREBASE_NOT_CONFIGURED"
+        code: "FIREBASE_NOT_CONFIGURED",
+        details: {
+          hasProjectId: !!process.env.FIREBASE_PROJECT_ID,
+          hasClientEmail: !!process.env.FIREBASE_CLIENT_EMAIL,
+          hasPrivateKey: !!process.env.FIREBASE_PRIVATE_KEY
+        }
       }, { status: 503 });
     }
 
+    const dbAdmin = getDbAdmin();
     if (!dbAdmin) {
+      console.error("Firebase Admin database not initialized");
       return NextResponse.json({ 
         error: "Firebase Admin is not initialized. Please check your configuration.",
         code: "FIREBASE_NOT_INITIALIZED"
@@ -27,12 +39,16 @@ export async function GET(request) {
     }
 
     // Get user document from Firestore
+    console.log(`Looking for user with UID: ${uid}`);
     const userDoc = await dbAdmin.collection("users").doc(uid).get();
+    console.log(`User document exists: ${userDoc.exists}`);
     
     if (!userDoc.exists) {
+      console.log(`User ${uid} not found in database`);
       return NextResponse.json({ 
         error: "User not found in database. Please contact administrator to set up your account.",
-        code: "USER_NOT_FOUND"
+        code: "USER_NOT_FOUND",
+        uid: uid
       }, { status: 404 });
     }
 

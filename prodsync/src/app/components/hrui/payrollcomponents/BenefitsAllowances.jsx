@@ -1,11 +1,19 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc, query, orderBy, serverTimestamp } from 'firebase/firestore';
+import { db } from '../../../lib/firebaseClient';
+import DeleteConfirmation from '../../DeleteConfirmation';
 
 export default function BenefitsAllowances() {
   const [benefits, setBenefits] = useState([]);
   const [isAddingNew, setIsAddingNew] = useState(false);
   const [editingBenefit, setEditingBenefit] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [benefitToDelete, setBenefitToDelete] = useState(null);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [newBenefit, setNewBenefit] = useState({
     name: '',
     type: '',
@@ -17,115 +25,49 @@ export default function BenefitsAllowances() {
     isMandatory: false
   });
 
-  // Sample benefits data
+  // Fetch benefits and employee data from Firebase
   useEffect(() => {
-    const sampleBenefits = [
-      {
-        id: 1,
-        name: 'Health Insurance',
-        type: 'Insurance',
-        category: 'Health',
-        amount: 500,
-        frequency: 'Monthly',
-        description: 'Comprehensive health insurance coverage',
-        isTaxable: false,
-        isMandatory: true,
-        employeeCount: 25,
-        status: 'Active'
-      },
-      {
-        id: 2,
-        name: 'Transportation Allowance',
-        type: 'Allowance',
-        category: 'Transportation',
-        amount: 200,
-        frequency: 'Monthly',
-        description: 'Monthly transportation allowance',
-        isTaxable: true,
-        isMandatory: false,
-        employeeCount: 20,
-        status: 'Active'
-      },
-      {
-        id: 3,
-        name: 'Meal Allowance',
-        type: 'Allowance',
-        category: 'Food',
-        amount: 150,
-        frequency: 'Monthly',
-        description: 'Monthly meal allowance',
-        isTaxable: true,
-        isMandatory: false,
-        employeeCount: 18,
-        status: 'Active'
-      },
-      {
-        id: 4,
-        name: 'Dental Insurance',
-        type: 'Insurance',
-        category: 'Health',
-        amount: 50,
-        frequency: 'Monthly',
-        description: 'Dental insurance coverage',
-        isTaxable: false,
-        isMandatory: false,
-        employeeCount: 15,
-        status: 'Active'
-      },
-      {
-        id: 5,
-        name: 'Life Insurance',
-        type: 'Insurance',
-        category: 'Life',
-        amount: 100,
-        frequency: 'Monthly',
-        description: 'Life insurance coverage',
-        isTaxable: false,
-        isMandatory: true,
-        employeeCount: 25,
-        status: 'Active'
-      },
-      {
-        id: 6,
-        name: 'Performance Bonus',
-        type: 'Bonus',
-        category: 'Performance',
-        amount: 2000,
-        frequency: 'Quarterly',
-        description: 'Quarterly performance bonus',
-        isTaxable: true,
-        isMandatory: false,
-        employeeCount: 12,
-        status: 'Active'
-      },
-      {
-        id: 7,
-        name: 'Retirement Plan',
-        type: 'Retirement',
-        category: 'Retirement',
-        amount: 300,
-        frequency: 'Monthly',
-        description: 'Company retirement plan contribution',
-        isTaxable: false,
-        isMandatory: true,
-        employeeCount: 25,
-        status: 'Active'
-      },
-      {
-        id: 8,
-        name: 'Phone Allowance',
-        type: 'Allowance',
-        category: 'Communication',
-        amount: 80,
-        frequency: 'Monthly',
-        description: 'Monthly phone allowance',
-        isTaxable: true,
-        isMandatory: false,
-        employeeCount: 10,
-        status: 'Active'
+    const fetchBenefits = async () => {
+      try {
+        setLoading(true);
+        
+        // Fetch benefits
+        const benefitsRef = collection(db, 'benefits');
+        const q = query(benefitsRef, orderBy('createdAt', 'desc'));
+        const querySnapshot = await getDocs(q);
+        
+        const benefitsData = [];
+        querySnapshot.forEach((doc) => {
+          benefitsData.push({
+            id: doc.id,
+            ...doc.data()
+          });
+        });
+        
+        // Fetch employees to count how many are eligible for benefits
+        const employeesRef = collection(db, 'employees');
+        const employeesQuery = query(employeesRef, orderBy('createdAt', 'desc'));
+        const employeesSnapshot = await getDocs(employeesQuery);
+        
+        const activeEmployeeCount = employeesSnapshot.size;
+        
+        // Update benefits with employee counts (assuming all active employees are eligible)
+        const updatedBenefits = benefitsData.map(benefit => ({
+          ...benefit,
+          employeeCount: activeEmployeeCount
+        }));
+        
+        setBenefits(updatedBenefits);
+        setError(null);
+      } catch (err) {
+        console.error('Error fetching benefits:', err);
+        setError('Failed to load benefits');
+      } finally {
+        setLoading(false);
       }
-    ];
-    setBenefits(sampleBenefits);
+    };
+
+    fetchBenefits();
   }, []);
 
   const benefitTypes = ['Insurance', 'Allowance', 'Bonus', 'Retirement', 'Other'];
@@ -140,39 +82,57 @@ export default function BenefitsAllowances() {
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (editingBenefit) {
-      // Update existing benefit
-      setBenefits(prev => prev.map(benefit => 
-        benefit.id === editingBenefit.id 
-          ? { ...benefit, ...newBenefit, amount: parseFloat(newBenefit.amount) }
-          : benefit
-      ));
-      setEditingBenefit(null);
-    } else {
-      // Add new benefit
-      const benefit = {
-        id: benefits.length + 1,
+    try {
+      const benefitData = {
         ...newBenefit,
         amount: parseFloat(newBenefit.amount),
-        employeeCount: 0,
-        status: 'Active'
+        status: 'Active',
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp()
       };
-      setBenefits(prev => [...prev, benefit]);
+
+      if (editingBenefit) {
+        // Update existing benefit
+        const benefitRef = doc(db, 'benefits', editingBenefit.id);
+        await updateDoc(benefitRef, {
+          ...benefitData,
+          updatedAt: serverTimestamp()
+        });
+        
+        setBenefits(prev => prev.map(benefit => 
+          benefit.id === editingBenefit.id 
+            ? { ...benefit, ...benefitData }
+            : benefit
+        ));
+        setEditingBenefit(null);
+      } else {
+        // Add new benefit
+        const docRef = await addDoc(collection(db, 'benefits'), benefitData);
+        const newBenefitItem = {
+          id: docRef.id,
+          ...benefitData
+        };
+        setBenefits(prev => [newBenefitItem, ...prev]);
+      }
+      
+      setNewBenefit({
+        name: '',
+        type: '',
+        category: '',
+        amount: '',
+        frequency: '',
+        description: '',
+        isTaxable: false,
+        isMandatory: false
+      });
+      setIsAddingNew(false);
+      alert('Benefit saved successfully!');
+    } catch (err) {
+      console.error('Error saving benefit:', err);
+      alert('Failed to save benefit');
     }
-    
-    setNewBenefit({
-      name: '',
-      type: '',
-      category: '',
-      amount: '',
-      frequency: '',
-      description: '',
-      isTaxable: false,
-      isMandatory: false
-    });
-    setIsAddingNew(false);
   };
 
   const handleEdit = (benefit) => {
@@ -190,9 +150,26 @@ export default function BenefitsAllowances() {
     setIsAddingNew(true);
   };
 
-  const handleDelete = (id) => {
-    if (confirm('Are you sure you want to delete this benefit?')) {
-      setBenefits(prev => prev.filter(benefit => benefit.id !== id));
+  const handleDelete = (benefit) => {
+    setBenefitToDelete(benefit);
+    setShowDeleteModal(true);
+  };
+
+  const confirmDeleteBenefit = async () => {
+    if (!benefitToDelete) return;
+    
+    setIsDeleting(true);
+    try {
+      await deleteDoc(doc(db, 'benefits', benefitToDelete.id));
+      setBenefits(prev => prev.filter(benefit => benefit.id !== benefitToDelete.id));
+      setShowDeleteModal(false);
+      setBenefitToDelete(null);
+      alert('Benefit deleted successfully!');
+    } catch (err) {
+      console.error('Error deleting benefit:', err);
+      alert('Failed to delete benefit');
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -220,6 +197,26 @@ export default function BenefitsAllowances() {
       default: return 'bg-gray-100 text-gray-800';
     }
   };
+
+  if (loading) {
+    return (
+      <div className="p-6">
+        <div className="flex justify-center items-center h-64">
+          <div className="text-lg text-gray-600">Loading benefits...</div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="p-6">
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+          <div className="text-red-800">{error}</div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-6">
@@ -385,6 +382,7 @@ export default function BenefitsAllowances() {
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Frequency</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Employees</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Properties</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Last Updated</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
               </tr>
             </thead>
@@ -428,6 +426,16 @@ export default function BenefitsAllowances() {
                       )}
                     </div>
                   </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="text-sm text-gray-900">
+                      {benefit.updatedAt?.toDate ? 
+                        benefit.updatedAt.toDate().toLocaleDateString() + ' ' + benefit.updatedAt.toDate().toLocaleTimeString() :
+                        benefit.createdAt?.toDate ? 
+                        benefit.createdAt.toDate().toLocaleDateString() + ' ' + benefit.createdAt.toDate().toLocaleTimeString() :
+                        'N/A'
+                      }
+                    </div>
+                  </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                     <div className="flex space-x-2">
                       <button 
@@ -437,7 +445,7 @@ export default function BenefitsAllowances() {
                         Edit
                       </button>
                       <button 
-                        onClick={() => handleDelete(benefit.id)}
+                        onClick={() => handleDelete(benefit)}
                         className="text-red-600 hover:text-red-900"
                       >
                         Delete
@@ -478,6 +486,20 @@ export default function BenefitsAllowances() {
           </div>
         </div>
       </div>
+
+      {/* Delete Confirmation Modal */}
+      <DeleteConfirmation
+        isOpen={showDeleteModal}
+        onClose={() => {
+          setShowDeleteModal(false);
+          setBenefitToDelete(null);
+        }}
+        onConfirm={confirmDeleteBenefit}
+        title="Delete Benefit"
+        message="Are you sure you want to delete this benefit? This action cannot be undone."
+        itemName={benefitToDelete?.name}
+        isLoading={isDeleting}
+      />
     </div>
   );
 }
