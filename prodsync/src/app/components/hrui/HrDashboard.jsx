@@ -6,6 +6,9 @@ import { auth } from '../../lib/firebaseClient';
 import { useRouter } from 'next/navigation';
 import { useEmployeeStats } from '../../hooks/useEmployeeStats';
 import { usePayrollStats } from '../../hooks/usePayrollStats';
+import PermissionGuard from '../PermissionGuard';
+import { usePermissions } from '../../hooks/usePermissions';
+import { PERMISSIONS } from '../../lib/permissions';
 
 export default function HrDashboard() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -15,6 +18,9 @@ export default function HrDashboard() {
   const router = useRouter();
   const employeeStats = useEmployeeStats();
   const payrollStatsData = usePayrollStats();
+
+  // Permission checking
+  const { can, canPerform, isHR, isAdmin, canManageEmployees, canManagePayroll, canManageTimekeeping, canManageBenefits } = usePermissions();
 
   const handleLogout = async () => {
     setIsLoggingOut(true);
@@ -393,65 +399,83 @@ export default function HrDashboard() {
 
           {/* Quick Actions */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-6 border border-blue-200">
-              <div className="flex items-center mb-4">
-                <div className="w-12 h-12 bg-blue-500 rounded-lg flex items-center justify-center mr-4">
-                  <span className="text-white text-xl">👥</span>
+            <PermissionGuard permission={PERMISSIONS.EMPLOYEE_VIEW}>
+              <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-6 border border-blue-200">
+                <div className="flex items-center mb-4">
+                  <div className="w-12 h-12 bg-blue-500 rounded-lg flex items-center justify-center mr-4">
+                    <span className="text-white text-xl">👥</span>
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900">Employee Actions</h3>
+                    <p className="text-sm text-gray-600">Manage your workforce</p>
+                  </div>
                 </div>
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900">Employee Actions</h3>
-                  <p className="text-sm text-gray-600">Manage your workforce</p>
+                <div className="space-y-2">
+                  <PermissionGuard permission={PERMISSIONS.EMPLOYEE_CREATE}>
+                    <button className="w-full text-left p-3 bg-white hover:bg-blue-50 rounded-lg transition-colors border border-blue-200">
+                      <span className="text-gray-700 font-medium">Add New Employee</span>
+                    </button>
+                  </PermissionGuard>
+                  <PermissionGuard permission={PERMISSIONS.EMPLOYEE_VIEW}>
+                    <button className="w-full text-left p-3 bg-white hover:bg-blue-50 rounded-lg transition-colors border border-blue-200">
+                      <span className="text-gray-700 font-medium">View All Employees</span>
+                    </button>
+                  </PermissionGuard>
                 </div>
               </div>
-              <div className="space-y-2">
-                <button className="w-full text-left p-3 bg-white hover:bg-blue-50 rounded-lg transition-colors border border-blue-200">
-                  <span className="text-gray-700 font-medium">Add New Employee</span>
-                </button>
-                <button className="w-full text-left p-3 bg-white hover:bg-blue-50 rounded-lg transition-colors border border-blue-200">
-                  <span className="text-gray-700 font-medium">View All Employees</span>
-                </button>
-              </div>
-            </div>
+            </PermissionGuard>
 
-            <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-6 border border-green-200">
-              <div className="flex items-center mb-4">
-                <div className="w-12 h-12 bg-green-500 rounded-lg flex items-center justify-center mr-4">
-                  <span className="text-white text-xl">💰</span>
+            <PermissionGuard permission={PERMISSIONS.PAYROLL_VIEW}>
+              <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-6 border border-green-200">
+                <div className="flex items-center mb-4">
+                  <div className="w-12 h-12 bg-green-500 rounded-lg flex items-center justify-center mr-4">
+                    <span className="text-white text-xl">💰</span>
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900">Payroll Actions</h3>
+                    <p className="text-sm text-gray-600">Handle salary & benefits</p>
+                  </div>
                 </div>
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900">Payroll Actions</h3>
-                  <p className="text-sm text-gray-600">Handle salary & benefits</p>
+                <div className="space-y-2">
+                  <PermissionGuard permission={PERMISSIONS.PAYROLL_PROCESS}>
+                    <button className="w-full text-left p-3 bg-white hover:bg-green-50 rounded-lg transition-colors border border-green-200">
+                      <span className="text-gray-700 font-medium">Process Payroll</span>
+                    </button>
+                  </PermissionGuard>
+                  <PermissionGuard permission={PERMISSIONS.PAYROLL_REPORTS}>
+                    <button className="w-full text-left p-3 bg-white hover:bg-green-50 rounded-lg transition-colors border border-green-200">
+                      <span className="text-gray-700 font-medium">Salary Reports</span>
+                    </button>
+                  </PermissionGuard>
                 </div>
               </div>
-              <div className="space-y-2">
-                <button className="w-full text-left p-3 bg-white hover:bg-green-50 rounded-lg transition-colors border border-green-200">
-                  <span className="text-gray-700 font-medium">Process Payroll</span>
-                </button>
-                <button className="w-full text-left p-3 bg-white hover:bg-green-50 rounded-lg transition-colors border border-green-200">
-                  <span className="text-gray-700 font-medium">Salary Reports</span>
-                </button>
-              </div>
-            </div>
+            </PermissionGuard>
 
-            <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl p-6 border border-purple-200">
-              <div className="flex items-center mb-4">
-                <div className="w-12 h-12 bg-purple-500 rounded-lg flex items-center justify-center mr-4">
-                  <span className="text-white text-xl">⏰</span>
+            <PermissionGuard permission={PERMISSIONS.TIMEKEEPING_VIEW}>
+              <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl p-6 border border-purple-200">
+                <div className="flex items-center mb-4">
+                  <div className="w-12 h-12 bg-purple-500 rounded-lg flex items-center justify-center mr-4">
+                    <span className="text-white text-xl">⏰</span>
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900">Time Actions</h3>
+                    <p className="text-sm text-gray-600">Track attendance & time</p>
+                  </div>
                 </div>
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900">Time Actions</h3>
-                  <p className="text-sm text-gray-600">Track attendance & time</p>
+                <div className="space-y-2">
+                  <PermissionGuard permission={PERMISSIONS.TIMEKEEPING_VIEW}>
+                    <button className="w-full text-left p-3 bg-white hover:bg-purple-50 rounded-lg transition-colors border border-purple-200">
+                      <span className="text-gray-700 font-medium">Attendance Report</span>
+                    </button>
+                  </PermissionGuard>
+                  <PermissionGuard permission={PERMISSIONS.TIMEKEEPING_APPROVE}>
+                    <button className="w-full text-left p-3 bg-white hover:bg-purple-50 rounded-lg transition-colors border border-purple-200">
+                      <span className="text-gray-700 font-medium">Leave Requests</span>
+                    </button>
+                  </PermissionGuard>
                 </div>
               </div>
-              <div className="space-y-2">
-                <button className="w-full text-left p-3 bg-white hover:bg-purple-50 rounded-lg transition-colors border border-purple-200">
-                  <span className="text-gray-700 font-medium">Attendance Report</span>
-                </button>
-                <button className="w-full text-left p-3 bg-white hover:bg-purple-50 rounded-lg transition-colors border border-purple-200">
-                  <span className="text-gray-700 font-medium">Leave Requests</span>
-                </button>
-              </div>
-            </div>
+            </PermissionGuard>
           </div>
 
           {/* Recent Activities */}

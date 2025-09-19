@@ -3,6 +3,9 @@
 import { useState, useEffect } from 'react';
 import { collection, getDocs, query, orderBy, where } from 'firebase/firestore';
 import { db } from '../../../lib/firebaseClient';
+import PermissionGuard from '../../PermissionGuard';
+import { usePermissions } from '../../../hooks/usePermissions';
+import { PERMISSIONS } from '../../../lib/permissions';
 
 export default function PayrollOverview() {
   const [payrollData, setPayrollData] = useState([]);
@@ -10,6 +13,9 @@ export default function PayrollOverview() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  // Permission checking
+  const { can, canPerform, isHR, isAdmin } = usePermissions();
 
   // Fetch payroll data from Firebase (employees collection)
   useEffect(() => {
@@ -241,11 +247,12 @@ export default function PayrollOverview() {
   }
 
   return (
-    <div className="p-6">
-      <div className="mb-6">
-        <div className="flex justify-between items-center">
-          <div>
-            <h2 className="text-2xl font-bold text-gray-900">Payroll Overview</h2>
+    <PermissionGuard permission={PERMISSIONS.PAYROLL_VIEW}>
+      <div className="p-6">
+        <div className="mb-6">
+          <div className="flex justify-between items-center">
+            <div>
+              <h2 className="text-2xl font-bold text-gray-900">Payroll Overview</h2>
             <p className="text-gray-600 mt-1">Manage and monitor payroll processing</p>
           </div>
           <div className="flex items-center space-x-4">
@@ -422,5 +429,6 @@ export default function PayrollOverview() {
         </div>
       </div>
     </div>
+    </PermissionGuard>
   );
 }

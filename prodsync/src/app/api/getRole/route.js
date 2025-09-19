@@ -1,6 +1,6 @@
 // src/app/api/getRole/route.js
 import { NextResponse } from "next/server";
-import admin from "firebase-admin";
+import { getDbAdmin, getAuthAdmin, isFirebaseAdminConfigured, initializeFirebaseAdmin } from "../../lib/firebaseAdmin";
 
 export async function GET(request) {
   try {
@@ -26,16 +26,16 @@ export async function GET(request) {
       }, { status: 503 });
     }
 
-    // Check if Firebase Admin is initialized
-    if (admin.apps.length === 0) {
-      console.error("Firebase Admin not initialized");
+    // Ensure Firebase Admin is initialized
+    const { dbAdmin, authAdmin } = initializeFirebaseAdmin();
+    
+    if (!dbAdmin || !authAdmin) {
+      console.error("Firebase Admin services not available");
       return NextResponse.json({ 
         error: "Firebase Admin is not initialized. Please check your configuration.",
         code: "FIREBASE_NOT_INITIALIZED"
       }, { status: 503 });
     }
-
-    const dbAdmin = admin.firestore();
 
     const { searchParams } = new URL(request.url);
     const uid = searchParams.get('uid');
@@ -59,11 +59,44 @@ export async function GET(request) {
     
     if (!userDoc.exists) {
       console.log(`User ${uid} not found in database after retry`);
-      return NextResponse.json({ 
-        error: "User not found in database. Please contact administrator to set up your account.",
-        code: "USER_NOT_FOUND",
-        uid: uid
-      }, { status: 404 });
+      
+      // Try to get user info from Firebase Auth to create a basic user document
+      try {
+        const userRecord = await authAdmin.getUser(uid);
+        
+        // Create a basic user document with default role
+        const defaultUserData = {
+          email: userRecord.email,
+          firstName: userRecord.displayName?.split(' ')[0] || 'User',
+          lastName: userRecord.displayName?.split(' ').slice(1).join(' ') || 'Account',
+          role: 'staff', // Default role
+          company: 'ProdSync Inc.',
+          createdAt: new Date(),
+          isAutoCreated: true // Flag to indicate this was auto-created
+        };
+        
+        await dbAdmin.collection("users").doc(uid).set(defaultUserData);
+        console.log(`✅ Auto-created user document for ${uid}`);
+        
+        return NextResponse.json({ 
+          role: defaultUserData.role,
+          userData: {
+            firstName: defaultUserData.firstName,
+            lastName: defaultUserData.lastName,
+            email: defaultUserData.email,
+            company: defaultUserData.company
+          },
+          message: "User account auto-created with default settings. Please contact administrator to update your role and information."
+        });
+        
+      } catch (authError) {
+        console.error(`Error getting user from Firebase Auth:`, authError);
+        return NextResponse.json({ 
+          error: "User not found in database. Please contact administrator to set up your account.",
+          code: "USER_NOT_FOUND",
+          uid: uid
+        }, { status: 404 });
+      }
     }
 
     const userData = userDoc.data();

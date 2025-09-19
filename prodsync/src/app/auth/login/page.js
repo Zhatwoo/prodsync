@@ -83,6 +83,12 @@ export default function LoginPage() {
           userData: data.userData
         }));
 
+        // Show message if account was auto-created
+        if (data.message) {
+          console.log("Account auto-created:", data.message);
+          // You could show a toast notification here if you have one
+        }
+
         // Redirect to appropriate dashboard based on role
         const redirectPath = getDashboardRoute(data.role);
         console.log("Redirecting to:", redirectPath);

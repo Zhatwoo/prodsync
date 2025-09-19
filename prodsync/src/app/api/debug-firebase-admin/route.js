@@ -1,102 +1,147 @@
-// src/app/api/debug-firebase-admin/route.js
-import { NextResponse } from "next/server";
-import admin from "firebase-admin";
+import { NextResponse } from 'next/server';
+import admin from 'firebase-admin';
 
 export async function GET() {
   try {
-    const diagnostics = {
-      timestamp: new Date().toISOString(),
-      environment: {
-        hasProjectId: !!process.env.FIREBASE_PROJECT_ID,
-        hasClientEmail: !!process.env.FIREBASE_CLIENT_EMAIL,
-        hasPrivateKey: !!process.env.FIREBASE_PRIVATE_KEY,
-        projectId: process.env.FIREBASE_PROJECT_ID,
-        clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-        privateKeyLength: process.env.FIREBASE_PRIVATE_KEY?.length || 0,
-        privateKeyStart: process.env.FIREBASE_PRIVATE_KEY?.substring(0, 50) || "N/A",
-        privateKeyEnd: process.env.FIREBASE_PRIVATE_KEY?.substring(-50) || "N/A"
-      },
-      admin: {
-        appsLength: admin.apps.length,
-        hasDefaultApp: !!admin.apps.find(app => app.name === '[DEFAULT]')
-      }
+    console.log('🔍 Debug Firebase Admin...');
+    
+    // Check environment variables
+    const envCheck = {
+      FIREBASE_PROJECT_ID: !!process.env.FIREBASE_PROJECT_ID,
+      FIREBASE_CLIENT_EMAIL: !!process.env.FIREBASE_CLIENT_EMAIL,
+      FIREBASE_PRIVATE_KEY: !!process.env.FIREBASE_PRIVATE_KEY,
+      projectId: process.env.FIREBASE_PROJECT_ID,
+      clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+      privateKeyLength: process.env.FIREBASE_PRIVATE_KEY?.length || 0
     };
-
-    // Try to initialize Firebase Admin if not already initialized
-    if (admin.apps.length === 0) {
+    
+    console.log('Environment check:', envCheck);
+    
+    // Check if admin is already initialized
+    const appsLength = admin.apps.length;
+    console.log('Admin apps length:', appsLength);
+    
+    let initializationResult = null;
+    let dbAdmin = null;
+    let authAdmin = null;
+    
+    if (appsLength === 0) {
       try {
-        let privateKey = process.env.FIREBASE_PRIVATE_KEY;
+        console.log('Attempting to initialize Firebase Admin...');
         
-        if (privateKey) {
-          // Remove surrounding quotes if present
-          privateKey = privateKey.replace(/^"|"$/g, '');
-          // Replace escaped newlines with actual newlines
-          privateKey = privateKey.replace(/\\n/g, '\n');
-          // Ensure proper formatting
-          if (!privateKey.endsWith('\n')) {
-            privateKey += '\n';
-          }
-        }
-
+        // Try with service account
         const serviceAccount = {
           projectId: process.env.FIREBASE_PROJECT_ID,
           clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-          privateKey: privateKey,
+          privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n')
         };
-
-        admin.initializeApp({
-          credential: admin.credential.cert(serviceAccount),
+        
+        console.log('Service account config:', {
+          projectId: serviceAccount.projectId,
+          clientEmail: serviceAccount.clientEmail,
+          privateKeyLength: serviceAccount.privateKey?.length || 0
         });
-
-        const dbAdmin = admin.firestore();
-        const authAdmin = admin.auth();
-
-        diagnostics.initialization = {
+        
+        admin.initializeApp({
+          credential: admin.credential.cert(serviceAccount)
+        });
+        
+        dbAdmin = admin.firestore();
+        authAdmin = admin.auth();
+        
+        initializationResult = {
           success: true,
-          hasDbAdmin: !!dbAdmin,
-          hasAuthAdmin: !!authAdmin,
+          method: 'service_account',
           appsLength: admin.apps.length
         };
-
-        // Test Firestore connection
+        
+        console.log('✅ Firebase Admin initialized successfully');
+        
+      } catch (error) {
+        console.error('❌ Service account initialization failed:', error);
+        
+        // Try default initialization
         try {
-          const testCollection = dbAdmin.collection('_test');
-          const testDoc = await testCollection.doc('test').get();
-          diagnostics.firestoreTest = {
+          console.log('Trying default initialization...');
+          admin.initializeApp();
+          dbAdmin = admin.firestore();
+          authAdmin = admin.auth();
+          
+          initializationResult = {
             success: true,
-            message: "Firestore connection successful"
+            method: 'default',
+            appsLength: admin.apps.length
           };
-        } catch (error) {
-          diagnostics.firestoreTest = {
+          
+          console.log('✅ Default initialization successful');
+        } catch (defaultError) {
+          console.error('❌ Default initialization also failed:', defaultError);
+          initializationResult = {
             success: false,
-            error: error.message,
-            code: error.code
+            error: defaultError.message,
+            method: 'both_failed'
           };
         }
-
-      } catch (error) {
-        diagnostics.initialization = {
-          success: false,
-          error: error.message,
-          stack: error.stack
-        };
       }
     } else {
-      diagnostics.initialization = {
+      console.log('Firebase Admin already initialized');
+      dbAdmin = admin.firestore();
+      authAdmin = admin.auth();
+      initializationResult = {
         success: true,
-        message: "Already initialized",
-        appsLength: admin.apps.length
+        method: 'already_initialized',
+        appsLength: appsLength
       };
     }
-
+    
+    // Test connections
+    let firestoreTest = false;
+    let authTest = false;
+    
+    if (dbAdmin) {
+      try {
+        await dbAdmin.collection('test').limit(1).get();
+        firestoreTest = true;
+        console.log('✅ Firestore test successful');
+      } catch (error) {
+        console.error('❌ Firestore test failed:', error);
+      }
+    }
+    
+    if (authAdmin) {
+      try {
+        await authAdmin.listUsers(1);
+        authTest = true;
+        console.log('✅ Auth test successful');
+      } catch (error) {
+        if (error.code === 'auth/user-not-found') {
+          authTest = true; // Connection works, just no users
+          console.log('✅ Auth test successful (no users found)');
+        } else {
+          console.error('❌ Auth test failed:', error);
+        }
+      }
+    }
+    
     return NextResponse.json({
-      message: "Firebase Admin debug information",
-      diagnostics
+      success: true,
+      environment: envCheck,
+      initialization: initializationResult,
+      connections: {
+        firestore: firestoreTest,
+        auth: authTest
+      },
+      services: {
+        hasDbAdmin: !!dbAdmin,
+        hasAuthAdmin: !!authAdmin
+      }
     });
+    
   } catch (error) {
+    console.error('❌ Debug error:', error);
     return NextResponse.json({
-      error: "Failed to debug Firebase Admin",
-      message: error.message,
+      success: false,
+      error: error.message,
       stack: error.stack
     }, { status: 500 });
   }

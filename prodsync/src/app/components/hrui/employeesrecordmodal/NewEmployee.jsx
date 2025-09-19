@@ -5,6 +5,9 @@ import { collection, addDoc, getDocs, query, orderBy, serverTimestamp, doc, setD
 import { createUserWithEmailAndPassword } from 'firebase/auth';
 import { db, auth } from '../../../lib/firebaseClient';
 import { availableRoles } from '../../../lib/roleRoutes';
+import PermissionGuard from '../../PermissionGuard';
+import { usePermissions } from '../../../hooks/usePermissions';
+import { PERMISSIONS } from '../../../lib/permissions';
 
 export default function NewEmployee() {
   const [formData, setFormData] = useState({
@@ -33,6 +36,9 @@ export default function NewEmployee() {
   const [positions, setPositions] = useState([]);
   const [departments, setDepartments] = useState([]);
   const [loadingData, setLoadingData] = useState(true);
+
+  // Permission checking
+  const { can, canPerform, isHR, isAdmin } = usePermissions();
 
   // Debug Firebase configuration
   useEffect(() => {
@@ -394,13 +400,14 @@ export default function NewEmployee() {
   };
 
   return (
-    <div className="p-6">
-      <div className="mb-6">
-        <div className="flex justify-between items-center">
-          <div>
-            <h2 className="text-2xl font-bold text-gray-900">Add New Employee</h2>
-            <p className="text-gray-600 mt-1">Create a new employee record</p>
-          </div>
+    <PermissionGuard permission={PERMISSIONS.EMPLOYEE_CREATE}>
+      <div className="p-6">
+        <div className="mb-6">
+          <div className="flex justify-between items-center">
+            <div>
+              <h2 className="text-2xl font-bold text-gray-900">Add New Employee</h2>
+              <p className="text-gray-600 mt-1">Create a new employee record</p>
+            </div>
           <button
             type="button"
             onClick={refreshData}
@@ -793,5 +800,6 @@ export default function NewEmployee() {
         </div>
       </form>
     </div>
+    </PermissionGuard>
   );
 }
