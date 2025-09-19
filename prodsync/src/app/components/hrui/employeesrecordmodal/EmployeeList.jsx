@@ -4,6 +4,10 @@ import { useState, useEffect } from 'react';
 import { collection, getDocs, deleteDoc, doc, query, orderBy, updateDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '../../../lib/firebaseClient';
 import DeleteConfirmation from '../../DeleteConfirmation';
+import PermissionGuard from '../../PermissionGuard';
+import { usePermissions } from '../../../hooks/usePermissions';
+import { PERMISSIONS } from '../../../lib/permissions';
+import { deleteEmployeeCompletely, getEmployeeDeletionMessage, getEmployeeDeletionSuccessMessage } from '../../../lib/employeeUtils';
 
 export default function EmployeeList() {
   const [employees, setEmployees] = useState([]);
@@ -22,6 +26,9 @@ export default function EmployeeList() {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [employeeToDelete, setEmployeeToDelete] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
+
+  // Permission checking
+  const { can, canPerform, isHR, isAdmin } = usePermissions();
 
   // Fetch employees from Firebase
   useEffect(() => {
@@ -138,14 +145,28 @@ export default function EmployeeList() {
     
     setIsDeleting(true);
     try {
-      await deleteDoc(doc(db, 'employees', employeeToDelete.id));
+      // Use utility function to delete employee completely
+      const result = await deleteEmployeeCompletely(
+        employeeToDelete.id, 
+        employeeToDelete.email
+      );
+
+      if (!result.success) {
+        throw new Error(result.error);
+      }
+
+      // Update local state to remove the deleted employee
       setEmployees(prev => prev.filter(emp => emp.id !== employeeToDelete.id));
       setShowDeleteModal(false);
       setEmployeeToDelete(null);
-      alert('Employee deleted successfully!');
+      
+      // Show success message with details
+      alert(getEmployeeDeletionSuccessMessage(employeeToDelete));
+      
+      console.log('✅ Employee deletion completed:', result.details);
     } catch (err) {
-      console.error('Error deleting employee:', err);
-      alert('Failed to delete employee');
+      console.error('❌ Error deleting employee:', err);
+      alert(`Failed to delete employee: ${err.message}`);
     } finally {
       setIsDeleting(false);
     }
@@ -283,12 +304,14 @@ export default function EmployeeList() {
             </select>
           </div>
           <div className="flex items-end">
-            <button 
-              onClick={handleExportData}
-              className="w-full bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-semibold hover:bg-blue-700 transition-colors"
-            >
-              Export Data
-            </button>
+            <PermissionGuard permission={PERMISSIONS.EMPLOYEE_EXPORT}>
+              <button 
+                onClick={handleExportData}
+                className="w-full bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-semibold hover:bg-blue-700 transition-colors"
+              >
+                Export Data
+              </button>
+            </PermissionGuard>
           </div>
         </div>
       </div>
@@ -342,24 +365,30 @@ export default function EmployeeList() {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                     <div className="flex space-x-2">
-                      <button 
-                        onClick={() => handleViewEmployee(employee)}
-                        className="text-blue-600 hover:text-blue-900"
-                      >
-                        View
-                      </button>
-                      <button 
-                        onClick={() => handleEditEmployee(employee)}
-                        className="text-indigo-600 hover:text-indigo-900"
-                      >
-                        Edit
-                      </button>
-                          <button
-                            onClick={() => handleDeleteEmployee(employee)}
-                            className="text-red-600 hover:text-red-900"
-                          >
-                            Delete
-                          </button>
+                      <PermissionGuard permission={PERMISSIONS.EMPLOYEE_VIEW}>
+                        <button 
+                          onClick={() => handleViewEmployee(employee)}
+                          className="text-blue-600 hover:text-blue-900"
+                        >
+                          View
+                        </button>
+                      </PermissionGuard>
+                      <PermissionGuard permission={PERMISSIONS.EMPLOYEE_EDIT}>
+                        <button 
+                          onClick={() => handleEditEmployee(employee)}
+                          className="text-indigo-600 hover:text-indigo-900"
+                        >
+                          Edit
+                        </button>
+                      </PermissionGuard>
+                      <PermissionGuard permission={PERMISSIONS.EMPLOYEE_DELETE}>
+                        <button
+                          onClick={() => handleDeleteEmployee(employee)}
+                          className="text-red-600 hover:text-red-900"
+                        >
+                          Delete
+                        </button>
+                      </PermissionGuard>
                     </div>
                   </td>
                 </tr>
@@ -635,7 +664,7 @@ export default function EmployeeList() {
         }}
         onConfirm={confirmDeleteEmployee}
         title="Delete Employee"
-        message="Are you sure you want to delete this employee? All associated data will be permanently removed."
+        message={employeeToDelete ? getEmployeeDeletionMessage(employeeToDelete) : 'Are you sure you want to delete this employee?'}
         itemName={employeeToDelete?.name}
         isLoading={isDeleting}
       />

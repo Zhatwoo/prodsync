@@ -1,58 +1,74 @@
-// src/app/api/test-firebase-admin/route.js
-import { NextResponse } from "next/server";
-import { getDbAdmin, getAuthAdmin, isFirebaseAdminConfigured } from "../../lib/firebaseAdmin";
+import { NextResponse } from 'next/server';
+import { initializeFirebaseAdmin } from '../../lib/firebaseAdmin';
 
-export async function GET(request) {
+export async function GET() {
   try {
-    const diagnostics = {
-      isConfigured: isFirebaseAdminConfigured(),
-      hasDbAdmin: !!getDbAdmin(),
-      hasAuthAdmin: !!getAuthAdmin(),
-      environment: {
-        hasProjectId: !!process.env.FIREBASE_PROJECT_ID,
-        hasClientEmail: !!process.env.FIREBASE_CLIENT_EMAIL,
-        hasPrivateKey: !!process.env.FIREBASE_PRIVATE_KEY,
-        projectId: process.env.FIREBASE_PROJECT_ID,
-        clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-        privateKeyLength: process.env.FIREBASE_PRIVATE_KEY?.length || 0,
-        privateKeyStart: process.env.FIREBASE_PRIVATE_KEY?.substring(0, 50) || "N/A",
-        privateKeyEnd: process.env.FIREBASE_PRIVATE_KEY?.substring(-50) || "N/A"
-      }
-    };
-
-    // Try to test Firestore connection if dbAdmin is available
-    if (dbAdmin) {
-      try {
-        // Simple test query
-        const testCollection = dbAdmin.collection('_test');
-        const testDoc = await testCollection.doc('test').get();
-        diagnostics.firestoreTest = {
-          success: true,
-          message: "Firestore connection successful"
-        };
-      } catch (error) {
-        diagnostics.firestoreTest = {
-          success: false,
-          error: error.message,
-          code: error.code
-        };
-      }
-    } else {
-      diagnostics.firestoreTest = {
+    console.log('🧪 Testing Firebase Admin initialization...');
+    
+    // Initialize Firebase Admin
+    const { dbAdmin, authAdmin } = initializeFirebaseAdmin();
+    
+    if (!dbAdmin || !authAdmin) {
+      return NextResponse.json({
         success: false,
-        error: "dbAdmin not available"
-      };
+        error: 'Firebase Admin not initialized',
+        details: {
+          hasDbAdmin: !!dbAdmin,
+          hasAuthAdmin: !!authAdmin
+        }
+      }, { status: 500 });
     }
-
+    
+    console.log('✅ Firebase Admin initialized successfully');
+    
+    // Test Firestore connection
+    let firestoreTest = false;
+    try {
+      const testCollection = dbAdmin.collection('test');
+      await testCollection.limit(1).get();
+      firestoreTest = true;
+      console.log('✅ Firestore connection test passed');
+    } catch (firestoreError) {
+      console.error('❌ Firestore connection test failed:', firestoreError);
+    }
+    
+    // Test Auth connection
+    let authTest = false;
+    try {
+      // Try to list users (this will fail if no users, but connection should work)
+      await authAdmin.listUsers(1);
+      authTest = true;
+      console.log('✅ Auth connection test passed');
+    } catch (authError) {
+      // Auth error might be expected if no users exist
+      if (authError.code === 'auth/user-not-found' || authError.message.includes('no users')) {
+        authTest = true; // Connection works, just no users
+        console.log('✅ Auth connection test passed (no users found)');
+      } else {
+        console.error('❌ Auth connection test failed:', authError);
+      }
+    }
+    
     return NextResponse.json({
-      message: "Firebase Admin SDK diagnostics",
-      diagnostics
+      success: true,
+      message: 'Firebase Admin test completed',
+      results: {
+        firebaseAdminInitialized: true,
+        firestoreConnection: firestoreTest,
+        authConnection: authTest,
+        timestamp: new Date().toISOString()
+      }
     });
+    
   } catch (error) {
+    console.error('❌ Error in Firebase Admin test:', error);
     return NextResponse.json({
-      error: "Failed to run Firebase Admin diagnostics",
-      message: error.message,
-      stack: error.stack
+      success: false,
+      error: error.message,
+      details: {
+        name: error.name,
+        stack: error.stack
+      }
     }, { status: 500 });
   }
 }

@@ -30,6 +30,38 @@ export const getDashboardRoute = (role) => {
   return dashboardRoutes[role] || '/positionpages/sales';
 };
 
+// HR Role definitions with permissions
+export const HR_ROLES = {
+  'HR Manager': {
+    name: 'HR Manager',
+    description: 'Full HR management access with all permissions',
+    level: 3,
+    permissions: 'full'
+  },
+  'HR': {
+    name: 'HR',
+    description: 'Standard HR access with most permissions',
+    level: 2,
+    permissions: 'standard'
+  },
+  'hr': {
+    name: 'hr',
+    description: 'Standard HR access (lowercase variant)',
+    level: 2,
+    permissions: 'standard'
+  }
+};
+
+// Check if a role is an HR role
+export const isHRRole = (role) => {
+  return ['hr', 'HR', 'HR Manager'].includes(role);
+};
+
+// Get HR role level (higher number = more permissions)
+export const getHRRoleLevel = (role) => {
+  return HR_ROLES[role]?.level || 0;
+};
+
 // Available roles for signup
 export const availableRoles = [
   { value: 'Sales', label: 'Sales' },

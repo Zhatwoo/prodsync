@@ -23,19 +23,40 @@ let isInitialized = false;
 
 const initializeFirebaseAdmin = () => {
   if (isInitialized) {
+    console.log("Firebase Admin already initialized, returning existing instances");
     return { dbAdmin, authAdmin };
   }
 
-  if (!admin.apps.length && isFirebaseAdminConfigured()) {
+  console.log("Initializing Firebase Admin...");
+  console.log("Admin apps length:", admin.apps.length);
+  console.log("Configuration check:", isFirebaseAdminConfigured());
+
+  // Check if Firebase Admin is already initialized
+  if (admin.apps.length > 0) {
+    console.log("Firebase Admin already initialized, getting services...");
+    dbAdmin = admin.firestore();
+    authAdmin = admin.auth();
+    isInitialized = true;
+    console.log("✅ Firebase Admin services retrieved successfully");
+    return { dbAdmin, authAdmin };
+  }
+
+  if (isFirebaseAdminConfigured()) {
     try {
       // Properly format the private key
       let privateKey = process.env.FIREBASE_PRIVATE_KEY;
+      
+      console.log("Raw private key length:", privateKey?.length || 0);
       
       if (privateKey) {
         // Remove surrounding quotes if present
         privateKey = privateKey.replace(/^"|"$/g, '');
         // Replace escaped newlines with actual newlines
         privateKey = privateKey.replace(/\\n/g, '\n');
+        // Ensure proper formatting
+        if (!privateKey.endsWith('\n')) {
+          privateKey += '\n';
+        }
       }
 
       console.log("Attempting Firebase Admin initialization...");
@@ -43,11 +64,13 @@ const initializeFirebaseAdmin = () => {
         hasPrivateKey: !!privateKey,
         startsWithBegin: privateKey?.startsWith("-----BEGIN PRIVATE KEY-----"),
         endsWithEnd: privateKey?.endsWith("-----END PRIVATE KEY-----\n"),
-        length: privateKey?.length
+        length: privateKey?.length,
+        firstChars: privateKey?.substring(0, 30),
+        lastChars: privateKey?.substring(privateKey.length - 30)
       });
 
       if (!privateKey || !privateKey.includes("BEGIN PRIVATE KEY")) {
-        throw new Error("Invalid private key format");
+        throw new Error("Invalid private key format - missing BEGIN PRIVATE KEY");
       }
 
       const serviceAccount = {
@@ -70,9 +93,18 @@ const initializeFirebaseAdmin = () => {
       authAdmin = admin.auth();
       isInitialized = true;
       console.log("Firebase Admin initialized successfully");
+      console.log("Services created:", { 
+        hasDbAdmin: !!dbAdmin, 
+        hasAuthAdmin: !!authAdmin,
+        dbAdminType: typeof dbAdmin,
+        authAdminType: typeof authAdmin
+      });
     } catch (error) {
-      console.error("Firebase Admin initialization error:", error);
-      console.error("Error details:", {
+      console.error("❌ Firebase Admin initialization error:", error);
+      console.error("❌ Error details:", {
+        name: error.name,
+        message: error.message,
+        code: error.code,
         hasProjectId: !!process.env.FIREBASE_PROJECT_ID,
         hasClientEmail: !!process.env.FIREBASE_CLIENT_EMAIL,
         hasPrivateKey: !!process.env.FIREBASE_PRIVATE_KEY,
@@ -90,18 +122,27 @@ const initializeFirebaseAdmin = () => {
   return { dbAdmin, authAdmin };
 };
 
-// Initialize on module load
-initializeFirebaseAdmin();
+// Initialize on module load with better error handling
+try {
+  initializeFirebaseAdmin();
+} catch (error) {
+  console.error("❌ Failed to initialize Firebase Admin on module load:", error);
+}
 
 // Export getter functions to ensure proper initialization
 export const getDbAdmin = () => {
-  const { dbAdmin: db } = initializeFirebaseAdmin();
-  return db;
+  if (!isInitialized) {
+    initializeFirebaseAdmin();
+  }
+  return dbAdmin;
 };
 
 export const getAuthAdmin = () => {
-  const { authAdmin: auth } = initializeFirebaseAdmin();
-  return auth;
+  if (!isInitialized) {
+    initializeFirebaseAdmin();
+  }
+  return authAdmin;
 };
 
-export { isFirebaseAdminConfigured };
+// Export the services directly for convenience
+export { dbAdmin, authAdmin, isFirebaseAdminConfigured, initializeFirebaseAdmin };
