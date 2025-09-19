@@ -33,7 +33,21 @@ export const usePayrollStats = () => {
 
         employeesSnapshot.forEach((doc) => {
           const employee = doc.data();
-          const basicSalary = parseFloat(employee.salary?.replace(/[^0-9.-]+/g, '') || 0);
+          
+          // Handle different salary data types
+          let basicSalary = 0;
+          if (employee.salary !== undefined && employee.salary !== null) {
+            if (typeof employee.salary === 'string') {
+              // If it's a string, remove non-numeric characters and parse
+              basicSalary = parseFloat(employee.salary.replace(/[^0-9.-]+/g, '') || 0);
+            } else if (typeof employee.salary === 'number') {
+              // If it's already a number, use it directly
+              basicSalary = employee.salary;
+            } else {
+              // Log unexpected data types for debugging
+              console.warn('Unexpected salary data type:', typeof employee.salary, employee.salary);
+            }
+          }
           
           if (basicSalary > 0) {
             const allowances = Math.round(basicSalary * 0.1); // 10% of basic salary

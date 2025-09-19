@@ -1,7 +1,7 @@
 // src/app/api/test/route.js
 import { NextResponse } from "next/server";
-import { isFirebaseAdminConfigured } from "@/lib/firebaseAdmin";
-import { isFirebaseConfigured } from "@/lib/firebaseClient";
+import { isFirebaseAdminConfigured } from "../../lib/firebaseAdmin";
+import { isFirebaseConfigured } from "../../lib/firebaseClient";
 
 export async function GET() {
   try {

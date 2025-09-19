@@ -7,6 +7,7 @@ import EmployeeProfile from '../../components/hrui/employeesrecordmodal/Employee
 import DepartmentManagement from '../../components/hrui/employeesrecordmodal/DepartmentManagement';
 import PositionManagement from '../../components/hrui/employeesrecordmodal/PositionManagement';
 import EmployeeDocuments from '../../components/hrui/employeesrecordmodal/EmployeeDocuments';
+import RequireRole from '../../components/RequireRole';
 
 export default function AdministratorEmployeesRecordPage() {
   const [activeTab, setActiveTab] = useState('employeeList');
@@ -40,7 +41,8 @@ export default function AdministratorEmployeesRecordPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <RequireRole allowed={['hr', 'HR', 'HR Manager', 'admin', 'administrator']}>
+      <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <div className="bg-white shadow-sm border border-gray-200 rounded-lg mb-4 sm:mb-6">
         <div className="px-4 sm:px-6 lg:px-8">
@@ -108,5 +110,6 @@ export default function AdministratorEmployeesRecordPage() {
         </div>
       </div>
     </div>
+    </RequireRole>
   );
 }

@@ -95,7 +95,16 @@ export default function PayrollReports() {
       const employeesData = [];
       querySnapshot.forEach((doc) => {
         const employee = doc.data();
-        const basicSalary = parseFloat(employee.salary?.replace(/[^0-9.-]+/g, '') || 0);
+        let basicSalary = 0;
+        if (employee.salary !== undefined && employee.salary !== null) {
+          if (typeof employee.salary === 'string') {
+            basicSalary = parseFloat(employee.salary.replace(/[^0-9.-]+/g, '') || 0);
+          } else if (typeof employee.salary === 'number') {
+            basicSalary = employee.salary;
+          } else {
+            console.warn('Unexpected salary data type:', typeof employee.salary, employee.salary);
+          }
+        }
         const allowances = Math.round(basicSalary * 0.1);
         const overtime = Math.round(basicSalary * 0.05);
         const bonuses = Math.round(basicSalary * 0.08);

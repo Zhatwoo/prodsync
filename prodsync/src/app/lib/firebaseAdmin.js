@@ -36,6 +36,10 @@ const initializeFirebaseAdmin = () => {
         privateKey = privateKey.replace(/^"|"$/g, '');
         // Replace escaped newlines with actual newlines
         privateKey = privateKey.replace(/\\n/g, '\n');
+        // Ensure proper formatting
+        if (!privateKey.endsWith('\n')) {
+          privateKey += '\n';
+        }
       }
 
       console.log("Attempting Firebase Admin initialization...");
@@ -70,6 +74,12 @@ const initializeFirebaseAdmin = () => {
       authAdmin = admin.auth();
       isInitialized = true;
       console.log("Firebase Admin initialized successfully");
+      console.log("Services created:", { 
+        hasDbAdmin: !!dbAdmin, 
+        hasAuthAdmin: !!authAdmin,
+        dbAdminType: typeof dbAdmin,
+        authAdminType: typeof authAdmin
+      });
     } catch (error) {
       console.error("Firebase Admin initialization error:", error);
       console.error("Error details:", {
@@ -95,13 +105,18 @@ initializeFirebaseAdmin();
 
 // Export getter functions to ensure proper initialization
 export const getDbAdmin = () => {
-  const { dbAdmin: db } = initializeFirebaseAdmin();
-  return db;
+  if (!isInitialized) {
+    initializeFirebaseAdmin();
+  }
+  return dbAdmin;
 };
 
 export const getAuthAdmin = () => {
-  const { authAdmin: auth } = initializeFirebaseAdmin();
-  return auth;
+  if (!isInitialized) {
+    initializeFirebaseAdmin();
+  }
+  return authAdmin;
 };
 
-export { isFirebaseAdminConfigured };
+// Export the services directly for convenience
+export { dbAdmin, authAdmin, isFirebaseAdminConfigured };

@@ -2,9 +2,9 @@
 
 import { useState, useEffect } from "react";
 import { signInWithEmailAndPassword } from "firebase/auth";
-import { auth, isFirebaseConfigured } from "@/lib/firebaseClient";
+import { auth, isFirebaseConfigured } from "../../lib/firebaseClient";
 import { useRouter } from "next/navigation";
-import { getDashboardRoute } from "@/lib/roleRoutes";
+import { getDashboardRoute } from "../../lib/roleRoutes";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -13,9 +13,13 @@ export default function LoginPage() {
   const [error, setError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [firebaseReady, setFirebaseReady] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
+    // Set mounted to true on client side
+    setMounted(true);
+    
     // Check if Firebase is properly configured
     if (isFirebaseConfigured()) {
       setFirebaseReady(true);
@@ -123,6 +127,18 @@ export default function LoginPage() {
     } finally {
       setIsLoading(false);
     }
+  }
+
+  // Don't render until mounted on client side
+  if (!mounted) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900 flex items-center justify-center p-4">
+        <div className="text-white text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto mb-4"></div>
+          <p>Loading...</p>
+        </div>
+      </div>
+    );
   }
 
   return (

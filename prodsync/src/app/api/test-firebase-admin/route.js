@@ -21,6 +21,7 @@ export async function GET(request) {
     };
 
     // Try to test Firestore connection if dbAdmin is available
+    const dbAdmin = getDbAdmin();
     if (dbAdmin) {
       try {
         // Simple test query
