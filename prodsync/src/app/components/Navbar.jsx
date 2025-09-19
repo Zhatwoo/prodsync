@@ -7,6 +7,7 @@ import AttendanceModal from './navbarmodal/Timecard';
 import DailyReportModal from './navbarmodal/DailyReport';
 import TaskScheduleModal from './navbarmodal/TaskSchedule';
 import ApplicationFormModal from './navbarmodal/ApplicationForm';
+import SettingsModal from './navbarmodal/Seeting';
 
 export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -14,6 +15,7 @@ export default function Navbar() {
   const [isDailyReportModalOpen, setIsDailyReportModalOpen] = useState(false);
   const [isTaskScheduleModalOpen, setIsTaskScheduleModalOpen] = useState(false);
   const [isApplicationFormModalOpen, setIsApplicationFormModalOpen] = useState(false);
+  const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
   const pathname = usePathname();
   const router = useRouter();
 
@@ -25,10 +27,11 @@ export default function Navbar() {
     e.preventDefault();
     
     // Close other modals with animation
-    if (isDailyReportModalOpen || isTaskScheduleModalOpen || isApplicationFormModalOpen) {
+    if (isDailyReportModalOpen || isTaskScheduleModalOpen || isApplicationFormModalOpen || isSettingsModalOpen) {
       let modalToClose = 'daily-report';
       if (isTaskScheduleModalOpen) modalToClose = 'task-schedule';
       if (isApplicationFormModalOpen) modalToClose = 'application-form';
+      if (isSettingsModalOpen) modalToClose = 'settings';
       
       const modal = document.querySelector(`[data-modal="${modalToClose}"]`);
       if (modal) {
@@ -37,12 +40,14 @@ export default function Navbar() {
           setIsDailyReportModalOpen(false);
           setIsTaskScheduleModalOpen(false);
           setIsApplicationFormModalOpen(false);
+          setIsSettingsModalOpen(false);
           setIsTimecardModalOpen(true);
         }, 300);
       } else {
         setIsDailyReportModalOpen(false);
         setIsTaskScheduleModalOpen(false);
         setIsApplicationFormModalOpen(false);
+        setIsSettingsModalOpen(false);
         setIsTimecardModalOpen(true);
       }
     } else {
@@ -56,10 +61,11 @@ export default function Navbar() {
     e.preventDefault();
     
     // Close other modals with animation
-    if (isTimecardModalOpen || isTaskScheduleModalOpen || isApplicationFormModalOpen) {
+    if (isTimecardModalOpen || isTaskScheduleModalOpen || isApplicationFormModalOpen || isSettingsModalOpen) {
       let modalToClose = 'timecard';
       if (isTaskScheduleModalOpen) modalToClose = 'task-schedule';
       if (isApplicationFormModalOpen) modalToClose = 'application-form';
+      if (isSettingsModalOpen) modalToClose = 'settings';
       
       const modal = document.querySelector(`[data-modal="${modalToClose}"]`);
       if (modal) {
@@ -68,12 +74,14 @@ export default function Navbar() {
           setIsTimecardModalOpen(false);
           setIsTaskScheduleModalOpen(false);
           setIsApplicationFormModalOpen(false);
+          setIsSettingsModalOpen(false);
           setIsDailyReportModalOpen(true);
         }, 300);
       } else {
         setIsTimecardModalOpen(false);
         setIsTaskScheduleModalOpen(false);
         setIsApplicationFormModalOpen(false);
+        setIsSettingsModalOpen(false);
         setIsDailyReportModalOpen(true);
       }
     } else {
@@ -87,10 +95,11 @@ export default function Navbar() {
     e.preventDefault();
     
     // Close other modals with animation
-    if (isTimecardModalOpen || isDailyReportModalOpen || isApplicationFormModalOpen) {
+    if (isTimecardModalOpen || isDailyReportModalOpen || isApplicationFormModalOpen || isSettingsModalOpen) {
       let modalToClose = 'timecard';
       if (isDailyReportModalOpen) modalToClose = 'daily-report';
       if (isApplicationFormModalOpen) modalToClose = 'application-form';
+      if (isSettingsModalOpen) modalToClose = 'settings';
       
       const modal = document.querySelector(`[data-modal="${modalToClose}"]`);
       if (modal) {
@@ -99,12 +108,14 @@ export default function Navbar() {
           setIsTimecardModalOpen(false);
           setIsDailyReportModalOpen(false);
           setIsApplicationFormModalOpen(false);
+          setIsSettingsModalOpen(false);
           setIsTaskScheduleModalOpen(true);
         }, 300);
       } else {
         setIsTimecardModalOpen(false);
         setIsDailyReportModalOpen(false);
         setIsApplicationFormModalOpen(false);
+        setIsSettingsModalOpen(false);
         setIsTaskScheduleModalOpen(true);
       }
     } else {
@@ -118,10 +129,11 @@ export default function Navbar() {
     e.preventDefault();
     
     // Close other modals with animation
-    if (isTimecardModalOpen || isDailyReportModalOpen || isTaskScheduleModalOpen) {
+    if (isTimecardModalOpen || isDailyReportModalOpen || isTaskScheduleModalOpen || isSettingsModalOpen) {
       let modalToClose = 'timecard';
       if (isDailyReportModalOpen) modalToClose = 'daily-report';
       if (isTaskScheduleModalOpen) modalToClose = 'task-schedule';
+      if (isSettingsModalOpen) modalToClose = 'settings';
       
       const modal = document.querySelector(`[data-modal="${modalToClose}"]`);
       if (modal) {
@@ -130,12 +142,14 @@ export default function Navbar() {
           setIsTimecardModalOpen(false);
           setIsDailyReportModalOpen(false);
           setIsTaskScheduleModalOpen(false);
+          setIsSettingsModalOpen(false);
           setIsApplicationFormModalOpen(true);
         }, 300);
       } else {
         setIsTimecardModalOpen(false);
         setIsDailyReportModalOpen(false);
         setIsTaskScheduleModalOpen(false);
+        setIsSettingsModalOpen(false);
         setIsApplicationFormModalOpen(true);
       }
     } else {
@@ -159,6 +173,44 @@ export default function Navbar() {
 
   const closeApplicationFormModal = () => {
     setIsApplicationFormModalOpen(false);
+  };
+
+  const handleSettingsClick = (e) => {
+    e.preventDefault();
+    
+    // Close other modals with animation
+    if (isTimecardModalOpen || isDailyReportModalOpen || isTaskScheduleModalOpen || isApplicationFormModalOpen) {
+      let modalToClose = 'timecard';
+      if (isDailyReportModalOpen) modalToClose = 'daily-report';
+      if (isTaskScheduleModalOpen) modalToClose = 'task-schedule';
+      if (isApplicationFormModalOpen) modalToClose = 'application-form';
+      
+      const modal = document.querySelector(`[data-modal="${modalToClose}"]`);
+      if (modal) {
+        modal.classList.add('animate-slideUp');
+        setTimeout(() => {
+          setIsTimecardModalOpen(false);
+          setIsDailyReportModalOpen(false);
+          setIsTaskScheduleModalOpen(false);
+          setIsApplicationFormModalOpen(false);
+          setIsSettingsModalOpen(true);
+        }, 300);
+      } else {
+        setIsTimecardModalOpen(false);
+        setIsDailyReportModalOpen(false);
+        setIsTaskScheduleModalOpen(false);
+        setIsApplicationFormModalOpen(false);
+        setIsSettingsModalOpen(true);
+      }
+    } else {
+      setIsSettingsModalOpen(true);
+    }
+    
+    setIsMenuOpen(false); // Close mobile menu if open
+  };
+
+  const closeSettingsModal = () => {
+    setIsSettingsModalOpen(false);
   };
 
   const handleLogout = async () => {
@@ -227,6 +279,17 @@ export default function Navbar() {
         </svg>
       ),
       onClick: handleApplicationFormClick
+    },
+    {
+      name: 'Settings',
+      href: '#',
+      icon: (
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+        </svg>
+      ),
+      onClick: handleSettingsClick
     }
   ];
 
@@ -411,6 +474,12 @@ export default function Navbar() {
       <ApplicationFormModal 
         isOpen={isApplicationFormModalOpen} 
         onClose={closeApplicationFormModal} 
+      />
+
+      {/* Settings Modal */}
+      <SettingsModal 
+        isOpen={isSettingsModalOpen} 
+        onClose={closeSettingsModal} 
       />
     </nav>
   );

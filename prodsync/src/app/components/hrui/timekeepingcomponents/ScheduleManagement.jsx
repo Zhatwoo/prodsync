@@ -1,9 +1,10 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useSchedule } from '../../../context/ScheduleContext';
+import DeleteConfirmation from '../../DeleteConfirmation';
 
 export default function ScheduleManagement() {
-  const [schedules, setSchedules] = useState([]);
   const [isAddingNew, setIsAddingNew] = useState(false);
   const [editingSchedule, setEditingSchedule] = useState(null);
   const [newSchedule, setNewSchedule] = useState({
@@ -16,116 +17,18 @@ export default function ScheduleManagement() {
     notes: ''
   });
 
-  // Sample schedule data
-  useEffect(() => {
-    const sampleSchedules = [
-      {
-        id: 1,
-        employeeName: 'John Smith',
-        employeeId: 'EMP001',
-        shiftType: 'Day Shift',
-        startTime: '09:00',
-        endTime: '18:00',
-        date: '2024-01-15',
-        department: 'IT',
-        notes: 'Regular development work',
-        status: 'Scheduled',
-        createdDate: '2024-01-10'
-      },
-      {
-        id: 2,
-        employeeName: 'Sarah Johnson',
-        employeeId: 'EMP002',
-        shiftType: 'Day Shift',
-        startTime: '08:00',
-        endTime: '17:00',
-        date: '2024-01-15',
-        department: 'HR',
-        notes: 'HR meetings and employee relations',
-        status: 'Scheduled',
-        createdDate: '2024-01-10'
-      },
-      {
-        id: 3,
-        employeeName: 'Mike Davis',
-        employeeId: 'EMP003',
-        shiftType: 'Flexible',
-        startTime: '10:00',
-        endTime: '19:00',
-        date: '2024-01-15',
-        department: 'Marketing',
-        notes: 'Campaign planning and execution',
-        status: 'Scheduled',
-        createdDate: '2024-01-10'
-      },
-      {
-        id: 4,
-        employeeName: 'Emily Wilson',
-        employeeId: 'EMP004',
-        shiftType: 'Day Shift',
-        startTime: '08:30',
-        endTime: '17:30',
-        date: '2024-01-15',
-        department: 'Finance',
-        notes: 'Monthly financial closing',
-        status: 'Scheduled',
-        createdDate: '2024-01-10'
-      },
-      {
-        id: 5,
-        employeeName: 'David Brown',
-        employeeId: 'EMP005',
-        shiftType: 'Evening Shift',
-        startTime: '14:00',
-        endTime: '23:00',
-        date: '2024-01-15',
-        department: 'Sales',
-        notes: 'Client calls and follow-ups',
-        status: 'Scheduled',
-        createdDate: '2024-01-10'
-      },
-      {
-        id: 6,
-        employeeName: 'Lisa Garcia',
-        employeeId: 'EMP006',
-        shiftType: 'Night Shift',
-        startTime: '22:00',
-        endTime: '06:00',
-        date: '2024-01-15',
-        department: 'Operations',
-        notes: 'System monitoring and maintenance',
-        status: 'Scheduled',
-        createdDate: '2024-01-10'
-      },
-      {
-        id: 7,
-        employeeName: 'John Smith',
-        employeeId: 'EMP001',
-        shiftType: 'Day Shift',
-        startTime: '09:00',
-        endTime: '18:00',
-        date: '2024-01-16',
-        department: 'IT',
-        notes: 'Code review and testing',
-        status: 'Scheduled',
-        createdDate: '2024-01-10'
-      },
-      {
-        id: 8,
-        employeeName: 'Sarah Johnson',
-        employeeId: 'EMP002',
-        shiftType: 'Half Day',
-        startTime: '09:00',
-        endTime: '13:00',
-        date: '2024-01-16',
-        department: 'HR',
-        notes: 'Training session in the afternoon',
-        status: 'Scheduled',
-        createdDate: '2024-01-10'
-      }
-    ];
-    setSchedules(sampleSchedules);
-  }, []);
+  // Delete confirmation state
+  const [deleteConfirmation, setDeleteConfirmation] = useState({
+    isOpen: false,
+    schedule: null,
+    isLoading: false
+  });
+
+  // Use shared context for schedule management
+  const { schedules, addSchedule, updateSchedule, deleteSchedule, getAllSchedules } = useSchedule();
+
+  // Get all schedules including tasks converted to schedules
+  const allSchedules = getAllSchedules();
 
   const shiftTypes = [
     'Day Shift', 'Evening Shift', 'Night Shift', 'Flexible', 'Half Day', 'Split Shift', 'On-Call'
@@ -151,22 +54,11 @@ export default function ScheduleManagement() {
     e.preventDefault();
     if (editingSchedule) {
       // Update existing schedule
-      setSchedules(prev => prev.map(schedule => 
-        schedule.id === editingSchedule.id 
-          ? { ...schedule, ...newSchedule }
-          : schedule
-      ));
+      updateSchedule(editingSchedule.id, newSchedule);
       setEditingSchedule(null);
     } else {
       // Add new schedule
-      const schedule = {
-        id: schedules.length + 1,
-        ...newSchedule,
-        employeeId: `EMP${String(schedules.length + 1).padStart(3, '0')}`,
-        status: 'Scheduled',
-        createdDate: new Date().toISOString().split('T')[0]
-      };
-      setSchedules(prev => [schedule, ...prev]);
+      addSchedule(newSchedule);
     }
     
     setNewSchedule({
@@ -195,10 +87,42 @@ export default function ScheduleManagement() {
     setIsAddingNew(true);
   };
 
-  const handleDelete = (id) => {
-    if (confirm('Are you sure you want to delete this schedule?')) {
-      setSchedules(prev => prev.filter(schedule => schedule.id !== id));
+  const handleDeleteClick = (schedule) => {
+    setDeleteConfirmation({
+      isOpen: true,
+      schedule: schedule,
+      isLoading: false
+    });
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!deleteConfirmation.schedule) return;
+
+    setDeleteConfirmation(prev => ({ ...prev, isLoading: true }));
+
+    try {
+      // Simulate API call delay for better UX
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      deleteSchedule(deleteConfirmation.schedule.id);
+      
+      setDeleteConfirmation({
+        isOpen: false,
+        schedule: null,
+        isLoading: false
+      });
+    } catch (error) {
+      console.error('Error deleting schedule:', error);
+      setDeleteConfirmation(prev => ({ ...prev, isLoading: false }));
     }
+  };
+
+  const handleDeleteCancel = () => {
+    setDeleteConfirmation({
+      isOpen: false,
+      schedule: null,
+      isLoading: false
+    });
   };
 
   const cancelForm = () => {
@@ -238,7 +162,7 @@ export default function ScheduleManagement() {
   };
 
   // Group schedules by date
-  const groupedSchedules = schedules.reduce((groups, schedule) => {
+  const groupedSchedules = allSchedules.reduce((groups, schedule) => {
     const date = schedule.date;
     if (!groups[date]) {
       groups[date] = [];
@@ -247,9 +171,10 @@ export default function ScheduleManagement() {
     return groups;
   }, {});
 
-  const totalSchedules = schedules.length;
-  const dayShifts = schedules.filter(s => s.shiftType === 'Day Shift').length;
-  const nightShifts = schedules.filter(s => s.shiftType === 'Night Shift').length;
+  const totalSchedules = allSchedules.length;
+  const dayShifts = allSchedules.filter(s => s.shiftType === 'Day Shift').length;
+  const nightShifts = allSchedules.filter(s => s.shiftType === 'Night Shift').length;
+  const taskSchedules = allSchedules.filter(s => s.isFromTask).length;
 
   return (
     <div className="h-full">
@@ -269,7 +194,7 @@ export default function ScheduleManagement() {
       </div>
 
       {/* Summary Cards */}
-      <div className="px-6 grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+      <div className="px-6 grid grid-cols-1 md:grid-cols-5 gap-6 mb-6">
         <div className="bg-white border border-gray-200 rounded-lg p-6">
           <div className="flex items-center">
             <div className="p-2 bg-blue-100 rounded-lg">
@@ -321,7 +246,21 @@ export default function ScheduleManagement() {
             </div>
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-600">Active Employees</p>
-              <p className="text-2xl font-bold text-gray-900">{new Set(schedules.map(s => s.employeeName)).size}</p>
+              <p className="text-2xl font-bold text-gray-900">{new Set(allSchedules.map(s => s.employeeName)).size}</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white border border-gray-200 rounded-lg p-6">
+          <div className="flex items-center">
+            <div className="p-2 bg-indigo-100 rounded-lg">
+              <svg className="w-6 h-6 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+              </svg>
+            </div>
+            <div className="ml-4">
+              <p className="text-sm font-medium text-gray-600">From Tasks</p>
+              <p className="text-2xl font-bold text-gray-900">{taskSchedules}</p>
             </div>
           </div>
         </div>
@@ -472,11 +411,19 @@ export default function ScheduleManagement() {
                   </h4>
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     {daySchedules.map((schedule) => (
-                      <div key={schedule.id} className="bg-gray-50 rounded-lg p-4">
+                      <div key={schedule.id} className={`rounded-lg p-4 ${schedule.isFromTask ? 'bg-blue-50 border border-blue-200' : 'bg-gray-50'}`}>
                         <div className="flex justify-between items-start mb-2">
                           <div>
                             <h5 className="font-medium text-gray-900">{schedule.employeeName}</h5>
                             <p className="text-sm text-gray-500">{schedule.department}</p>
+                            {schedule.isFromTask && (
+                              <span className="inline-flex items-center px-2 py-1 text-xs font-medium text-blue-700 bg-blue-100 rounded-full mt-1">
+                                <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                                </svg>
+                                From Task Schedule
+                              </span>
+                            )}
                           </div>
                           <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getShiftTypeColor(schedule.shiftType)}`}>
                             {schedule.shiftType}
@@ -498,14 +445,16 @@ export default function ScheduleManagement() {
                             {schedule.status}
                           </span>
                           <div className="flex space-x-2">
+                            {!schedule.isFromTask && (
+                              <button 
+                                onClick={() => handleEdit(schedule)}
+                                className="text-blue-600 hover:text-blue-900 text-sm"
+                              >
+                                Edit
+                              </button>
+                            )}
                             <button 
-                              onClick={() => handleEdit(schedule)}
-                              className="text-blue-600 hover:text-blue-900 text-sm"
-                            >
-                              Edit
-                            </button>
-                            <button 
-                              onClick={() => handleDelete(schedule.id)}
+                              onClick={() => handleDeleteClick(schedule)}
                               className="text-red-600 hover:text-red-900 text-sm"
                             >
                               Delete
@@ -521,6 +470,20 @@ export default function ScheduleManagement() {
           )}
         </div>
       </div>
+
+      {/* Delete Confirmation Modal */}
+      <DeleteConfirmation
+        isOpen={deleteConfirmation.isOpen}
+        onClose={handleDeleteCancel}
+        onConfirm={handleDeleteConfirm}
+        title={deleteConfirmation.schedule?.isFromTask ? "Delete Task Schedule" : "Delete Schedule"}
+        message={deleteConfirmation.schedule?.isFromTask 
+          ? "Are you sure you want to delete this task schedule? This will remove the task from your task list and schedule view."
+          : "Are you sure you want to delete this schedule? This action cannot be undone."
+        }
+        itemName={deleteConfirmation.schedule ? `${deleteConfirmation.schedule.employeeName} - ${deleteConfirmation.schedule.shiftType} on ${new Date(deleteConfirmation.schedule.date).toLocaleDateString()}` : ""}
+        isLoading={deleteConfirmation.isLoading}
+      />
     </div>
   );
 }

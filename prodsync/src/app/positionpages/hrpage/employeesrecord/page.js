@@ -9,17 +9,19 @@ import DepartmentManagement from '../../../components/hrui/employeesrecordmodal/
 import PositionManagement from '../../../components/hrui/employeesrecordmodal/PositionManagement';
 import EmployeeDocuments from '../../../components/hrui/employeesrecordmodal/EmployeeDocuments';
 import RequireRole from '../../../components/RequireRole';
+import { useEmployeeStats } from '../../../hooks/useEmployeeStats';
 
 export default function EmployeesRecordPage() {
   const [activeTab, setActiveTab] = useState('employeeList');
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const employeeStats = useEmployeeStats();
 
   const tabs = [
-    { id: 'employeeList', name: 'Employee List', icon: '👥', badge: '247' },
+    { id: 'employeeList', name: 'Employee List', icon: '👥', badge: employeeStats.loading ? '...' : employeeStats.totalEmployees.toString() },
     { id: 'newEmployee', name: 'New Employee', icon: '➕' },
     { id: 'employeeProfile', name: 'Employee Profile', icon: '👤' },
-    { id: 'departmentManagement', name: 'Department Management', icon: '🏢', badge: '6' },
-    { id: 'positionManagement', name: 'Position Management', icon: '💼', badge: '12' },
+    { id: 'departmentManagement', name: 'Department Management', icon: '🏢', badge: employeeStats.loading ? '...' : employeeStats.totalDepartments.toString() },
+    { id: 'positionManagement', name: 'Position Management', icon: '💼', badge: employeeStats.loading ? '...' : employeeStats.totalPositions.toString() },
     { id: 'employeeDocuments', name: 'Employee Documents', icon: '📄' }
   ];
 
@@ -56,15 +58,21 @@ export default function EmployeesRecordPage() {
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
                   <div className="bg-blue-50 rounded-lg px-3 sm:px-4 py-2 sm:py-3 text-center">
-                    <div className="text-xl sm:text-2xl font-bold text-blue-600">247</div>
+                    <div className="text-xl sm:text-2xl font-bold text-blue-600">
+                      {employeeStats.loading ? '...' : employeeStats.totalEmployees.toLocaleString()}
+                    </div>
                     <div className="text-xs sm:text-sm text-gray-600">Total Employees</div>
                   </div>
                   <div className="bg-green-50 rounded-lg px-3 sm:px-4 py-2 sm:py-3 text-center">
-                    <div className="text-xl sm:text-2xl font-bold text-green-600">6</div>
+                    <div className="text-xl sm:text-2xl font-bold text-green-600">
+                      {employeeStats.loading ? '...' : employeeStats.totalDepartments.toString()}
+                    </div>
                     <div className="text-xs sm:text-sm text-gray-600">Departments</div>
                   </div>
                   <div className="bg-purple-50 rounded-lg px-3 sm:px-4 py-2 sm:py-3 text-center">
-                    <div className="text-xl sm:text-2xl font-bold text-purple-600">12</div>
+                    <div className="text-xl sm:text-2xl font-bold text-purple-600">
+                      {employeeStats.loading ? '...' : employeeStats.totalPositions.toString()}
+                    </div>
                     <div className="text-xs sm:text-sm text-gray-600">Positions</div>
                   </div>
                 </div>

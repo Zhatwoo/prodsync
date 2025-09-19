@@ -1,73 +1,54 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { collection, getDocs, query, orderBy, where } from 'firebase/firestore';
+import { db } from '../../../lib/firebaseClient';
 
 export default function PayrollReports() {
   const [reports, setReports] = useState([]);
   const [selectedReport, setSelectedReport] = useState('');
-  const [reportPeriod, setReportPeriod] = useState('2024-01');
+  // Set default period to current month
+  const getCurrentPeriod = () => {
+    const currentDate = new Date();
+    const year = currentDate.getFullYear();
+    const month = String(currentDate.getMonth() + 1).padStart(2, '0');
+    return `${year}-${month}`;
+  };
+
+  const [reportPeriod, setReportPeriod] = useState(getCurrentPeriod());
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [reportData, setReportData] = useState(null);
 
-  // Sample reports data
+  // Fetch reports from Firebase
   useEffect(() => {
-    const sampleReports = [
-      {
-        id: 1,
-        name: 'Monthly Payroll Summary',
-        description: 'Complete monthly payroll summary with all employees',
-        type: 'Summary',
-        frequency: 'Monthly',
-        lastGenerated: '2024-01-15',
-        status: 'Available'
-      },
-      {
-        id: 2,
-        name: 'Tax Report',
-        description: 'Detailed tax deductions and withholdings report',
-        type: 'Tax',
-        frequency: 'Monthly',
-        lastGenerated: '2024-01-10',
-        status: 'Available'
-      },
-      {
-        id: 3,
-        name: 'Benefits Report',
-        description: 'Employee benefits and allowances summary',
-        type: 'Benefits',
-        frequency: 'Monthly',
-        lastGenerated: '2024-01-12',
-        status: 'Available'
-      },
-      {
-        id: 4,
-        name: 'Department Payroll',
-        description: 'Payroll breakdown by department',
-        type: 'Department',
-        frequency: 'Monthly',
-        lastGenerated: '2024-01-08',
-        status: 'Available'
-      },
-      {
-        id: 5,
-        name: 'Overtime Report',
-        description: 'Overtime hours and payments report',
-        type: 'Overtime',
-        frequency: 'Monthly',
-        lastGenerated: '2024-01-14',
-        status: 'Available'
-      },
-      {
-        id: 6,
-        name: 'Year-end Summary',
-        description: 'Annual payroll and tax summary',
-        type: 'Annual',
-        frequency: 'Annually',
-        lastGenerated: '2023-12-31',
-        status: 'Available'
+    const fetchReports = async () => {
+      try {
+        setLoading(true);
+        const reportsRef = collection(db, 'payrollReports');
+        const q = query(reportsRef, orderBy('createdAt', 'desc'));
+        const querySnapshot = await getDocs(q);
+        
+        const reportsData = [];
+        querySnapshot.forEach((doc) => {
+          reportsData.push({
+            id: doc.id,
+            ...doc.data()
+          });
+        });
+        
+        setReports(reportsData);
+        setError(null);
+      } catch (err) {
+        console.error('Error fetching reports:', err);
+        setError('Failed to load reports');
+      } finally {
+        setLoading(false);
       }
-    ];
-    setReports(sampleReports);
+    };
+
+    fetchReports();
   }, []);
 
   const reportTypes = [
@@ -80,11 +61,24 @@ export default function PayrollReports() {
     'Custom Report'
   ];
 
-  const periods = [
-    '2024-01', '2023-12', '2023-11', '2023-10', '2023-09', '2023-08'
-  ];
+  // Generate periods dynamically (current month and 11 previous months)
+  const generatePeriods = () => {
+    const periods = [];
+    const currentDate = new Date();
+    
+    for (let i = 0; i < 12; i++) {
+      const date = new Date(currentDate.getFullYear(), currentDate.getMonth() - i, 1);
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      periods.push(`${year}-${month}`);
+    }
+    
+    return periods;
+  };
 
-  const handleGenerateReport = () => {
+  const periods = generatePeriods();
+
+  const handleGenerateReport = async () => {
     if (!selectedReport) {
       alert('Please select a report type');
       return;
@@ -92,32 +86,77 @@ export default function PayrollReports() {
 
     setIsGenerating(true);
     
-    // Simulate report generation
-    setTimeout(() => {
-      const sampleReportData = {
+    try {
+      // Fetch real data from Firebase
+      const employeesRef = collection(db, 'employees');
+      const q = query(employeesRef, orderBy('createdAt', 'desc'));
+      const querySnapshot = await getDocs(q);
+      
+      const employeesData = [];
+      querySnapshot.forEach((doc) => {
+        const employee = doc.data();
+        const basicSalary = parseFloat(employee.salary?.replace(/[^0-9.-]+/g, '') || 0);
+        const allowances = Math.round(basicSalary * 0.1);
+        const overtime = Math.round(basicSalary * 0.05);
+        const bonuses = Math.round(basicSalary * 0.08);
+        const grossSalary = basicSalary + allowances + overtime + bonuses;
+        const deductions = Math.round(grossSalary * 0.2);
+        const netSalary = grossSalary - deductions;
+        
+        employeesData.push({
+          ...employee,
+          id: doc.id,
+          basicSalary,
+          allowances,
+          overtime,
+          bonuses,
+          grossSalary,
+          deductions,
+          netSalary
+        });
+      });
+
+      // Calculate department-wise data
+      const departmentData = {};
+      employeesData.forEach(emp => {
+        if (!departmentData[emp.department]) {
+          departmentData[emp.department] = {
+            employees: 0,
+            grossPay: 0,
+            netPay: 0
+          };
+        }
+        departmentData[emp.department].employees += 1;
+        departmentData[emp.department].grossPay += emp.grossSalary;
+        departmentData[emp.department].netPay += emp.netSalary;
+      });
+
+      const reportData = {
         reportName: selectedReport,
         period: reportPeriod,
         generatedAt: new Date().toISOString(),
         summary: {
-          totalEmployees: 25,
-          totalGrossPay: 1850000,
-          totalDeductions: 320000,
-          totalNetPay: 1530000,
-          averageSalary: 74000
+          totalEmployees: employeesData.length,
+          totalGrossPay: employeesData.reduce((sum, emp) => sum + emp.grossSalary, 0),
+          totalDeductions: employeesData.reduce((sum, emp) => sum + emp.deductions, 0),
+          totalNetPay: employeesData.reduce((sum, emp) => sum + emp.netSalary, 0),
+          averageSalary: employeesData.length > 0 ? Math.round(employeesData.reduce((sum, emp) => sum + emp.grossSalary, 0) / employeesData.length) : 0
         },
-        details: [
-          { department: 'IT', employees: 8, grossPay: 600000, netPay: 480000 },
-          { department: 'HR', employees: 3, grossPay: 200000, netPay: 160000 },
-          { department: 'Marketing', employees: 5, grossPay: 300000, netPay: 240000 },
-          { department: 'Finance', employees: 4, grossPay: 250000, netPay: 200000 },
-          { department: 'Sales', employees: 3, grossPay: 350000, netPay: 280000 },
-          { department: 'Operations', employees: 2, grossPay: 150000, netPay: 120000 }
-        ]
+        details: Object.entries(departmentData).map(([department, data]) => ({
+          department,
+          employees: data.employees,
+          grossPay: data.grossPay,
+          netPay: data.netPay
+        }))
       };
       
-      setReportData(sampleReportData);
+      setReportData(reportData);
+    } catch (err) {
+      console.error('Error generating report:', err);
+      alert('Failed to generate report. Please try again.');
+    } finally {
       setIsGenerating(false);
-    }, 2000);
+    }
   };
 
   const handleExportReport = (format) => {
@@ -140,6 +179,26 @@ export default function PayrollReports() {
       default: return 'bg-gray-100 text-gray-800';
     }
   };
+
+  if (loading) {
+    return (
+      <div className="p-6">
+        <div className="flex justify-center items-center h-64">
+          <div className="text-lg text-gray-600">Loading reports...</div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="p-6">
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+          <div className="text-red-800">{error}</div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-6">
@@ -326,7 +385,14 @@ export default function PayrollReports() {
                     <div className="text-sm text-gray-900">{report.frequency}</div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-900">{new Date(report.lastGenerated).toLocaleDateString()}</div>
+                    <div className="text-sm text-gray-900">
+                      {report.updatedAt?.toDate ? 
+                        report.updatedAt.toDate().toLocaleDateString() + ' ' + report.updatedAt.toDate().toLocaleTimeString() :
+                        report.createdAt?.toDate ? 
+                        report.createdAt.toDate().toLocaleDateString() + ' ' + report.createdAt.toDate().toLocaleTimeString() :
+                        report.lastGenerated ? new Date(report.lastGenerated).toLocaleDateString() : 'N/A'
+                      }
+                    </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${

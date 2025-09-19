@@ -1,97 +1,99 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { collection, getDocs, addDoc, deleteDoc, doc, query, orderBy, where, serverTimestamp } from 'firebase/firestore';
+import { db } from '../../../lib/firebaseClient';
+import DeleteConfirmation from '../../DeleteConfirmation';
 
 export default function EmployeeDocuments() {
   const [selectedEmployee, setSelectedEmployee] = useState(null);
   const [employees, setEmployees] = useState([]);
   const [documents, setDocuments] = useState([]);
   const [isUploading, setIsUploading] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [newDocument, setNewDocument] = useState({
     name: '',
     type: '',
     description: '',
     file: null
   });
+  const [showViewModal, setShowViewModal] = useState(false);
+  const [selectedDocument, setSelectedDocument] = useState(null);
+  const [isClosing, setIsClosing] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [documentToDelete, setDocumentToDelete] = useState(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
-  // Sample employee data
+  // Fetch employees from Firebase
   useEffect(() => {
-    const sampleEmployees = [
-      {
-        id: 1,
-        name: 'John Smith',
-        position: 'Software Engineer',
-        department: 'IT',
-        avatar: 'JS'
-      },
-      {
-        id: 2,
-        name: 'Sarah Johnson',
-        position: 'HR Manager',
-        department: 'HR',
-        avatar: 'SJ'
-      },
-      {
-        id: 3,
-        name: 'Mike Davis',
-        position: 'Marketing Specialist',
-        department: 'Marketing',
-        avatar: 'MD'
+    const fetchEmployees = async () => {
+      try {
+        setLoading(true);
+        const employeesRef = collection(db, 'employees');
+        const q = query(employeesRef, orderBy('createdAt', 'desc'));
+        const querySnapshot = await getDocs(q);
+        
+        const employeesData = [];
+        querySnapshot.forEach((doc) => {
+          employeesData.push({
+            id: doc.id,
+            ...doc.data()
+          });
+        });
+        
+        setEmployees(employeesData);
+        if (employeesData.length > 0) {
+          setSelectedEmployee(employeesData[0]);
+        }
+        setError(null);
+      } catch (err) {
+        console.error('Error fetching employees:', err);
+        setError('Failed to load employees');
+      } finally {
+        setLoading(false);
       }
-    ];
-    setEmployees(sampleEmployees);
-    if (sampleEmployees.length > 0) {
-      setSelectedEmployee(sampleEmployees[0]);
-    }
+    };
+
+    fetchEmployees();
   }, []);
 
-  // Sample documents data
+  // Fetch documents for selected employee
   useEffect(() => {
-    if (selectedEmployee) {
-      const sampleDocuments = [
-        {
-          id: 1,
-          name: 'Employment Contract',
-          type: 'Contract',
-          description: 'Original employment agreement',
-          uploadDate: '2023-01-15',
-          size: '2.3 MB',
-          status: 'Active',
-          employeeId: selectedEmployee.id
-        },
-        {
-          id: 2,
-          name: 'ID Copy',
-          type: 'Identification',
-          description: 'Government issued ID',
-          uploadDate: '2023-01-10',
-          size: '1.1 MB',
-          status: 'Active',
-          employeeId: selectedEmployee.id
-        },
-        {
-          id: 3,
-          name: 'Resume',
-          type: 'Resume',
-          description: 'Current resume and CV',
-          uploadDate: '2023-01-05',
-          size: '856 KB',
-          status: 'Active',
-          employeeId: selectedEmployee.id
-        },
-        {
-          id: 4,
-          name: 'Performance Review 2023',
-          type: 'Review',
-          description: 'Annual performance evaluation',
-          uploadDate: '2023-12-15',
-          size: '1.5 MB',
-          status: 'Active',
-          employeeId: selectedEmployee.id
-        }
-      ];
-      setDocuments(sampleDocuments);
-    }
+    const fetchDocuments = async () => {
+      if (!selectedEmployee) return;
+
+      try {
+        const documentsRef = collection(db, 'documents');
+        const q = query(
+          documentsRef, 
+          where('employeeId', '==', selectedEmployee.id)
+        );
+        const querySnapshot = await getDocs(q);
+        
+        const documentsData = [];
+        querySnapshot.forEach((doc) => {
+          documentsData.push({
+            id: doc.id,
+            ...doc.data()
+          });
+        });
+        
+        // Sort by uploadDate in JavaScript instead of Firestore
+        documentsData.sort((a, b) => {
+          const dateA = a.uploadDate?.toDate ? a.uploadDate.toDate() : new Date(a.uploadDate);
+          const dateB = b.uploadDate?.toDate ? b.uploadDate.toDate() : new Date(b.uploadDate);
+          return dateB - dateA; // Descending order
+        });
+        
+        setDocuments(documentsData);
+      } catch (err) {
+        console.error('Error fetching documents:', err);
+        setError('Failed to load documents');
+      }
+    };
+
+    fetchDocuments();
   }, [selectedEmployee]);
 
   const documentTypes = [
@@ -115,41 +117,106 @@ export default function EmployeeDocuments() {
     }));
   };
 
-  const handleUpload = (e) => {
+  const handleUpload = async (e) => {
     e.preventDefault();
     if (!newDocument.file || !selectedEmployee) return;
 
     setIsUploading(true);
+    setError(null);
     
-    // Simulate upload process
-    setTimeout(() => {
-      const document = {
-        id: documents.length + 1,
+    try {
+      const documentData = {
         name: newDocument.name,
         type: newDocument.type,
         description: newDocument.description,
-        uploadDate: new Date().toISOString().split('T')[0],
+        uploadDate: serverTimestamp(),
         size: `${(newDocument.file.size / 1024 / 1024).toFixed(1)} MB`,
         status: 'Active',
-        employeeId: selectedEmployee.id
+        employeeId: selectedEmployee.id,
+        fileName: newDocument.file.name,
+        fileType: newDocument.file.type,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp()
       };
       
-      setDocuments(prev => [...prev, document]);
+      // Add document to Firebase
+      const docRef = await addDoc(collection(db, 'documents'), documentData);
+      const newDoc = {
+        id: docRef.id,
+        ...documentData,
+        uploadDate: new Date().toISOString().split('T')[0]
+      };
+      
+      setDocuments(prev => [newDoc, ...prev]);
       setNewDocument({
         name: '',
         type: '',
         description: '',
         file: null
       });
-      setIsUploading(false);
       alert('Document uploaded successfully!');
-    }, 2000);
+    } catch (err) {
+      console.error('Error uploading document:', err);
+      setError('Failed to upload document. Please try again.');
+    } finally {
+      setIsUploading(false);
+    }
   };
 
-  const handleDelete = (id) => {
-    if (confirm('Are you sure you want to delete this document?')) {
-      setDocuments(prev => prev.filter(doc => doc.id !== id));
+  const handleDelete = (document) => {
+    setDocumentToDelete(document);
+    setShowDeleteModal(true);
+  };
+
+  const confirmDeleteDocument = async () => {
+    if (!documentToDelete) return;
+    
+    setIsDeleting(true);
+    try {
+      await deleteDoc(doc(db, 'documents', documentToDelete.id));
+      setDocuments(prev => prev.filter(doc => doc.id !== documentToDelete.id));
+      setShowDeleteModal(false);
+      setDocumentToDelete(null);
+      alert('Document deleted successfully!');
+    } catch (err) {
+      console.error('Error deleting document:', err);
+      alert('Failed to delete document');
+    } finally {
+      setIsDeleting(false);
     }
+  };
+
+  const handleView = (document) => {
+    setSelectedDocument(document);
+    setShowViewModal(true);
+    setIsClosing(false);
+  };
+
+  const handleCloseViewModal = () => {
+    setIsClosing(true);
+    setTimeout(() => {
+      setShowViewModal(false);
+      setSelectedDocument(null);
+      setIsClosing(false);
+    }, 300);
+  };
+
+  const handleDownload = (docData) => {
+    // Since we're not actually storing files in Firebase Storage,
+    // we'll simulate a download by creating a blob with document info
+    const content = `Document Information\n\nName: ${docData.name}\nType: ${docData.type}\nSize: ${docData.size}\nUpload Date: ${docData.uploadDate && docData.uploadDate.toDate ? docData.uploadDate.toDate().toLocaleDateString() : new Date(docData.uploadDate).toLocaleDateString()}\nDescription: ${docData.description || 'No description'}\n\nNote: This is a simulated download. In a real application, this would download the actual file.`;
+    
+    const blob = new Blob([content], { type: 'text/plain' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${docData.name}_info.txt`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(url);
+    
+    alert('Document information downloaded! (Note: This is a simulated download)');
   };
 
   const getTypeColor = (type) => {
@@ -165,6 +232,26 @@ export default function EmployeeDocuments() {
     }
   };
 
+  if (loading) {
+    return (
+      <div className="p-6">
+        <div className="flex justify-center items-center h-64">
+          <div className="text-lg text-gray-600">Loading employees...</div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="p-6">
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+          <div className="text-red-800">{error}</div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="p-6">
       <div className="mb-6">
@@ -178,7 +265,7 @@ export default function EmployeeDocuments() {
         <select
           value={selectedEmployee?.id || ''}
           onChange={(e) => {
-            const employee = employees.find(emp => emp.id === parseInt(e.target.value));
+            const employee = employees.find(emp => emp.id === e.target.value);
             setSelectedEmployee(employee);
           }}
           className="w-full px-3 py-2 text-gray-900 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
@@ -191,6 +278,12 @@ export default function EmployeeDocuments() {
 
       {selectedEmployee && (
         <>
+          {error && (
+            <div className="mb-6 bg-red-50 border border-red-200 rounded-lg p-4">
+              <div className="text-red-800">{error}</div>
+            </div>
+          )}
+
           {/* Upload Form */}
           <div className="bg-white border border-gray-200 rounded-lg mb-6">
             <div className="px-4 py-3 border-b border-gray-200 bg-gray-50">
@@ -296,7 +389,12 @@ export default function EmployeeDocuments() {
                         <div className="text-sm text-gray-900">{document.size}</div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-900">{new Date(document.uploadDate).toLocaleDateString()}</div>
+                        <div className="text-sm text-gray-900">
+                          {document.uploadDate && document.uploadDate.toDate ? 
+                            document.uploadDate.toDate().toLocaleDateString() : 
+                            new Date(document.uploadDate).toLocaleDateString()
+                          }
+                        </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
@@ -307,11 +405,21 @@ export default function EmployeeDocuments() {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                         <div className="flex space-x-2">
-                          <button className="text-blue-600 hover:text-blue-900">View</button>
-                          <button className="text-green-600 hover:text-green-900">Download</button>
                           <button 
-                            onClick={() => handleDelete(document.id)}
-                            className="text-red-600 hover:text-red-900"
+                            onClick={() => handleView(document)}
+                            className="text-blue-600 hover:text-blue-900 transition-colors"
+                          >
+                            View
+                          </button>
+                          <button 
+                            onClick={() => handleDownload(document)}
+                            className="text-green-600 hover:text-green-900 transition-colors"
+                          >
+                            Download
+                          </button>
+                          <button 
+                            onClick={() => handleDelete(document)}
+                            className="text-red-600 hover:text-red-900 transition-colors"
                           >
                             Delete
                           </button>
@@ -353,6 +461,115 @@ export default function EmployeeDocuments() {
           </div>
         </>
       )}
+
+      {/* View Document Modal */}
+      {showViewModal && selectedDocument && (
+        <div
+          className={`fixed inset-0 backdrop-blur-md flex items-center justify-center z-50 transition-all duration-300 ${isClosing ? 'opacity-0' : 'opacity-100'}`}
+          onClick={handleCloseViewModal}
+        >
+          <div
+            className={`bg-white rounded-xl p-6 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto shadow-2xl border border-gray-100 transition-all duration-300 ${isClosing ? 'opacity-0 scale-95 translate-y-4' : 'opacity-100 scale-100 translate-y-0'}`}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold text-gray-900">Document Details</h3>
+              <button
+                onClick={handleCloseViewModal}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-500 mb-1">Document Name</label>
+                <p className="text-gray-900 text-lg font-medium">{selectedDocument.name}</p>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-500 mb-1">Type</label>
+                  <span className={`inline-flex px-3 py-1 text-sm font-semibold rounded-full ${getTypeColor(selectedDocument.type)}`}>
+                    {selectedDocument.type}
+                  </span>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-500 mb-1">Size</label>
+                  <p className="text-gray-900">{selectedDocument.size}</p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-500 mb-1">Status</label>
+                  <span className={`inline-flex px-3 py-1 text-sm font-semibold rounded-full ${
+                    selectedDocument.status === 'Active' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
+                  }`}>
+                    {selectedDocument.status}
+                  </span>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-500 mb-1">Upload Date</label>
+                  <p className="text-gray-900">
+                    {selectedDocument.uploadDate && selectedDocument.uploadDate.toDate ? 
+                      selectedDocument.uploadDate.toDate().toLocaleDateString() : 
+                      new Date(selectedDocument.uploadDate).toLocaleDateString()
+                    }
+                  </p>
+                </div>
+              </div>
+              
+              {selectedDocument.description && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-500 mb-1">Description</label>
+                  <p className="text-gray-900 bg-gray-50 p-3 rounded-lg">{selectedDocument.description}</p>
+                </div>
+              )}
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-500 mb-1">File Name</label>
+                  <p className="text-gray-900 font-mono text-sm">{selectedDocument.fileName}</p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-500 mb-1">File Type</label>
+                  <p className="text-gray-900">{selectedDocument.fileType}</p>
+                </div>
+              </div>
+            </div>
+            
+            <div className="flex justify-end space-x-3 mt-6">
+              <button
+                onClick={() => handleDownload(selectedDocument)}
+                className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
+              >
+                Download Info
+              </button>
+              <button
+                onClick={handleCloseViewModal}
+                className="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition-colors"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      <DeleteConfirmation
+        isOpen={showDeleteModal}
+        onClose={() => {
+          setShowDeleteModal(false);
+          setDocumentToDelete(null);
+        }}
+        onConfirm={confirmDeleteDocument}
+        title="Delete Document"
+        message="Are you sure you want to delete this document? This action cannot be undone."
+        itemName={documentToDelete?.name}
+        isLoading={isDeleting}
+      />
     </div>
   );
 }

@@ -1,6 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { collection, getDocs, addDoc, query, where, orderBy, serverTimestamp } from 'firebase/firestore';
+import { db } from '../../../lib/firebaseClient';
 
 export default function AttendanceReports() {
   const [reports, setReports] = useState([]);
@@ -11,98 +13,60 @@ export default function AttendanceReports() {
   });
   const [selectedDepartment, setSelectedDepartment] = useState('all');
   const [isGenerating, setIsGenerating] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [departments, setDepartments] = useState([]);
 
-  // Sample reports data
+  // Fetch data from Firebase
   useEffect(() => {
-    const sampleReports = [
-      {
-        id: 1,
-        name: 'Daily Attendance Report',
-        type: 'daily',
-        dateRange: '2024-01-15 to 2024-01-15',
-        department: 'All Departments',
-        generatedDate: '2024-01-15',
-        generatedBy: 'HR Manager',
-        totalEmployees: 25,
-        presentEmployees: 23,
-        absentEmployees: 2,
-        lateEmployees: 5,
-        attendanceRate: 92,
-        totalHours: 184,
-        status: 'Completed',
-        fileSize: '2.3 MB'
-      },
-      {
-        id: 2,
-        name: 'Weekly Attendance Summary',
-        type: 'weekly',
-        dateRange: '2024-01-08 to 2024-01-14',
-        department: 'IT Department',
-        generatedDate: '2024-01-14',
-        generatedBy: 'HR Manager',
-        totalEmployees: 8,
-        presentEmployees: 7,
-        absentEmployees: 1,
-        lateEmployees: 2,
-        attendanceRate: 87.5,
-        totalHours: 280,
-        status: 'Completed',
-        fileSize: '1.8 MB'
-      },
-      {
-        id: 3,
-        name: 'Monthly Attendance Report',
-        type: 'monthly',
-        dateRange: '2024-01-01 to 2024-01-31',
-        department: 'All Departments',
-        generatedDate: '2024-01-31',
-        generatedBy: 'HR Manager',
-        totalEmployees: 25,
-        presentEmployees: 22,
-        absentEmployees: 3,
-        lateEmployees: 8,
-        attendanceRate: 88,
-        totalHours: 3520,
-        status: 'Completed',
-        fileSize: '5.2 MB'
-      },
-      {
-        id: 4,
-        name: 'Overtime Report',
-        type: 'overtime',
-        dateRange: '2024-01-01 to 2024-01-31',
-        department: 'All Departments',
-        generatedDate: '2024-01-31',
-        generatedBy: 'HR Manager',
-        totalEmployees: 12,
-        presentEmployees: 12,
-        absentEmployees: 0,
-        lateEmployees: 0,
-        attendanceRate: 100,
-        totalHours: 48,
-        status: 'Completed',
-        fileSize: '1.5 MB'
-      },
-      {
-        id: 5,
-        name: 'Leave Summary Report',
-        type: 'leave',
-        dateRange: '2024-01-01 to 2024-01-31',
-        department: 'All Departments',
-        generatedDate: '2024-01-31',
-        generatedBy: 'HR Manager',
-        totalEmployees: 25,
-        presentEmployees: 20,
-        absentEmployees: 5,
-        lateEmployees: 0,
-        attendanceRate: 80,
-        totalHours: 0,
-        status: 'Completed',
-        fileSize: '2.1 MB'
-      }
-    ];
-    setReports(sampleReports);
+    fetchData();
   }, []);
+
+  const fetchData = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      // Fetch departments
+      const departmentsRef = collection(db, 'departments');
+      const departmentsSnapshot = await getDocs(departmentsRef);
+      
+      const departmentsData = [];
+      departmentsSnapshot.forEach((doc) => {
+        departmentsData.push({
+          id: doc.id,
+          ...doc.data()
+        });
+      });
+      setDepartments(departmentsData);
+
+      // Fetch reports
+      const reportsRef = collection(db, 'attendanceReports');
+      const reportsSnapshot = await getDocs(reportsRef);
+      
+      const reportsData = [];
+      reportsSnapshot.forEach((doc) => {
+        reportsData.push({
+          id: doc.id,
+          ...doc.data()
+        });
+      });
+      
+      // Sort by createdAt in JavaScript to avoid composite index requirement
+      reportsData.sort((a, b) => {
+        const dateA = a.createdAt?.toDate ? a.createdAt.toDate() : new Date(a.createdAt || 0);
+        const dateB = b.createdAt?.toDate ? b.createdAt.toDate() : new Date(b.createdAt || 0);
+        return dateB - dateA; // Descending order
+      });
+      
+      setReports(reportsData);
+    } catch (err) {
+      console.error('Error fetching data:', err);
+      setError('Failed to load reports data');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const reportTypes = [
     { value: 'daily', label: 'Daily Attendance Report' },
@@ -113,36 +77,80 @@ export default function AttendanceReports() {
     { value: 'custom', label: 'Custom Report' }
   ];
 
-  const departments = [
-    'All Departments', 'IT', 'HR', 'Marketing', 'Finance', 'Sales', 'Operations'
+  const departmentOptions = [
+    'All Departments',
+    ...departments.map(dept => dept.name)
   ];
 
   const handleGenerateReport = async () => {
-    setIsGenerating(true);
-    
-    // Simulate report generation
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    
-    const newReport = {
-      id: reports.length + 1,
-      name: reportTypes.find(type => type.value === selectedReportType)?.label || 'Custom Report',
-      type: selectedReportType,
-      dateRange: `${dateRange.startDate} to ${dateRange.endDate}`,
-      department: departments.find(dept => dept === selectedDepartment) || 'All Departments',
-      generatedDate: new Date().toISOString().split('T')[0],
-      generatedBy: 'Current User',
-      totalEmployees: Math.floor(Math.random() * 20) + 10,
-      presentEmployees: Math.floor(Math.random() * 15) + 8,
-      absentEmployees: Math.floor(Math.random() * 3) + 1,
-      lateEmployees: Math.floor(Math.random() * 5) + 1,
-      attendanceRate: Math.floor(Math.random() * 20) + 80,
-      totalHours: Math.floor(Math.random() * 200) + 100,
-      status: 'Completed',
-      fileSize: `${(Math.random() * 5 + 1).toFixed(1)} MB`
-    };
-    
-    setReports(prev => [newReport, ...prev]);
-    setIsGenerating(false);
+    try {
+      setIsGenerating(true);
+      setError(null);
+      
+      // Fetch attendance data for the selected date range and department
+      const attendanceRef = collection(db, 'attendance');
+      const attendanceQuery = query(
+        attendanceRef,
+        where('date', '>=', dateRange.startDate),
+        where('date', '<=', dateRange.endDate)
+      );
+      const attendanceSnapshot = await getDocs(attendanceQuery);
+      
+      let attendanceData = [];
+      attendanceSnapshot.forEach((doc) => {
+        attendanceData.push({
+          id: doc.id,
+          ...doc.data()
+        });
+      });
+
+      // Filter by department if not "All Departments"
+      if (selectedDepartment !== 'all' && selectedDepartment !== 'All Departments') {
+        attendanceData = attendanceData.filter(record => record.department === selectedDepartment);
+      }
+
+      // Calculate report statistics
+      const totalEmployees = attendanceData.length;
+      const presentEmployees = attendanceData.filter(record => record.status === 'Present' || record.status === 'Completed').length;
+      const absentEmployees = attendanceData.filter(record => record.status === 'Absent').length;
+      const lateEmployees = attendanceData.filter(record => record.lateMinutes > 0).length;
+      const attendanceRate = totalEmployees > 0 ? Math.round((presentEmployees / totalEmployees) * 100) : 0;
+      const totalHours = attendanceData.reduce((sum, record) => sum + (record.duration || 0), 0);
+      
+      const reportData = {
+        name: reportTypes.find(type => type.value === selectedReportType)?.label || 'Custom Report',
+        type: selectedReportType,
+        dateRange: `${dateRange.startDate} to ${dateRange.endDate}`,
+        department: selectedDepartment === 'all' ? 'All Departments' : selectedDepartment,
+        generatedDate: new Date().toISOString().split('T')[0],
+        generatedBy: 'Current User',
+        totalEmployees,
+        presentEmployees,
+        absentEmployees,
+        lateEmployees,
+        attendanceRate,
+        totalHours: Math.round(totalHours * 100) / 100,
+        status: 'Completed',
+        fileSize: `${(Math.random() * 5 + 1).toFixed(1)} MB`,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp()
+      };
+
+      const docRef = await addDoc(collection(db, 'attendanceReports'), reportData);
+      
+      const newReport = {
+        id: docRef.id,
+        ...reportData,
+        createdAt: new Date().toISOString()
+      };
+      
+      setReports(prev => [newReport, ...prev]);
+    } catch (err) {
+      console.error('Error generating report:', err);
+      setError('Failed to generate report');
+    } finally {
+      setIsGenerating(false);
+    }
   };
 
   const handleDownload = (reportId) => {
@@ -279,6 +287,19 @@ export default function AttendanceReports() {
         </div>
       </div>
 
+      {/* Error Display */}
+      {error && (
+        <div className="mx-6 mb-6 bg-red-50 border border-red-200 rounded-lg p-4">
+          <div className="text-red-800">{error}</div>
+          <button 
+            onClick={fetchData}
+            className="mt-2 px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors"
+          >
+            Retry
+          </button>
+        </div>
+      )}
+
       {/* Report Generator */}
       <div className="mx-6 bg-white border border-gray-200 rounded-lg mb-6">
         <div className="px-4 py-3 border-b border-gray-200 bg-gray-50">
@@ -304,9 +325,10 @@ export default function AttendanceReports() {
                 value={selectedDepartment}
                 onChange={(e) => setSelectedDepartment(e.target.value)}
                 className="w-full px-3 py-2 text-gray-900 bg-white border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                disabled={loading}
               >
-                {departments.map(dept => (
-                  <option key={dept} value={dept}>{dept}</option>
+                {departmentOptions.map(dept => (
+                  <option key={dept} value={dept === 'All Departments' ? 'all' : dept}>{dept}</option>
                 ))}
               </select>
             </div>
@@ -353,22 +375,28 @@ export default function AttendanceReports() {
         <div className="px-6 py-4 border-b border-gray-200 bg-gray-50">
           <h3 className="text-lg font-semibold text-gray-900">Generated Reports</h3>
         </div>
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Report Name</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date Range</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Department</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Attendance Rate</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Generated</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {reports.map((report) => (
+        {loading ? (
+          <div className="p-8 text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600 mx-auto"></div>
+            <p className="mt-2 text-gray-600">Loading reports...</p>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Report Name</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date Range</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Department</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Attendance Rate</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Generated</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {reports.map((report) => (
                 <tr key={report.id} className="hover:bg-gray-50">
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div>
@@ -426,10 +454,11 @@ export default function AttendanceReports() {
                     </div>
                   </td>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
 
       {/* Quick Actions */}

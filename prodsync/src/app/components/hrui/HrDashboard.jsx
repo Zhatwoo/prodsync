@@ -4,6 +4,8 @@ import { useState } from 'react';
 import { signOut } from 'firebase/auth';
 import { auth } from '../../lib/firebaseClient';
 import { useRouter } from 'next/navigation';
+import { useEmployeeStats } from '../../hooks/useEmployeeStats';
+import { usePayrollStats } from '../../hooks/usePayrollStats';
 
 export default function HrDashboard() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -11,6 +13,8 @@ export default function HrDashboard() {
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const router = useRouter();
+  const employeeStats = useEmployeeStats();
+  const payrollStatsData = usePayrollStats();
 
   const handleLogout = async () => {
     setIsLoggingOut(true);
@@ -26,73 +30,73 @@ export default function HrDashboard() {
     }
   };
 
-  // Employee Record Statistics
-  const employeeStats = [
+  // Employee Record Statistics - Now using real Firebase data
+  const employeeStatsData = [
     { 
       title: 'Total Employees', 
-      value: '1,247', 
-      change: '+5.2%', 
-      changeType: 'positive',
+      value: employeeStats.loading ? '...' : employeeStats.totalEmployees.toLocaleString(), 
+      change: employeeStats.newHiresThisMonth > 0 ? `+${employeeStats.newHiresThisMonth} this month` : 'No new hires',
+      changeType: employeeStats.newHiresThisMonth > 0 ? 'positive' : 'neutral',
       icon: '👥',
       color: 'blue'
     },
     { 
       title: 'New Hires This Month', 
-      value: '23', 
-      change: '+15%', 
-      changeType: 'positive',
+      value: employeeStats.loading ? '...' : employeeStats.newHiresThisMonth.toString(), 
+      change: employeeStats.newHiresThisMonth > 0 ? 'Active hiring' : 'No new hires',
+      changeType: employeeStats.newHiresThisMonth > 0 ? 'positive' : 'neutral',
       icon: '➕',
       color: 'green'
     },
     { 
       title: 'Departments', 
-      value: '6', 
-      change: '+1', 
+      value: employeeStats.loading ? '...' : employeeStats.totalDepartments.toString(), 
+      change: employeeStats.totalDepartments > 0 ? 'Active departments' : 'No departments',
       changeType: 'positive',
       icon: '🏢',
       color: 'purple'
     },
     { 
       title: 'Positions', 
-      value: '12', 
-      change: '+2', 
+      value: employeeStats.loading ? '...' : employeeStats.totalPositions.toString(), 
+      change: employeeStats.totalPositions > 0 ? 'Available positions' : 'No positions',
       changeType: 'positive',
       icon: '💼',
       color: 'indigo'
     }
   ];
 
-  // Payroll Statistics
+  // Payroll Statistics - Now using real Firebase data
   const payrollStats = [
     { 
       title: 'Monthly Payroll', 
-      value: '$2.4M', 
-      change: '+3.1%', 
-      changeType: 'positive',
+      value: payrollStatsData.loading ? '...' : `$${(payrollStatsData.totalGrossPay / 1000000).toFixed(1)}M`, 
+      change: payrollStatsData.totalGrossPay > 0 ? 'Live data' : 'No data',
+      changeType: payrollStatsData.totalGrossPay > 0 ? 'positive' : 'neutral',
       icon: '💰',
       color: 'green'
     },
     { 
       title: 'Average Salary', 
-      value: '$4,200', 
-      change: '+2.5%', 
-      changeType: 'positive',
+      value: payrollStatsData.loading ? '...' : `$${payrollStatsData.averageSalary.toLocaleString()}`, 
+      change: payrollStatsData.averageSalary > 0 ? 'Calculated' : 'No data',
+      changeType: payrollStatsData.averageSalary > 0 ? 'positive' : 'neutral',
       icon: '📊',
       color: 'blue'
     },
     { 
-      title: 'Benefits Cost', 
-      value: '$480K', 
-      change: '+1.8%', 
-      changeType: 'positive',
+      title: 'Net Pay', 
+      value: payrollStatsData.loading ? '...' : `$${(payrollStatsData.totalNetPay / 1000).toFixed(0)}K`, 
+      change: payrollStatsData.totalNetPay > 0 ? 'After deductions' : 'No data',
+      changeType: payrollStatsData.totalNetPay > 0 ? 'positive' : 'neutral',
       icon: '🎁',
       color: 'yellow'
     },
     { 
       title: 'Tax Deductions', 
-      value: '$360K', 
-      change: '+4.2%', 
-      changeType: 'positive',
+      value: payrollStatsData.loading ? '...' : `$${(payrollStatsData.totalDeductions / 1000).toFixed(0)}K`, 
+      change: payrollStatsData.totalDeductions > 0 ? 'Total deductions' : 'No data',
+      changeType: payrollStatsData.totalDeductions > 0 ? 'positive' : 'neutral',
       icon: '🧾',
       color: 'red'
     }
@@ -232,8 +236,12 @@ export default function HrDashboard() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-blue-100 text-sm">Total Employees</p>
-                  <p className="text-3xl font-bold">1,247</p>
-                  <p className="text-blue-200 text-xs">+5.2% this month</p>
+                  <p className="text-3xl font-bold">
+                    {employeeStats.loading ? '...' : employeeStats.totalEmployees.toLocaleString()}
+                  </p>
+                  <p className="text-blue-200 text-xs">
+                    {employeeStats.newHiresThisMonth > 0 ? `+${employeeStats.newHiresThisMonth} this month` : 'No new hires'}
+                  </p>
                 </div>
                 <div className="w-16 h-16 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
                   <span className="text-2xl">👥</span>
@@ -245,8 +253,12 @@ export default function HrDashboard() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-green-100 text-sm">Monthly Payroll</p>
-                  <p className="text-3xl font-bold">$2.4M</p>
-                  <p className="text-green-200 text-xs">+3.1% vs last month</p>
+                  <p className="text-3xl font-bold">
+                    {payrollStatsData.loading ? '...' : `$${(payrollStatsData.totalGrossPay / 1000000).toFixed(1)}M`}
+                  </p>
+                  <p className="text-green-200 text-xs">
+                    {payrollStatsData.totalGrossPay > 0 ? 'Live data from employees' : 'No data available'}
+                  </p>
                 </div>
                 <div className="w-16 h-16 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
                   <span className="text-2xl">💰</span>

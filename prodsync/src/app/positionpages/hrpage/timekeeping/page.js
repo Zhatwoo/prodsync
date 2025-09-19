@@ -8,18 +8,22 @@ import LeaveManagement from '../../../components/hrui/timekeepingcomponents/Leav
 import OvertimeManagement from '../../../components/hrui/timekeepingcomponents/OvertimeManagement';
 import ScheduleManagement from '../../../components/hrui/timekeepingcomponents/ScheduleManagement';
 import AttendanceReports from '../../../components/hrui/timekeepingcomponents/AttendanceReports';
+import { useTimekeepingStats } from '../../../hooks/useTimekeepingStats';
 
 export default function TimekeepingPage() {
   const [activeTab, setActiveTab] = useState('attendanceOverview');
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  
+  // Get real-time statistics
+  const stats = useTimekeepingStats();
 
   const tabs = [
-    { id: 'attendanceOverview', name: 'Attendance Overview', icon: '⏰', badge: '94%' },
+    { id: 'attendanceOverview', name: 'Attendance Overview', icon: '⏰', badge: `${stats.attendanceRate}%` },
     { id: 'timeTracking', name: 'Time Tracking', icon: '📱' },
-    { id: 'leaveManagement', name: 'Leave Management', icon: '🏖️', badge: '23' },
-    { id: 'overtimeManagement', name: 'Overtime Management', icon: '⏱️' },
-    { id: 'scheduleManagement', name: 'Schedule Management', icon: '📅' },
-    { id: 'attendanceReports', name: 'Attendance Reports', icon: '📋' }
+    { id: 'leaveManagement', name: 'Leave Management', icon: '🏖️', badge: stats.leaveRequests },
+    { id: 'overtimeManagement', name: 'Overtime Management', icon: '⏱️', badge: stats.pendingOvertime },
+    { id: 'scheduleManagement', name: 'Schedule Management', icon: '📅', badge: stats.totalSchedules },
+    { id: 'attendanceReports', name: 'Attendance Reports', icon: '📋', badge: stats.totalReports }
   ];
 
   const renderActiveComponent = () => {
@@ -56,15 +60,21 @@ export default function TimekeepingPage() {
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
                   <div className="bg-purple-50 rounded-lg px-3 sm:px-4 py-2 sm:py-3 text-center">
-                    <div className="text-xl sm:text-2xl font-bold text-purple-600">94%</div>
+                    <div className="text-xl sm:text-2xl font-bold text-purple-600">
+                      {stats.isLoading ? '...' : `${stats.attendanceRate}%`}
+                    </div>
                     <div className="text-xs sm:text-sm text-gray-600">Attendance Rate</div>
                   </div>
                   <div className="bg-blue-50 rounded-lg px-3 sm:px-4 py-2 sm:py-3 text-center">
-                    <div className="text-xl sm:text-2xl font-bold text-blue-600">25</div>
+                    <div className="text-xl sm:text-2xl font-bold text-blue-600">
+                      {stats.isLoading ? '...' : stats.activeEmployees}
+                    </div>
                     <div className="text-xs sm:text-sm text-gray-600">Active Employees</div>
                   </div>
                   <div className="bg-green-50 rounded-lg px-3 sm:px-4 py-2 sm:py-3 text-center">
-                    <div className="text-xl sm:text-2xl font-bold text-green-600">23</div>
+                    <div className="text-xl sm:text-2xl font-bold text-green-600">
+                      {stats.isLoading ? '...' : stats.leaveRequests}
+                    </div>
                     <div className="text-xs sm:text-sm text-gray-600">Leave Requests</div>
                   </div>
                 </div>

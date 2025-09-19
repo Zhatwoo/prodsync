@@ -1,11 +1,28 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useLeaveContext } from '../../../context/LeaveContext';
 
 export default function LeaveManagement() {
-  const [leaveRequests, setLeaveRequests] = useState([]);
+  const { 
+    leaveRequests, 
+    addLeaveRequest, 
+    updateLeaveRequest, 
+    approveLeaveRequest, 
+    rejectLeaveRequest,
+    getLeaveStatistics,
+    clearAllData
+  } = useLeaveContext();
+
+  // Debug logging
+  useEffect(() => {
+    console.log('LeaveManagement - leaveRequests:', leaveRequests);
+    console.log('LeaveManagement - statistics:', getLeaveStatistics());
+  }, [leaveRequests, getLeaveStatistics]);
+  
   const [isAddingNew, setIsAddingNew] = useState(false);
   const [editingRequest, setEditingRequest] = useState(null);
+  const [showOnlyFormSubmissions, setShowOnlyFormSubmissions] = useState(false);
   const [newRequest, setNewRequest] = useState({
     employeeName: '',
     leaveType: '',
@@ -15,96 +32,19 @@ export default function LeaveManagement() {
     days: 0
   });
 
-  // Sample leave requests data
-  useEffect(() => {
-    const sampleRequests = [
-      {
-        id: 1,
-        employeeName: 'John Smith',
-        employeeId: 'EMP001',
-        leaveType: 'Annual Leave',
-        startDate: '2024-01-20',
-        endDate: '2024-01-25',
-        days: 5,
-        reason: 'Family vacation',
-        status: 'Approved',
-        submittedDate: '2024-01-10',
-        approvedBy: 'Sarah Johnson',
-        approvedDate: '2024-01-12'
-      },
-      {
-        id: 2,
-        employeeName: 'Sarah Johnson',
-        employeeId: 'EMP002',
-        leaveType: 'Sick Leave',
-        startDate: '2024-01-18',
-        endDate: '2024-01-19',
-        days: 2,
-        reason: 'Medical appointment',
-        status: 'Approved',
-        submittedDate: '2024-01-17',
-        approvedBy: 'Mike Davis',
-        approvedDate: '2024-01-17'
-      },
-      {
-        id: 3,
-        employeeName: 'Mike Davis',
-        employeeId: 'EMP003',
-        leaveType: 'Personal Leave',
-        startDate: '2024-01-22',
-        endDate: '2024-01-24',
-        days: 3,
-        reason: 'Personal matters',
-        status: 'Pending',
-        submittedDate: '2024-01-15',
-        approvedBy: null,
-        approvedDate: null
-      },
-      {
-        id: 4,
-        employeeName: 'Emily Wilson',
-        employeeId: 'EMP004',
-        leaveType: 'Maternity Leave',
-        startDate: '2024-02-01',
-        endDate: '2024-05-01',
-        days: 90,
-        reason: 'Maternity leave',
-        status: 'Approved',
-        submittedDate: '2024-01-05',
-        approvedBy: 'Sarah Johnson',
-        approvedDate: '2024-01-08'
-      },
-      {
-        id: 5,
-        employeeName: 'David Brown',
-        employeeId: 'EMP005',
-        leaveType: 'Emergency Leave',
-        startDate: '2024-01-16',
-        endDate: '2024-01-16',
-        days: 1,
-        reason: 'Family emergency',
-        status: 'Approved',
-        submittedDate: '2024-01-16',
-        approvedBy: 'Sarah Johnson',
-        approvedDate: '2024-01-16'
-      },
-      {
-        id: 6,
-        employeeName: 'Lisa Garcia',
-        employeeId: 'EMP006',
-        leaveType: 'Study Leave',
-        startDate: '2024-01-25',
-        endDate: '2024-01-26',
-        days: 2,
-        reason: 'Professional development course',
-        status: 'Rejected',
-        submittedDate: '2024-01-14',
-        approvedBy: 'Mike Davis',
-        approvedDate: '2024-01-16'
-      }
-    ];
-    setLeaveRequests(sampleRequests);
-  }, []);
+  // Get statistics from context
+  const statistics = getLeaveStatistics();
+
+  // Filter and sort leave requests
+  const filteredRequests = showOnlyFormSubmissions 
+    ? leaveRequests.filter(request => request.contactNumber) // ApplicationForm submissions have contactNumber
+    : leaveRequests;
+    
+  const sortedLeaveRequests = [...filteredRequests].sort((a, b) => {
+    const dateA = new Date(a.submittedDate || a.createdAt || 0);
+    const dateB = new Date(b.submittedDate || b.createdAt || 0);
+    return dateB - dateA;
+  });
 
   const leaveTypes = [
     'Annual Leave', 'Sick Leave', 'Personal Leave', 'Maternity Leave', 
@@ -146,29 +86,23 @@ export default function LeaveManagement() {
     e.preventDefault();
     if (editingRequest) {
       // Update existing request
-      setLeaveRequests(prev => prev.map(request => 
-        request.id === editingRequest.id 
-          ? { 
-              ...request, 
+      updateLeaveRequest(editingRequest.id, {
               ...newRequest, 
               days: calculateDays(newRequest.startDate, newRequest.endDate)
-            }
-          : request
-      ));
+      });
       setEditingRequest(null);
     } else {
       // Add new request
-      const request = {
-        id: leaveRequests.length + 1,
+      const requestData = {
         ...newRequest,
         employeeId: `EMP${String(leaveRequests.length + 1).padStart(3, '0')}`,
         days: calculateDays(newRequest.startDate, newRequest.endDate),
-        status: 'Pending',
-        submittedDate: new Date().toISOString().split('T')[0],
-        approvedBy: null,
-        approvedDate: null
+        department: 'HR', // Default department
+        position: 'Employee', // Default position
+        contactNumber: '',
+        emergencyContact: ''
       };
-      setLeaveRequests(prev => [request, ...prev]);
+      addLeaveRequest(requestData);
     }
     
     setNewRequest({
@@ -196,29 +130,263 @@ export default function LeaveManagement() {
   };
 
   const handleApprove = (id) => {
-    setLeaveRequests(prev => prev.map(request => 
-      request.id === id 
-        ? { 
-            ...request, 
-            status: 'Approved',
-            approvedBy: 'Current User',
-            approvedDate: new Date().toISOString().split('T')[0]
-          }
-        : request
-    ));
+    try {
+      console.log('Approving request with ID:', id);
+      approveLeaveRequest(id, 'HR Manager');
+      alert('Leave request approved successfully!');
+    } catch (error) {
+      console.error('Error approving request:', error);
+      alert('Error approving request. Please try again.');
+    }
   };
 
   const handleReject = (id) => {
-    setLeaveRequests(prev => prev.map(request => 
-      request.id === id 
-        ? { 
-            ...request, 
-            status: 'Rejected',
-            approvedBy: 'Current User',
-            approvedDate: new Date().toISOString().split('T')[0]
-          }
-        : request
-    ));
+    try {
+      console.log('Rejecting request with ID:', id);
+      rejectLeaveRequest(id, 'HR Manager');
+      alert('Leave request rejected.');
+    } catch (error) {
+      console.error('Error rejecting request:', error);
+      alert('Error rejecting request. Please try again.');
+    }
+  };
+
+  const exportBulkRequests = () => {
+    try {
+      console.log('Exporting bulk requests, count:', sortedLeaveRequests.length);
+      if (sortedLeaveRequests.length === 0) {
+        alert('No leave requests to export.');
+        return;
+      }
+
+    const currentDate = new Date().toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+
+    const companyName = "ProdSync Corporation";
+    const companyAddress = "123 Business District, Metro Manila, Philippines";
+    const companyPhone = "+63 2 1234 5678";
+    const companyEmail = "hr@prodsync.com";
+
+    // Create bulk export Word document content
+    const wordContent = `
+LEAVE MANAGEMENT BULK REPORT
+${companyName}
+${companyAddress}
+Phone: ${companyPhone} | Email: ${companyEmail}
+
+================================================================================
+                        LEAVE REQUESTS SUMMARY REPORT
+================================================================================
+
+Report Generated: ${currentDate}
+Report Type: ${showOnlyFormSubmissions ? 'Application Form Submissions Only' : 'All Leave Requests'}
+Total Requests: ${sortedLeaveRequests.length}
+
+SUMMARY STATISTICS
+================================================================================
+Pending Requests:        ${sortedLeaveRequests.filter(req => req.status === 'Pending').length}
+Approved Requests:       ${sortedLeaveRequests.filter(req => req.status === 'Approved').length}
+Rejected Requests:       ${sortedLeaveRequests.filter(req => req.status === 'Rejected').length}
+Total Leave Days:        ${sortedLeaveRequests.reduce((sum, req) => sum + (req.days || 0), 0)}
+
+DETAILED LEAVE REQUESTS
+================================================================================
+
+${sortedLeaveRequests.map((request, index) => `
+REQUEST #${index + 1} - ${request.employeeName.toUpperCase()}
+${'='.repeat(60)}
+Document ID: LR-${request.id}
+Status: ${request.status.toUpperCase()}
+
+Employee Information:
+  Name: ${request.employeeName}
+  Employee ID: ${request.employeeId}
+  Department: ${request.department || 'Not Specified'}
+  Position: ${request.position || 'Not Specified'}
+  ${request.contactNumber ? `Contact: ${request.contactNumber}` : ''}
+  ${request.emergencyContact ? `Emergency: ${request.emergencyContact}` : ''}
+
+Leave Details:
+  Type: ${request.leaveType}
+  Period: ${request.startDate} to ${request.endDate}
+  Duration: ${request.days} days
+  Reason: ${request.reason}
+
+Submission Info:
+  Submitted: ${request.submittedDate}
+  Method: ${request.contactNumber ? 'Application Form (Online)' : 'Manual Entry (HR System)'}
+  ${request.contactNumber ? `Form ID: FORM-${request.id}` : ''}
+
+${request.status !== 'Pending' ? `
+Approval Info:
+  Status: ${request.status}
+  ${request.approvedBy ? `Processed By: ${request.approvedBy}` : ''}
+  ${request.approvedDate ? `Processed Date: ${request.approvedDate}` : ''}
+` : `
+Status: PENDING HR REVIEW
+`}
+${'='.repeat(60)}
+`).join('\n')}
+
+CORPORATE COMPLIANCE STATEMENT
+================================================================================
+This bulk report contains all leave requests processed through our HR Management
+System. All information has been verified and is in compliance with company
+policies and Philippine Labor Law requirements.
+
+For any inquiries regarding this report, please contact:
+Human Resources Department
+${companyName}
+Email: ${companyEmail}
+Phone: ${companyPhone}
+
+================================================================================
+                            END OF BULK REPORT
+================================================================================
+
+Generated by: Leave Management System v2.0
+Document Classification: Internal Use Only
+Report Type: ${showOnlyFormSubmissions ? 'Application Form Submissions' : 'Complete Leave Management'}
+Last Updated: ${currentDate}
+    `.trim();
+
+    // Create and download the Word document
+    const blob = new Blob([wordContent], { 
+      type: 'application/msword' 
+    });
+    
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    
+    const fileName = showOnlyFormSubmissions 
+      ? `Application_Form_Leave_Requests_Bulk_${new Date().toISOString().split('T')[0]}.doc`
+      : `Leave_Management_Bulk_Report_${new Date().toISOString().split('T')[0]}.doc`;
+    
+    link.download = fileName;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+
+    alert(`📄 Bulk report exported successfully!\n\nFile: ${fileName}\nRecords: ${sortedLeaveRequests.length} requests\nType: ${showOnlyFormSubmissions ? 'Application Form Submissions' : 'All Requests'}`);
+    } catch (error) {
+      console.error('Error exporting bulk requests:', error);
+      alert('Error exporting bulk report. Please try again.');
+    }
+  };
+
+  const exportIndividualRequest = (request) => {
+    try {
+      console.log('Exporting individual request:', request);
+      const currentDate = new Date().toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      });
+
+    const companyName = "ProdSync Corporation";
+    const companyAddress = "123 Business District, Metro Manila, Philippines";
+    const companyPhone = "+63 2 1234 5678";
+    const companyEmail = "hr@prodsync.com";
+
+    // Create formal corporate Word document content
+    const wordContent = `
+LEAVE REQUEST DOCUMENTATION
+${companyName}
+${companyAddress}
+Phone: ${companyPhone} | Email: ${companyEmail}
+
+================================================================================
+                            LEAVE REQUEST FORM
+================================================================================
+
+Document ID: LR-${request.id}
+Generated Date: ${currentDate}
+Request Status: ${request.status.toUpperCase()}
+
+EMPLOYEE INFORMATION
+================================================================================
+Employee Name:           ${request.employeeName}
+Employee ID:             ${request.employeeId}
+Department:              ${request.department || 'Not Specified'}
+Position:                ${request.position || 'Not Specified'}
+${request.contactNumber ? `Contact Number:         ${request.contactNumber}` : ''}
+${request.emergencyContact ? `Emergency Contact:      ${request.emergencyContact}` : ''}
+
+LEAVE REQUEST DETAILS
+================================================================================
+Leave Type:              ${request.leaveType}
+Requested Start Date:    ${request.startDate}
+Requested End Date:      ${request.endDate}
+Total Leave Days:        ${request.days} days
+Reason for Leave:        ${request.reason}
+
+SUBMISSION INFORMATION
+================================================================================
+Date Submitted:          ${request.submittedDate}
+${request.contactNumber ? 'Submission Method:       Application Form (Online)' : 'Submission Method:       Manual Entry (HR System)'}
+${request.contactNumber ? 'Form Submission ID:      FORM-' + request.id : ''}
+
+${request.status !== 'Pending' ? `
+APPROVAL INFORMATION
+================================================================================
+Status:                  ${request.status}
+${request.approvedBy ? `Processed By:            ${request.approvedBy}` : ''}
+${request.approvedDate ? `Processed Date:          ${request.approvedDate}` : ''}
+` : `
+PENDING APPROVAL
+================================================================================
+Status:                  PENDING HR REVIEW
+This request is currently under review by the Human Resources Department.
+`}
+
+CORPORATE COMPLIANCE
+================================================================================
+This leave request has been processed in accordance with company policies and
+Philippine Labor Law requirements. All information provided is accurate and
+verified through our HR Management System.
+
+For any inquiries regarding this leave request, please contact:
+Human Resources Department
+${companyName}
+Email: ${companyEmail}
+Phone: ${companyPhone}
+
+================================================================================
+                            END OF DOCUMENT
+================================================================================
+
+Generated by: Leave Management System v2.0
+Document Classification: Internal Use Only
+Last Updated: ${currentDate}
+    `.trim();
+
+    // Create and download the Word document
+    const blob = new Blob([wordContent], { 
+      type: 'application/msword' 
+    });
+    
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    
+    const fileName = `Leave_Request_${request.employeeName.replace(/\s+/g, '_')}_${request.id}_${new Date().toISOString().split('T')[0]}.doc`;
+    
+    link.download = fileName;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+
+    alert(`📄 Leave request exported successfully!\n\nEmployee: ${request.employeeName}\nFile: ${fileName}\nStatus: ${request.status}`);
+    } catch (error) {
+      console.error('Error exporting individual request:', error);
+      alert('Error exporting request. Please try again.');
+    }
   };
 
   const cancelForm = () => {
@@ -254,9 +422,12 @@ export default function LeaveManagement() {
     }
   };
 
-  const pendingRequests = leaveRequests.filter(req => req.status === 'Pending').length;
-  const approvedRequests = leaveRequests.filter(req => req.status === 'Approved').length;
-  const totalDays = leaveRequests.reduce((sum, req) => sum + req.days, 0);
+  // Statistics are now provided by the context
+  const { pending, approved, totalDays, total } = statistics;
+  
+  // Calculate manual submissions
+  const manualSubmissions = leaveRequests.filter(request => !request.contactNumber).length;
+
 
   return (
     <div className="h-full">
@@ -265,13 +436,54 @@ export default function LeaveManagement() {
           <div>
             <h2 className="text-2xl font-bold text-gray-900">Leave Management</h2>
             <p className="text-gray-600 mt-1">Manage employee leave requests and approvals</p>
+            {leaveRequests.length === 0 && (
+              <div className="text-sm text-blue-600 mt-2">
+                <p>
+                  💡 <strong>Test the integration:</strong> Click "Application Form" in the navbar to submit a leave request, then return here to see it appear in real-time!
+                </p>
+                <button
+                  onClick={() => {
+                    console.log('Testing context...');
+                    console.log('leaveRequests:', leaveRequests);
+                    console.log('addLeaveRequest function:', typeof addLeaveRequest);
+                    alert(`Context Test:\nLeave Requests: ${leaveRequests.length}\nAdd Function: ${typeof addLeaveRequest}`);
+                  }}
+                  className="mt-2 bg-blue-500 text-white px-3 py-1 rounded text-xs hover:bg-blue-600"
+                >
+                  Test Context
+                </button>
+              </div>
+            )}
           </div>
+          <div className="flex space-x-3">
+            <button
+              onClick={exportBulkRequests}
+              disabled={sortedLeaveRequests.length === 0}
+              className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center"
+            >
+              <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+              Export All
+            </button>
+            <button
+              onClick={() => {
+                if (confirm('Are you sure you want to clear all data? This will remove all leave requests including dummy data.')) {
+                  clearAllData();
+                  alert('All data cleared! Only real ApplicationForm submissions will be shown.');
+                }
+              }}
+              className="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition-colors"
+            >
+              Clear All Data
+            </button>
           <button
             onClick={() => setIsAddingNew(true)}
             className="bg-purple-600 text-white px-4 py-2 rounded-md hover:bg-purple-700 transition-colors"
           >
             Add Leave Request
           </button>
+          </div>
         </div>
       </div>
 
@@ -286,7 +498,7 @@ export default function LeaveManagement() {
             </div>
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-600">Pending</p>
-              <p className="text-2xl font-bold text-gray-900">{pendingRequests}</p>
+              <p className="text-2xl font-bold text-gray-900">{pending}</p>
             </div>
           </div>
         </div>
@@ -300,7 +512,7 @@ export default function LeaveManagement() {
             </div>
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-600">Approved</p>
-              <p className="text-2xl font-bold text-gray-900">{approvedRequests}</p>
+              <p className="text-2xl font-bold text-gray-900">{approved}</p>
             </div>
           </div>
         </div>
@@ -328,10 +540,11 @@ export default function LeaveManagement() {
             </div>
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-600">Total Requests</p>
-              <p className="text-2xl font-bold text-gray-900">{leaveRequests.length}</p>
+              <p className="text-2xl font-bold text-gray-900">{total}</p>
             </div>
           </div>
         </div>
+
       </div>
 
       {/* Add/Edit Form */}
@@ -440,13 +653,44 @@ export default function LeaveManagement() {
       {/* Leave Requests List */}
       <div className="mx-6 bg-white border border-gray-200 rounded-lg overflow-hidden">
         <div className="px-6 py-4 border-b border-gray-200 bg-gray-50">
+          <div className="flex justify-between items-center">
           <h3 className="text-lg font-semibold text-gray-900">Leave Requests</h3>
+            <div className="flex items-center space-x-4">
+              <div className="flex items-center space-x-2">
+                <input
+                  type="checkbox"
+                  id="showOnlyForms"
+                  checked={showOnlyFormSubmissions}
+                  onChange={(e) => setShowOnlyFormSubmissions(e.target.checked)}
+                  className="h-4 w-4 text-purple-600 focus:ring-purple-500 border-gray-300 rounded"
+                />
+                <label htmlFor="showOnlyForms" className="text-sm font-medium text-gray-700">
+                  Show only Application Form submissions
+                </label>
+              </div>
+              <div className="flex items-center space-x-3">
+                <button
+                  onClick={exportBulkRequests}
+                  disabled={sortedLeaveRequests.length === 0}
+                  className="bg-green-600 text-white px-3 py-1 rounded text-sm hover:bg-green-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center"
+                >
+                  <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                  Export
+                </button>
+                <div className="text-sm text-gray-500">
+                  {sortedLeaveRequests.length} of {leaveRequests.length} requests
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Employee</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Employee Details</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Leave Type</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Duration</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Reason</th>
@@ -456,12 +700,54 @@ export default function LeaveManagement() {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {leaveRequests.map((request) => (
+              {sortedLeaveRequests.length === 0 ? (
+                <tr>
+                  <td colSpan="7" className="px-6 py-12 text-center">
+                    <div className="flex flex-col items-center">
+                      <svg className="w-12 h-12 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                      </svg>
+                      <h3 className="text-lg font-medium text-gray-900 mb-2">No Leave Requests</h3>
+                      <p className="text-gray-500 mb-4">
+                        {showOnlyFormSubmissions 
+                          ? "No ApplicationForm submissions yet. Submit a leave request through the Application Form in the navbar."
+                          : "No leave requests found. Add a new request or submit through the Application Form."
+                        }
+                      </p>
+                      {!showOnlyFormSubmissions && (
+                        <button
+                          onClick={() => setIsAddingNew(true)}
+                          className="bg-purple-600 text-white px-4 py-2 rounded-md hover:bg-purple-700 transition-colors"
+                        >
+                          Add First Request
+                        </button>
+                      )}
+                    </div>
+                  </td>
+                </tr>
+              ) : (
+                sortedLeaveRequests.map((request) => (
                 <tr key={request.id} className="hover:bg-gray-50">
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div>
+                      <div className="flex items-center space-x-2">
                       <div className="text-sm font-medium text-gray-900">{request.employeeName}</div>
+                        {request.contactNumber && (
+                          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                            📝 Form
+                          </span>
+                        )}
+                      </div>
                       <div className="text-sm text-gray-500">{request.employeeId}</div>
+                      {request.department && (
+                        <div className="text-xs text-gray-400">{request.department} • {request.position}</div>
+                      )}
+                      {request.contactNumber && (
+                        <div className="text-xs text-gray-400">📞 {request.contactNumber}</div>
+                      )}
+                      {request.emergencyContact && (
+                        <div className="text-xs text-gray-400">🚨 Emergency: {request.emergencyContact}</div>
+                      )}
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
@@ -510,10 +796,21 @@ export default function LeaveManagement() {
                       >
                         Edit
                       </button>
+                      <button 
+                        onClick={() => exportIndividualRequest(request)}
+                        className="text-purple-600 hover:text-purple-900 flex items-center"
+                        title="Export to Word Document"
+                      >
+                        <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                        Export
+                      </button>
                     </div>
                   </td>
                 </tr>
-              ))}
+                ))
+              )}
             </tbody>
           </table>
         </div>

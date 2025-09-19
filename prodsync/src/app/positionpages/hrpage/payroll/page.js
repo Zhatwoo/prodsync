@@ -9,10 +9,12 @@ import Deductions from '../../../components/hrui/payrollcomponents/Deductions';
 import PayrollReports from '../../../components/hrui/payrollcomponents/PayrollReports';
 import TaxManagement from '../../../components/hrui/payrollcomponents/TaxManagement';
 import RequireRole from '../../../components/RequireRole';
+import { usePayrollStats } from '../../../hooks/usePayrollStats';
 
 export default function PayrollPage() {
   const [activeTab, setActiveTab] = useState('payrollOverview');
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const payrollStats = usePayrollStats();
 
   const tabs = [
     { id: 'payrollOverview', name: 'Payroll Overview', icon: '💰' },
@@ -56,15 +58,21 @@ export default function PayrollPage() {
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
                   <div className="bg-green-50 rounded-lg px-3 sm:px-4 py-2 sm:py-3 text-center">
-                    <div className="text-xl sm:text-2xl font-bold text-green-600">$1.85M</div>
+                    <div className="text-xl sm:text-2xl font-bold text-green-600">
+                      {payrollStats.loading ? '...' : `$${(payrollStats.totalGrossPay / 1000000).toFixed(1)}M`}
+                    </div>
                     <div className="text-xs sm:text-sm text-gray-600">Total Gross Pay</div>
                   </div>
                   <div className="bg-blue-50 rounded-lg px-3 sm:px-4 py-2 sm:py-3 text-center">
-                    <div className="text-xl sm:text-2xl font-bold text-blue-600">25</div>
+                    <div className="text-xl sm:text-2xl font-bold text-blue-600">
+                      {payrollStats.loading ? '...' : payrollStats.activeEmployees.toString()}
+                    </div>
                     <div className="text-xs sm:text-sm text-gray-600">Active Employees</div>
                   </div>
                   <div className="bg-purple-50 rounded-lg px-3 sm:px-4 py-2 sm:py-3 text-center">
-                    <div className="text-xl sm:text-2xl font-bold text-purple-600">8</div>
+                    <div className="text-xl sm:text-2xl font-bold text-purple-600">
+                      {payrollStats.loading ? '...' : payrollStats.taxSettings.toString()}
+                    </div>
                     <div className="text-xs sm:text-sm text-gray-600">Tax Settings</div>
                   </div>
                 </div>
