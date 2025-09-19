@@ -1,14 +1,29 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useOvertimeContext } from '../../../context/OvertimeContext';
+import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc, query, orderBy, where, serverTimestamp } from 'firebase/firestore';
+import { db } from '../../../lib/firebaseClient';
+import DeleteConfirmation from '../../DeleteConfirmation';
 
 export default function OvertimeManagement() {
-  const [overtimeRequests, setOvertimeRequests] = useState([]);
+  const { 
+    overtimeRequests, 
+    addOvertimeRequest, 
+    updateOvertimeRequest, 
+    approveOvertimeRequest, 
+    rejectOvertimeRequest,
+    getOvertimeStatistics,
+    clearAllData
+  } = useOvertimeContext();
+  
+  const [employees, setEmployees] = useState([]);
+  const [projects, setProjects] = useState([]);
   const [isAddingNew, setIsAddingNew] = useState(false);
   const [editingRequest, setEditingRequest] = useState(null);
   const [newRequest, setNewRequest] = useState({
-    employeeName: '',
-    project: '',
+    employeeId: '',
+    projectId: '',
     date: '',
     startTime: '',
     endTime: '',
@@ -16,124 +31,72 @@ export default function OvertimeManagement() {
     reason: '',
     rate: 1.5
   });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
-  // Sample overtime requests data
+  // Debug logging
   useEffect(() => {
-    const sampleRequests = [
-      {
-        id: 1,
-        employeeName: 'John Smith',
-        employeeId: 'EMP001',
-        project: 'Website Redesign',
-        date: '2024-01-15',
-        startTime: '18:00',
-        endTime: '22:00',
-        hours: 4,
-        rate: 1.5,
-        reason: 'Urgent bug fixes for production deployment',
-        status: 'Approved',
-        submittedDate: '2024-01-15',
-        approvedBy: 'Sarah Johnson',
-        approvedDate: '2024-01-16',
-        payAmount: 300
-      },
-      {
-        id: 2,
-        employeeName: 'Sarah Johnson',
-        employeeId: 'EMP002',
-        project: 'HR System',
-        date: '2024-01-14',
-        startTime: '17:30',
-        endTime: '21:30',
-        hours: 4,
-        rate: 1.5,
-        reason: 'Database migration completion',
-        status: 'Approved',
-        submittedDate: '2024-01-14',
-        approvedBy: 'Mike Davis',
-        approvedDate: '2024-01-15',
-        payAmount: 320
-      },
-      {
-        id: 3,
-        employeeName: 'Mike Davis',
-        employeeId: 'EMP003',
-        project: 'Marketing Campaign',
-        date: '2024-01-16',
-        startTime: '19:00',
-        endTime: '23:00',
-        hours: 4,
-        rate: 1.5,
-        reason: 'Campaign launch preparation',
-        status: 'Pending',
-        submittedDate: '2024-01-16',
-        approvedBy: null,
-        approvedDate: null,
-        payAmount: 280
-      },
-      {
-        id: 4,
-        employeeName: 'Emily Wilson',
-        employeeId: 'EMP004',
-        project: 'Financial Reports',
-        date: '2024-01-13',
-        startTime: '18:00',
-        endTime: '20:00',
-        hours: 2,
-        rate: 1.5,
-        reason: 'Month-end closing procedures',
-        status: 'Approved',
-        submittedDate: '2024-01-13',
-        approvedBy: 'Sarah Johnson',
-        approvedDate: '2024-01-14',
-        payAmount: 150
-      },
-      {
-        id: 5,
-        employeeName: 'David Brown',
-        employeeId: 'EMP005',
-        project: 'Sales Dashboard',
-        date: '2024-01-17',
-        startTime: '17:00',
-        endTime: '22:00',
-        hours: 5,
-        rate: 2.0,
-        reason: 'Critical client presentation preparation',
-        status: 'Rejected',
-        submittedDate: '2024-01-17',
-        approvedBy: 'Mike Davis',
-        approvedDate: '2024-01-18',
-        payAmount: 400
-      },
-      {
-        id: 6,
-        employeeName: 'Lisa Garcia',
-        employeeId: 'EMP006',
-        project: 'System Maintenance',
-        date: '2024-01-18',
-        startTime: '20:00',
-        endTime: '24:00',
-        hours: 4,
-        rate: 1.5,
-        reason: 'Scheduled system maintenance',
-        status: 'Pending',
-        submittedDate: '2024-01-18',
-        approvedBy: null,
-        approvedDate: null,
-        payAmount: 240
-      }
-    ];
-    setOvertimeRequests(sampleRequests);
+    console.log('OvertimeManagement - overtimeRequests:', overtimeRequests);
+    console.log('OvertimeManagement - statistics:', getOvertimeStatistics());
+  }, [overtimeRequests, getOvertimeStatistics]);
+
+  // Fetch data from Firebase
+  useEffect(() => {
+    fetchData();
   }, []);
 
-  const projects = [
-    'Website Redesign', 'HR System', 'Marketing Campaign', 'Financial Reports', 
-    'Sales Dashboard', 'System Maintenance', 'Mobile App', 'Data Migration'
-  ];
+  const fetchData = async () => {
+    try {
+      setLoading(true);
+      setError(null);
 
-  const employees = [
-    'John Smith', 'Sarah Johnson', 'Mike Davis', 'Emily Wilson', 'David Brown', 'Lisa Garcia'
-  ];
+      // Fetch employees
+      const employeesRef = collection(db, 'employees');
+      const employeesQuery = query(employeesRef, orderBy('createdAt', 'desc'));
+      const employeesSnapshot = await getDocs(employeesQuery);
+      
+      const employeesData = [];
+      employeesSnapshot.forEach((doc) => {
+        employeesData.push({
+          id: doc.id,
+          ...doc.data()
+        });
+      });
+      setEmployees(employeesData);
+
+      // Fetch projects
+      const projectsRef = collection(db, 'projects');
+      const projectsQuery = query(projectsRef, orderBy('createdAt', 'desc'));
+      const projectsSnapshot = await getDocs(projectsQuery);
+      
+      const projectsData = [];
+      projectsSnapshot.forEach((doc) => {
+        projectsData.push({
+          id: doc.id,
+          ...doc.data()
+        });
+      });
+      setProjects(projectsData);
+
+      // Overtime requests are now managed by context
+    } catch (err) {
+      console.error('Error fetching data:', err);
+      setError('Failed to load overtime data');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+
+  // Get statistics from context
+  const statistics = getOvertimeStatistics();
+
+  // Sort overtime requests
+  const sortedOvertimeRequests = [...overtimeRequests].sort((a, b) => {
+    const dateA = new Date(a.submittedDate || a.createdAt || 0);
+    const dateB = new Date(b.submittedDate || b.createdAt || 0);
+    return dateB - dateA;
+  });
 
   const overtimeRates = [
     { value: 1.5, label: '1.5x (Regular Overtime)' },
@@ -168,55 +131,61 @@ export default function OvertimeManagement() {
     });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (editingRequest) {
-      // Update existing request
-      setOvertimeRequests(prev => prev.map(request => 
-        request.id === editingRequest.id 
-          ? { 
-              ...request, 
-              ...newRequest, 
-              hours: calculateHours(newRequest.startTime, newRequest.endTime),
-              payAmount: calculateHours(newRequest.startTime, newRequest.endTime) * parseFloat(newRequest.rate) * 50 // Assuming $50 base rate
-            }
-          : request
-      ));
-      setEditingRequest(null);
-    } else {
-      // Add new request
-      const request = {
-        id: overtimeRequests.length + 1,
-        ...newRequest,
-        employeeId: `EMP${String(overtimeRequests.length + 1).padStart(3, '0')}`,
-        hours: calculateHours(newRequest.startTime, newRequest.endTime),
-        payAmount: calculateHours(newRequest.startTime, newRequest.endTime) * parseFloat(newRequest.rate) * 50,
-        status: 'Pending',
-        submittedDate: new Date().toISOString().split('T')[0],
-        approvedBy: null,
-        approvedDate: null
-      };
-      setOvertimeRequests(prev => [request, ...prev]);
-    }
     
-    setNewRequest({
-      employeeName: '',
-      project: '',
-      date: '',
-      startTime: '',
-      endTime: '',
-      hours: 0,
-      reason: '',
-      rate: 1.5
-    });
-    setIsAddingNew(false);
+    try {
+      const selectedEmployee = employees.find(emp => emp.id === newRequest.employeeId);
+      const selectedProject = projects.find(proj => proj.id === newRequest.projectId);
+      
+      if (!selectedEmployee || !selectedProject) {
+        alert('Please select valid employee and project');
+        return;
+      }
+
+      const hours = calculateHours(newRequest.startTime, newRequest.endTime);
+      const baseRate = 50; // Assuming $50 base rate
+      const payAmount = hours * parseFloat(newRequest.rate) * baseRate;
+
+      const requestData = {
+        employeeId: newRequest.employeeId,
+        employeeName: selectedEmployee.name,
+        projectId: newRequest.projectId,
+        project: selectedProject.name,
+        date: newRequest.date,
+        startTime: newRequest.startTime,
+        endTime: newRequest.endTime,
+        hours: hours,
+        rate: parseFloat(newRequest.rate),
+        reason: newRequest.reason,
+        payAmount: payAmount,
+        contactNumber: '', // Manual entry doesn't have contact number
+        emergencyContact: ''
+      };
+
+      if (editingRequest) {
+        // Update existing request
+        updateOvertimeRequest(editingRequest.id, requestData);
+        setEditingRequest(null);
+        alert('Overtime request updated successfully!');
+      } else {
+        // Add new request
+        addOvertimeRequest(requestData);
+        alert('Overtime request submitted successfully!');
+      }
+      
+      cancelForm();
+    } catch (err) {
+      console.error('Error saving overtime request:', err);
+      alert('Failed to save overtime request');
+    }
   };
 
   const handleEdit = (request) => {
     setEditingRequest(request);
     setNewRequest({
-      employeeName: request.employeeName,
-      project: request.project,
+      employeeId: request.employeeId,
+      projectId: request.projectId,
       date: request.date,
       startTime: request.startTime,
       endTime: request.endTime,
@@ -228,37 +197,45 @@ export default function OvertimeManagement() {
   };
 
   const handleApprove = (id) => {
-    setOvertimeRequests(prev => prev.map(request => 
-      request.id === id 
-        ? { 
-            ...request, 
-            status: 'Approved',
-            approvedBy: 'Current User',
-            approvedDate: new Date().toISOString().split('T')[0]
-          }
-        : request
-    ));
+    try {
+      console.log('Approving overtime request with ID:', id);
+      const request = overtimeRequests.find(req => req.id === id);
+      approveOvertimeRequest(id, 'HR Manager');
+      
+      if (request) {
+        alert(`Overtime request approved successfully!\n\nHours: ${request.hours}h\nPay: $${request.payAmount}\n\n✅ This will now be included in Total Hours and Total Pay calculations.`);
+      } else {
+        alert('Overtime request approved successfully!');
+      }
+    } catch (error) {
+      console.error('Error approving overtime request:', error);
+      alert('Error approving overtime request. Please try again.');
+    }
   };
 
   const handleReject = (id) => {
-    setOvertimeRequests(prev => prev.map(request => 
-      request.id === id 
-        ? { 
-            ...request, 
-            status: 'Rejected',
-            approvedBy: 'Current User',
-            approvedDate: new Date().toISOString().split('T')[0]
-          }
-        : request
-    ));
+    try {
+      console.log('Rejecting overtime request with ID:', id);
+      const request = overtimeRequests.find(req => req.id === id);
+      rejectOvertimeRequest(id, 'HR Manager');
+      
+      if (request) {
+        alert(`Overtime request rejected.\n\nHours: ${request.hours}h\nPay: $${request.payAmount}\n\n❌ This will NOT be included in Total Hours and Total Pay calculations.`);
+      } else {
+        alert('Overtime request rejected.');
+      }
+    } catch (error) {
+      console.error('Error rejecting overtime request:', error);
+      alert('Error rejecting overtime request. Please try again.');
+    }
   };
 
   const cancelForm = () => {
     setIsAddingNew(false);
     setEditingRequest(null);
     setNewRequest({
-      employeeName: '',
-      project: '',
+      employeeId: '',
+      projectId: '',
       date: '',
       startTime: '',
       endTime: '',
@@ -277,10 +254,9 @@ export default function OvertimeManagement() {
     }
   };
 
-  const pendingRequests = overtimeRequests.filter(req => req.status === 'Pending').length;
-  const approvedRequests = overtimeRequests.filter(req => req.status === 'Approved').length;
-  const totalOvertimeHours = overtimeRequests.reduce((sum, req) => sum + req.hours, 0);
-  const totalOvertimePay = overtimeRequests.reduce((sum, req) => sum + (req.payAmount || 0), 0);
+  // Statistics are now provided by the context
+  const { pending, approved, totalHours, totalPay } = statistics;
+  
 
   return (
     <div className="h-full">
@@ -289,18 +265,49 @@ export default function OvertimeManagement() {
           <div>
             <h2 className="text-2xl font-bold text-gray-900">Overtime Management</h2>
             <p className="text-gray-600 mt-1">Manage overtime requests and approvals</p>
+            {overtimeRequests.length === 0 && (
+              <div className="text-sm text-blue-600 mt-2">
+                <p>
+                  💡 <strong>Test the integration:</strong> Click "Application Form" in the navbar to submit an overtime request, then return here to see it appear in real-time!
+                </p>
+                <button
+                  onClick={() => {
+                    console.log('Testing overtime context...');
+                    console.log('overtimeRequests:', overtimeRequests);
+                    console.log('addOvertimeRequest function:', typeof addOvertimeRequest);
+                    alert(`Context Test:\nOvertime Requests: ${overtimeRequests.length}\nAdd Function: ${typeof addOvertimeRequest}`);
+                  }}
+                  className="mt-2 bg-blue-500 text-white px-3 py-1 rounded text-xs hover:bg-blue-600"
+                >
+                  Test Context
+                </button>
+              </div>
+            )}
           </div>
-          <button
-            onClick={() => setIsAddingNew(true)}
-            className="bg-purple-600 text-white px-4 py-2 rounded-md hover:bg-purple-700 transition-colors"
-          >
-            Add Overtime Request
-          </button>
+          <div className="flex space-x-3">
+            <button
+              onClick={() => {
+                if (confirm('Are you sure you want to clear all data? This will remove all overtime requests including dummy data.')) {
+                  clearAllData();
+                  alert('All data cleared! Only real ApplicationForm submissions will be shown.');
+                }
+              }}
+              className="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition-colors"
+            >
+              Clear All Data
+            </button>
+            <button
+              onClick={() => setIsAddingNew(true)}
+              className="bg-purple-600 text-white px-4 py-2 rounded-md hover:bg-purple-700 transition-colors"
+            >
+              Add Overtime Request
+            </button>
+          </div>
         </div>
       </div>
 
       {/* Summary Cards */}
-      <div className="px-6 grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+      <div className="px-6 grid grid-cols-1 md:grid-cols-5 gap-6 mb-6">
         <div className="bg-white border border-gray-200 rounded-lg p-6">
           <div className="flex items-center">
             <div className="p-2 bg-yellow-100 rounded-lg">
@@ -310,7 +317,7 @@ export default function OvertimeManagement() {
             </div>
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-600">Pending</p>
-              <p className="text-2xl font-bold text-gray-900">{pendingRequests}</p>
+              <p className="text-2xl font-bold text-gray-900">{pending}</p>
             </div>
           </div>
         </div>
@@ -324,7 +331,7 @@ export default function OvertimeManagement() {
             </div>
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-600">Approved</p>
-              <p className="text-2xl font-bold text-gray-900">{approvedRequests}</p>
+              <p className="text-2xl font-bold text-gray-900">{approved}</p>
             </div>
           </div>
         </div>
@@ -338,7 +345,8 @@ export default function OvertimeManagement() {
             </div>
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-600">Total Hours</p>
-              <p className="text-2xl font-bold text-gray-900">{totalOvertimeHours}h</p>
+              <p className="text-2xl font-bold text-gray-900">{totalHours}h</p>
+              <p className="text-xs text-gray-500">Approved only</p>
             </div>
           </div>
         </div>
@@ -352,11 +360,39 @@ export default function OvertimeManagement() {
             </div>
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-600">Total Pay</p>
-              <p className="text-2xl font-bold text-gray-900">${totalOvertimePay.toLocaleString()}</p>
+              <p className="text-2xl font-bold text-gray-900">${totalPay.toLocaleString()}</p>
+              <p className="text-xs text-gray-500">Approved only</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white border border-gray-200 rounded-lg p-6">
+          <div className="flex items-center">
+            <div className="p-2 bg-red-100 rounded-lg">
+              <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </div>
+            <div className="ml-4">
+              <p className="text-sm font-medium text-gray-600">Rejected</p>
+              <p className="text-2xl font-bold text-gray-900">{statistics.rejected}</p>
             </div>
           </div>
         </div>
       </div>
+
+      {/* Error Display */}
+      {error && (
+        <div className="mx-6 mb-6 bg-red-50 border border-red-200 rounded-lg p-4">
+          <div className="text-red-800">{error}</div>
+          <button 
+            onClick={fetchData}
+            className="mt-2 px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors"
+          >
+            Retry
+          </button>
+        </div>
+      )}
 
       {/* Add/Edit Form */}
       {isAddingNew && (
@@ -371,30 +407,32 @@ export default function OvertimeManagement() {
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Employee *</label>
                 <select
-                  name="employeeName"
-                  value={newRequest.employeeName}
+                  name="employeeId"
+                  value={newRequest.employeeId}
                   onChange={handleInputChange}
                   required
                   className="w-full px-3 py-2 text-gray-900 bg-white border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                  disabled={loading}
                 >
                   <option value="">Select Employee</option>
                   {employees.map(employee => (
-                    <option key={employee} value={employee}>{employee}</option>
+                    <option key={employee.id} value={employee.id}>{employee.name}</option>
                   ))}
                 </select>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Project *</label>
                 <select
-                  name="project"
-                  value={newRequest.project}
+                  name="projectId"
+                  value={newRequest.projectId}
                   onChange={handleInputChange}
                   required
                   className="w-full px-3 py-2 text-gray-900 bg-white border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                  disabled={loading}
                 >
                   <option value="">Select Project</option>
                   {projects.map(project => (
-                    <option key={project} value={project}>{project}</option>
+                    <option key={project.id} value={project.id}>{project.name}</option>
                   ))}
                 </select>
               </div>
@@ -490,10 +528,21 @@ export default function OvertimeManagement() {
       {/* Overtime Requests List */}
       <div className="mx-6 bg-white border border-gray-200 rounded-lg overflow-hidden">
         <div className="px-6 py-4 border-b border-gray-200 bg-gray-50">
-          <h3 className="text-lg font-semibold text-gray-900">Overtime Requests</h3>
+          <div className="flex justify-between items-center">
+            <h3 className="text-lg font-semibold text-gray-900">Overtime Requests</h3>
+            <div className="text-sm text-gray-500">
+              {sortedOvertimeRequests.length} requests
+            </div>
+          </div>
         </div>
-        <div className="overflow-x-auto">
-          <table className="w-full">
+        {loading ? (
+          <div className="p-8 text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600 mx-auto"></div>
+            <p className="mt-2 text-gray-600">Loading overtime requests...</p>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full">
             <thead className="bg-gray-50">
               <tr>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Employee</th>
@@ -507,12 +556,46 @@ export default function OvertimeManagement() {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {overtimeRequests.map((request) => (
+              {sortedOvertimeRequests.length === 0 ? (
+                <tr>
+                  <td colSpan="8" className="px-6 py-12 text-center">
+                    <div className="flex flex-col items-center">
+                      <svg className="w-12 h-12 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      <h3 className="text-lg font-medium text-gray-900 mb-2">No Overtime Requests</h3>
+                      <p className="text-gray-500 mb-4">
+                        No overtime requests found. Add a new request or submit through the Application Form.
+                      </p>
+                      <button
+                        onClick={() => setIsAddingNew(true)}
+                        className="bg-purple-600 text-white px-4 py-2 rounded-md hover:bg-purple-700 transition-colors"
+                      >
+                        Add First Request
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ) : (
+                sortedOvertimeRequests.map((request) => (
                 <tr key={request.id} className="hover:bg-gray-50">
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div>
-                      <div className="text-sm font-medium text-gray-900">{request.employeeName}</div>
+                      <div className="flex items-center space-x-2">
+                        <div className="text-sm font-medium text-gray-900">{request.employeeName}</div>
+                        {request.contactNumber && (
+                          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                            📝 Form
+                          </span>
+                        )}
+                      </div>
                       <div className="text-sm text-gray-500">{request.employeeId}</div>
+                      {request.contactNumber && (
+                        <div className="text-xs text-gray-400">📞 {request.contactNumber}</div>
+                      )}
+                      {request.emergencyContact && (
+                        <div className="text-xs text-gray-400">🚨 Emergency: {request.emergencyContact}</div>
+                      )}
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
@@ -565,11 +648,14 @@ export default function OvertimeManagement() {
                     </div>
                   </td>
                 </tr>
-              ))}
+                ))
+              )}
             </tbody>
           </table>
         </div>
+        )}
       </div>
     </div>
   );
 }
+

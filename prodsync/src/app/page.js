@@ -55,22 +55,46 @@ export default function Home() {
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
       <Header />
       
-      {/* Hero Section - Modern Design */}
+      {/* Hero Section - Curved Vector Background Design */}
       <section className="relative min-h-screen bg-gradient-to-br from-blue-900 via-blue-800 to-indigo-900 overflow-hidden">
-        {/* Animated Background Pattern */}
+        {/* Curved Vector Background */}
         <div className="absolute inset-0">
-          <div className="absolute inset-0 opacity-10">
-            <div className="absolute inset-0" style={{
-              backgroundImage: `
-                linear-gradient(45deg, rgba(255,255,255,0.1) 25%, transparent 25%),
-                linear-gradient(-45deg, rgba(255,255,255,0.1) 25%, transparent 25%),
-                linear-gradient(45deg, transparent 75%, rgba(255,255,255,0.1) 75%),
-                linear-gradient(-45deg, transparent 75%, rgba(255,255,255,0.1) 75%)
-              `,
-              backgroundSize: '60px 60px',
-              backgroundPosition: '0 0, 0 30px, 30px -30px, -30px 0px'
-            }}></div>
-          </div>
+          <svg 
+            className="absolute bottom-0 left-0 w-full h-auto" 
+            viewBox="0 0 1200 400" 
+            preserveAspectRatio="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <defs>
+              <linearGradient id="curveGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" style={{stopColor:'#1e40af', stopOpacity:0.8}} />
+                <stop offset="50%" style={{stopColor:'#1e3a8a', stopOpacity:0.6}} />
+                <stop offset="100%" style={{stopColor:'#312e81', stopOpacity:0.4}} />
+              </linearGradient>
+              <linearGradient id="curveGradient2" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" style={{stopColor:'#3b82f6', stopOpacity:0.3}} />
+                <stop offset="100%" style={{stopColor:'#6366f1', stopOpacity:0.2}} />
+              </linearGradient>
+            </defs>
+            
+            {/* Main curved path */}
+            <path 
+              d="M0,400 L0,200 Q300,100 600,150 T1200,120 L1200,400 Z" 
+              fill="url(#curveGradient)"
+            />
+            
+            {/* Secondary curved path for depth */}
+            <path 
+              d="M0,400 L0,250 Q400,180 800,200 T1200,180 L1200,400 Z" 
+              fill="url(#curveGradient2)"
+            />
+            
+            {/* Additional decorative curves */}
+            <path 
+              d="M0,400 L0,300 Q200,250 400,280 T800,260 T1200,240 L1200,400 Z" 
+              fill="rgba(59, 130, 246, 0.1)"
+            />
+          </svg>
         </div>
 
         {/* Floating Geometric Shapes */}
@@ -97,130 +121,52 @@ export default function Home() {
           </div>
         </div>
 
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid lg:grid-cols-2 gap-12 items-center min-h-screen py-20">
-            {/* Left Content */}
-            <div className={`transition-all duration-1000 ${isVisible ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'}`}>
+        {/* Content Container */}
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="min-h-screen flex items-center justify-center">
+            {/* Centered Content with Overlay */}
+            <div className={`text-center transition-all duration-1000 ${isVisible ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'}`}>
               <div className="space-y-8">
                 {/* Badge */}
-                <div className="inline-flex items-center px-4 py-2 rounded-full bg-white/10 backdrop-blur-sm text-white text-sm font-medium border border-white/20">
-                  <div className="w-2 h-2 bg-blue-400 rounded-full mr-2 animate-pulse"></div>
+                <div className="inline-flex items-center px-6 py-3 rounded-full bg-white/10 backdrop-blur-sm text-white text-sm font-medium border border-white/20 shadow-lg">
+                  <div className="w-2 h-2 bg-blue-400 rounded-full mr-3 animate-pulse"></div>
                   Trusted by 5000+ companies worldwide
                 </div>
 
-                <h1 className="text-5xl lg:text-6xl xl:text-7xl font-bold text-white leading-tight">
+                {/* Main Title - Overlay Style */}
+                <div className="space-y-4">
+                  <h1 className="text-6xl lg:text-7xl xl:text-8xl font-bold text-white leading-tight">
                   Welcome to
-                  <span className="block bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+                  </h1>
+                  <h1 className="text-6xl lg:text-7xl xl:text-8xl font-bold leading-tight">
+                    <span className="bg-gradient-to-r from-blue-400 via-purple-400 to-indigo-400 bg-clip-text text-transparent">
                     ProdSync
                   </span>
                 </h1>
+                </div>
                 
-                <p className="text-xl text-blue-100 leading-relaxed max-w-lg">
+                <p className="text-xl lg:text-2xl text-blue-100 leading-relaxed max-w-4xl mx-auto font-light">
                   Transform how your team works together. Streamline operations, boost productivity, 
                   and scale your business with our comprehensive enterprise platform built for modern organizations.
                 </p>
 
                 {/* CTA Buttons */}
-                <div className="flex flex-col sm:flex-row gap-4">
+                <div className="flex flex-col sm:flex-row gap-6 justify-center items-center pt-8">
                   <a 
                     href="/auth/login" 
-                    className="group relative px-8 py-4 bg-white text-blue-900 text-lg font-semibold rounded-xl shadow-xl hover:shadow-2xl hover:shadow-white/25 transition-all duration-300 transform hover:-translate-y-1"
+                    className="group relative px-10 py-5 bg-white text-blue-900 text-lg font-semibold rounded-2xl shadow-xl hover:shadow-2xl hover:shadow-white/25 transition-all duration-300 transform hover:-translate-y-1 min-w-[200px]"
                   >
                     <span className="relative z-10">Get Started</span>
-                    <div className="absolute inset-0 bg-gradient-to-r from-blue-400 to-purple-400 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                    <div className="absolute inset-0 bg-gradient-to-r from-blue-400 to-purple-400 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                   </a>
-                
-                </div>
-              </div>
-            </div>
-
-            {/* Right Content - Interactive Dashboard Preview */}
-            <div className={`transition-all duration-1000 delay-300 ${isVisible ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'}`}>
-              <div className="relative">
-                {/* Main Dashboard Mockup */}
-                <div className="relative bg-white rounded-3xl shadow-2xl border border-gray-200 overflow-hidden transform rotate-2 hover:rotate-0 transition-transform duration-500">
-                  <div className="bg-gray-50 px-6 py-4 border-b border-gray-200">
-                    <div className="flex items-center gap-3">
-                      <div className="w-3 h-3 bg-red-400 rounded-full"></div>
-                      <div className="w-3 h-3 bg-yellow-400 rounded-full"></div>
-                      <div className="w-3 h-3 bg-green-400 rounded-full"></div>
-                      <div className="ml-4 text-sm text-gray-500 font-medium">ProdSync Dashboard</div>
-                    </div>
-                  </div>
                   
-                  <div className="p-6">
-                    {/* Header Stats */}
-                    <div className="grid grid-cols-2 gap-4 mb-6">
-                      <div className="bg-blue-50 p-4 rounded-xl">
-                        <div className="flex items-center justify-between mb-2">
-                          <div className="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center">
-                            <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
-                              <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                            </svg>
-                          </div>
-                          <span className="text-xs text-green-600 font-semibold">+12%</span>
-                        </div>
-                        <div className="h-3 bg-gray-300 rounded w-16 mb-1"></div>
-                        <div className="h-2 bg-gray-200 rounded w-12"></div>
-                      </div>
-                      <div className="bg-green-50 p-4 rounded-xl">
-                        <div className="flex items-center justify-between mb-2">
-                          <div className="w-8 h-8 bg-green-500 rounded-lg flex items-center justify-center">
-                            <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
-                              <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3z"/>
-                            </svg>
-                          </div>
-                          <span className="text-xs text-green-600 font-semibold">+8%</span>
-                        </div>
-                        <div className="h-3 bg-gray-300 rounded w-20 mb-1"></div>
-                        <div className="h-2 bg-gray-200 rounded w-14"></div>
-                      </div>
-                    </div>
-                    
-                    {/* Activity Feed */}
-                    <div className="space-y-3">
-                      <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
-                        <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
-                          <span className="text-white text-xs font-bold">JD</span>
-                        </div>
-                        <div className="flex-1">
-                          <div className="h-3 bg-gray-300 rounded w-24 mb-1"></div>
-                          <div className="h-2 bg-gray-200 rounded w-32"></div>
-                        </div>
-                        <div className="w-2 h-2 bg-green-400 rounded-full"></div>
-                      </div>
-                      <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
-                        <div className="w-8 h-8 bg-purple-600 rounded-full flex items-center justify-center">
-                          <span className="text-white text-xs font-bold">SM</span>
-                        </div>
-                        <div className="flex-1">
-                          <div className="h-3 bg-gray-300 rounded w-20 mb-1"></div>
-                          <div className="h-2 bg-gray-200 rounded w-28"></div>
-                        </div>
-                        <div className="w-2 h-2 bg-yellow-400 rounded-full"></div>
-                      </div>
-                      <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
-                        <div className="w-8 h-8 bg-green-600 rounded-full flex items-center justify-center">
-                          <span className="text-white text-xs font-bold">AL</span>
-                        </div>
-                        <div className="flex-1">
-                          <div className="h-3 bg-gray-300 rounded w-22 mb-1"></div>
-                          <div className="h-2 bg-gray-200 rounded w-30"></div>
-                        </div>
-                        <div className="w-2 h-2 bg-blue-400 rounded-full"></div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Floating Elements */}
-                <div className="absolute -top-4 -right-4 w-16 h-16 bg-blue-500 rounded-2xl shadow-lg animate-pulse"></div>
-                <div className="absolute -bottom-4 -left-4 w-12 h-12 bg-green-500 rounded-xl shadow-lg animate-pulse delay-1000"></div>
-                <div className="absolute top-1/2 -left-8 w-8 h-8 bg-purple-500 rounded-lg shadow-lg animate-pulse delay-500"></div>
-                
-                {/* Notification Badge */}
-                <div className="absolute top-4 right-4 w-6 h-6 bg-red-500 rounded-full flex items-center justify-center animate-bounce">
-                  <span className="text-white text-xs font-bold">3</span>
+                  <a 
+                    href="/auth/signup" 
+                    className="group relative px-10 py-5 border-2 border-white/30 text-white text-lg font-semibold rounded-2xl backdrop-blur-sm hover:bg-white/10 transition-all duration-300 transform hover:-translate-y-1 min-w-[200px] hover:border-white/50"
+                  >
+                    <span className="relative z-10">Create Account</span>
+                    <div className="absolute inset-0 bg-white/5 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                  </a>
                 </div>
               </div>
             </div>
@@ -232,6 +178,74 @@ export default function Home() {
           <svg className="w-6 h-6 text-white/60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
           </svg>
+        </div>
+
+        {/* Interactive Curved Division to Next Section */}
+        <div className="absolute bottom-0 left-0 w-full group cursor-pointer">
+          <svg 
+            className="w-full h-64 transition-all duration-500 group-hover:h-80 group-hover:scale-105" 
+            viewBox="0 0 1200 240" 
+            preserveAspectRatio="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <defs>
+              <linearGradient id="divisionGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" style={{stopColor:'#1e3a8a', stopOpacity:1}} />
+                <stop offset="20%" style={{stopColor:'#1e40af', stopOpacity:0.9}} />
+                <stop offset="40%" style={{stopColor:'#3b82f6', stopOpacity:0.8}} />
+                <stop offset="60%" style={{stopColor:'#6366f1', stopOpacity:0.6}} />
+                <stop offset="80%" style={{stopColor:'#8b5cf6', stopOpacity:0.4}} />
+                <stop offset="100%" style={{stopColor:'#f8fafc', stopOpacity:1}} />
+              </linearGradient>
+              <linearGradient id="divisionGradientHover" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" style={{stopColor:'#1e3a8a', stopOpacity:1}} />
+                <stop offset="20%" style={{stopColor:'#1e40af', stopOpacity:1}} />
+                <stop offset="40%" style={{stopColor:'#3b82f6', stopOpacity:0.9}} />
+                <stop offset="60%" style={{stopColor:'#6366f1', stopOpacity:0.8}} />
+                <stop offset="80%" style={{stopColor:'#8b5cf6', stopOpacity:0.6}} />
+                <stop offset="100%" style={{stopColor:'#f8fafc', stopOpacity:1}} />
+              </linearGradient>
+              <filter id="glow">
+                <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+                <feMerge> 
+                  <feMergeNode in="coloredBlur"/>
+                  <feMergeNode in="SourceGraphic"/>
+                </feMerge>
+              </filter>
+            </defs>
+            
+            {/* Animated path with hover effects */}
+            <path 
+              d="M0,240 L0,0 Q150,120 300,60 Q450,20 600,80 Q750,140 900,40 Q1050,0 1200,100 L1200,240 Z" 
+              fill="url(#divisionGradient)"
+              className="transition-all duration-500 group-hover:fill-[url(#divisionGradientHover)] group-hover:filter-[url(#glow)]"
+            >
+              <animateTransform
+                attributeName="transform"
+                type="translate"
+                values="0,0; 0,-10; 0,0"
+                dur="4s"
+                repeatCount="indefinite"
+              />
+            </path>
+            
+            {/* Interactive floating particles */}
+            <circle cx="200" cy="80" r="3" fill="rgba(255,255,255,0.6)" className="group-hover:fill-white transition-colors duration-300">
+              <animate attributeName="cy" values="80;60;80" dur="3s" repeatCount="indefinite" />
+              <animate attributeName="opacity" values="0.6;1;0.6" dur="3s" repeatCount="indefinite" />
+            </circle>
+            <circle cx="600" cy="120" r="2" fill="rgba(255,255,255,0.4)" className="group-hover:fill-white transition-colors duration-300">
+              <animate attributeName="cy" values="120;100;120" dur="2.5s" repeatCount="indefinite" />
+              <animate attributeName="opacity" values="0.4;0.8;0.4" dur="2.5s" repeatCount="indefinite" />
+            </circle>
+            <circle cx="1000" cy="60" r="4" fill="rgba(255,255,255,0.5)" className="group-hover:fill-white transition-colors duration-300">
+              <animate attributeName="cy" values="60;40;60" dur="3.5s" repeatCount="indefinite" />
+              <animate attributeName="opacity" values="0.5;1;0.5" dur="3.5s" repeatCount="indefinite" />
+            </circle>
+          </svg>
+          
+          {/* Hover overlay effect */}
+          <div className="absolute inset-0 bg-gradient-to-t from-blue-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"></div>
         </div>
       </section>
 
@@ -560,74 +574,163 @@ export default function Home() {
 
 
 
-      {/* CTA Section */}
-      <section className="py-20 bg-blue-600 relative overflow-hidden">
+      {/* Ready for Business Section - Professional & Interactive */}
+      <section className="relative py-24 lg:py-32 bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900 overflow-hidden">
+        {/* Advanced Background Elements */}
         <div className="absolute inset-0">
-          <div className="absolute inset-0 bg-blue-900 opacity-10"></div>
-          <div className="absolute top-0 left-0 right-0 h-20 bg-white opacity-5"></div>
-          <div className="absolute bottom-0 left-0 right-0 h-20 bg-white opacity-5"></div>
+          {/* Gradient Overlays */}
+          <div className="absolute inset-0 bg-gradient-to-r from-blue-600/20 via-transparent to-purple-600/20"></div>
+          <div className="absolute top-0 left-0 w-full h-32 bg-gradient-to-b from-white/10 to-transparent"></div>
+          <div className="absolute bottom-0 left-0 w-full h-32 bg-gradient-to-t from-white/10 to-transparent"></div>
           
-          {/* Interactive CTA Vectors */}
-          <div className="absolute top-1/4 left-1/4 w-20 h-20 opacity-20 hover:opacity-40 transition-opacity duration-300 cursor-pointer">
-            <svg viewBox="0 0 100 100" className="w-full h-full text-white">
-              <circle cx="50" cy="50" r="45" fill="none" stroke="currentColor" strokeWidth="1" strokeDasharray="10,5">
+          {/* Animated Grid Pattern */}
+          <div className="absolute inset-0 opacity-[0.03]">
+            <div className="absolute inset-0" style={{
+              backgroundImage: `
+                linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)
+              `,
+              backgroundSize: '60px 60px',
+              animation: 'grid-move 20s linear infinite'
+            }}></div>
+          </div>
+          
+          {/* Floating Geometric Shapes */}
+          <div className="absolute top-20 left-20 w-32 h-32 opacity-10">
+            <svg viewBox="0 0 200 200" className="w-full h-full text-white">
+              <defs>
+                <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" style={{stopColor:'#3B82F6', stopOpacity:0.3}} />
+                  <stop offset="100%" style={{stopColor:'#8B5CF6', stopOpacity:0.1}} />
+                </linearGradient>
+              </defs>
+              <rect x="50" y="50" width="100" height="100" fill="url(#grad1)" rx="20">
+                <animateTransform attributeName="transform" type="rotate" values="0 100 100;360 100 100" dur="30s" repeatCount="indefinite"/>
+              </rect>
+            </svg>
+          </div>
+          
+          <div className="absolute bottom-20 right-20 w-24 h-24 opacity-15">
+            <svg viewBox="0 0 100 100" className="w-full h-full text-blue-400">
+              <circle cx="50" cy="50" r="40" fill="none" stroke="currentColor" strokeWidth="2" strokeDasharray="5,5">
                 <animateTransform attributeName="transform" type="rotate" values="0 50 50;360 50 50" dur="25s" repeatCount="indefinite"/>
               </circle>
-              <circle cx="50" cy="50" r="25" fill="currentColor" opacity="0.3">
+              <circle cx="50" cy="50" r="20" fill="currentColor" opacity="0.3">
                 <animate attributeName="opacity" values="0.3;0.7;0.3" dur="4s" repeatCount="indefinite"/>
               </circle>
             </svg>
           </div>
           
-          <div className="absolute bottom-1/4 right-1/4 w-16 h-16 opacity-25 hover:opacity-50 transition-opacity duration-300 cursor-pointer">
-            <svg viewBox="0 0 100 100" className="w-full h-full text-white">
-              <polygon points="50,5 95,35 95,65 50,95 5,65 5,35" fill="none" stroke="currentColor" strokeWidth="2">
-                <animateTransform attributeName="transform" type="rotate" values="0 50 50;360 50 50" dur="18s" repeatCount="indefinite"/>
-              </polygon>
-              <circle cx="50" cy="50" r="6" fill="currentColor" opacity="0.8">
-                <animate attributeName="r" values="6;10;6" dur="3s" repeatCount="indefinite"/>
-              </circle>
-            </svg>
+          {/* Interactive Floating Elements */}
+          <div className="absolute top-1/4 right-1/4 w-16 h-16 opacity-20 hover:opacity-40 transition-all duration-500 cursor-pointer group">
+            <div className="w-full h-full bg-gradient-to-br from-blue-400 to-purple-500 rounded-2xl transform group-hover:scale-110 group-hover:rotate-12 transition-all duration-500 shadow-lg shadow-blue-500/25">
+              <div className="w-full h-full flex items-center justify-center">
+                <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                </svg>
+              </div>
+            </div>
           </div>
           
-          <div className="absolute top-1/2 right-10 w-12 h-12 opacity-30 hover:opacity-60 transition-opacity duration-300 cursor-pointer">
-            <svg viewBox="0 0 100 100" className="w-full h-full text-white">
-              <rect x="25" y="25" width="50" height="50" fill="none" stroke="currentColor" strokeWidth="2" rx="8">
-                <animateTransform attributeName="transform" type="rotate" values="0 50 50;-360 50 50" dur="12s" repeatCount="indefinite"/>
-              </rect>
-              <rect x="35" y="35" width="30" height="30" fill="currentColor" opacity="0.4" rx="4">
-                <animate attributeName="opacity" values="0.4;0.8;0.4" dur="2.5s" repeatCount="indefinite"/>
-              </rect>
-            </svg>
+          <div className="absolute bottom-1/3 left-1/3 w-12 h-12 opacity-25 hover:opacity-50 transition-all duration-500 cursor-pointer group">
+            <div className="w-full h-full bg-gradient-to-br from-emerald-400 to-blue-500 rounded-xl transform group-hover:scale-125 group-hover:-rotate-12 transition-all duration-500 shadow-lg shadow-emerald-500/25">
+              <div className="w-full h-full flex items-center justify-center">
+                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+            </div>
           </div>
           
-          {/* Floating Particles */}
-          <div className="absolute top-1/3 right-1/3 w-2 h-2 bg-white rounded-full opacity-60 animate-ping"></div>
-          <div className="absolute bottom-1/3 left-1/3 w-3 h-3 bg-white rounded-full opacity-40 animate-ping animation-delay-2000"></div>
-          <div className="absolute top-2/3 left-2/3 w-1 h-1 bg-white rounded-full opacity-80 animate-ping animation-delay-4000"></div>
+          {/* Floating Particles with Enhanced Animation */}
+          <div className="absolute top-1/3 right-1/3 w-3 h-3 bg-white rounded-full opacity-60 animate-ping shadow-lg shadow-white/50"></div>
+          <div className="absolute bottom-1/3 left-1/3 w-2 h-2 bg-blue-300 rounded-full opacity-40 animate-ping animation-delay-2000 shadow-lg shadow-blue-300/50"></div>
+          <div className="absolute top-2/3 left-2/3 w-1 h-1 bg-purple-300 rounded-full opacity-80 animate-ping animation-delay-4000 shadow-lg shadow-purple-300/50"></div>
+          <div className="absolute top-1/2 right-1/4 w-2 h-2 bg-emerald-300 rounded-full opacity-50 animate-ping animation-delay-1000 shadow-lg shadow-emerald-300/50"></div>
         </div>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
-          <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
-            Ready to Transform Your Business?
-          </h2>
-          <p className="text-xl text-blue-100 mb-8 max-w-2xl mx-auto">
-            Join thousands of companies already using our platform to streamline their operations and boost productivity.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <a 
-              href="/auth/login" 
-              className="bg-white text-blue-600 px-8 py-4 rounded-lg text-lg font-semibold hover:bg-gray-100 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1 text-center"
-            >
-              Login
-            </a>
-            <a 
-              href="/auth/signup" 
-              className="border-2 border-white text-white px-8 py-4 rounded-lg text-lg font-semibold hover:bg-white hover:text-blue-600 transition-all duration-300 text-center"
-            >
-              Sign Up
-            </a>
+        
+        {/* Main Content */}
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+          <div className="text-center">
+            {/* Badge */}
+            <div className="inline-flex items-center px-6 py-3 rounded-full bg-white/10 backdrop-blur-sm text-white text-sm font-semibold border border-white/20 shadow-lg mb-8 hover:bg-white/15 transition-all duration-300 cursor-pointer">
+              <div className="w-2 h-2 bg-emerald-400 rounded-full mr-3 animate-pulse shadow-lg shadow-emerald-400/50"></div>
+              Trusted by 5,000+ Companies Worldwide
+            </div>
+            
+            {/* Main Heading */}
+            <h2 className="text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-bold text-white mb-8 leading-tight">
+              Ready to Transform
+              <span className="block bg-gradient-to-r from-blue-400 via-purple-400 to-emerald-400 bg-clip-text text-transparent">
+                Your Business?
+              </span>
+            </h2>
+            
+            {/* Subtitle */}
+            <p className="text-xl lg:text-2xl text-blue-100 mb-12 max-w-4xl mx-auto leading-relaxed font-light">
+              Join thousands of forward-thinking companies already using our platform to streamline operations, 
+              boost productivity, and scale their business with confidence.
+            </p>
+            
+            {/* Enhanced CTA Buttons */}
+            <div className="flex flex-col sm:flex-row gap-6 justify-center items-center mb-16">
+              
+              <a 
+                href="/auth/signup" 
+                className="group relative px-10 py-5 border-2 border-white/30 text-white text-lg font-bold rounded-2xl backdrop-blur-sm hover:bg-white/10 transition-all duration-500 transform hover:-translate-y-2 hover:scale-105 min-w-[200px] hover:border-white/50"
+              >
+                <span className="relative z-10 flex items-center justify-center">
+                  <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+                  </svg>
+                  Create Account
+                </span>
+                <div className="absolute inset-0 bg-white/5 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+              </a>
+            </div>
+            
+            {/* Trust Indicators */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 max-w-4xl mx-auto">
+              <div className="group text-center p-6 bg-white/5 backdrop-blur-sm rounded-2xl border border-white/10 hover:bg-white/10 hover:border-white/20 transition-all duration-500 cursor-pointer">
+                <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300 shadow-lg shadow-blue-500/25">
+                  <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                  </svg>
+                </div>
+                <h3 className="text-white font-bold text-lg mb-2">Enterprise Security</h3>
+                <p className="text-blue-200 text-sm">Bank-grade encryption & compliance</p>
+              </div>
+              
+              <div className="group text-center p-6 bg-white/5 backdrop-blur-sm rounded-2xl border border-white/10 hover:bg-white/10 hover:border-white/20 transition-all duration-500 cursor-pointer">
+                <div className="w-16 h-16 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300 shadow-lg shadow-emerald-500/25">
+                  <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                  </svg>
+                </div>
+                <h3 className="text-white font-bold text-lg mb-2">Lightning Fast</h3>
+                <p className="text-blue-200 text-sm">Sub-100ms response times</p>
+              </div>
+              
+              <div className="group text-center p-6 bg-white/5 backdrop-blur-sm rounded-2xl border border-white/10 hover:bg-white/10 hover:border-white/20 transition-all duration-500 cursor-pointer">
+                <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300 shadow-lg shadow-purple-500/25">
+                  <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192L5.636 18.364M12 2.25a9.75 9.75 0 100 19.5 9.75 9.75 0 000-19.5z" />
+                  </svg>
+                </div>
+                <h3 className="text-white font-bold text-lg mb-2">24/7 Support</h3>
+                <p className="text-blue-200 text-sm">Dedicated enterprise support</p>
+              </div>
+            </div>
           </div>
         </div>
+        
+        {/* Custom CSS for grid animation */}
+        <style jsx>{`
+          @keyframes grid-move {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(60px, 60px); }
+          }
+        `}</style>
       </section>
       
       <Footer />

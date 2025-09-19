@@ -1,97 +1,110 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { collection, getDocs, query, orderBy, where } from 'firebase/firestore';
+import { db } from '../../../lib/firebaseClient';
 
 export default function PayrollOverview() {
   const [payrollData, setPayrollData] = useState([]);
   const [selectedPeriod, setSelectedPeriod] = useState('2024-01');
   const [isProcessing, setIsProcessing] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  // Sample payroll data
+  // Fetch payroll data from Firebase (employees collection)
   useEffect(() => {
-    const sampleData = [
-      {
-        id: 1,
-        employeeName: 'John Smith',
-        employeeId: 'EMP001',
-        department: 'IT',
-        position: 'Software Engineer',
-        basicSalary: 75000,
-        allowances: 5000,
-        overtime: 2000,
-        bonuses: 3000,
-        grossSalary: 85000,
-        deductions: 12000,
-        netSalary: 73000,
-        status: 'Processed'
-      },
-      {
-        id: 2,
-        employeeName: 'Sarah Johnson',
-        employeeId: 'EMP002',
-        department: 'HR',
-        position: 'HR Manager',
-        basicSalary: 85000,
-        allowances: 6000,
-        overtime: 0,
-        bonuses: 5000,
-        grossSalary: 96000,
-        deductions: 15000,
-        netSalary: 81000,
-        status: 'Processed'
-      },
-      {
-        id: 3,
-        employeeName: 'Mike Davis',
-        employeeId: 'EMP003',
-        department: 'Marketing',
-        position: 'Marketing Specialist',
-        basicSalary: 60000,
-        allowances: 4000,
-        overtime: 1500,
-        bonuses: 2000,
-        grossSalary: 67500,
-        deductions: 9500,
-        netSalary: 58000,
-        status: 'Pending'
-      },
-      {
-        id: 4,
-        employeeName: 'Emily Wilson',
-        employeeId: 'EMP004',
-        department: 'Finance',
-        position: 'Accountant',
-        basicSalary: 65000,
-        allowances: 4500,
-        overtime: 1000,
-        bonuses: 2500,
-        grossSalary: 73000,
-        deductions: 11000,
-        netSalary: 62000,
-        status: 'Processed'
-      },
-      {
-        id: 5,
-        employeeName: 'David Brown',
-        employeeId: 'EMP005',
-        department: 'Sales',
-        position: 'Sales Manager',
-        basicSalary: 80000,
-        allowances: 7000,
-        overtime: 3000,
-        bonuses: 8000,
-        grossSalary: 98000,
-        deductions: 16000,
-        netSalary: 82000,
-        status: 'Processed'
+    const fetchPayrollData = async () => {
+      try {
+        setLoading(true);
+        const employeesRef = collection(db, 'employees');
+        const q = query(employeesRef, orderBy('createdAt', 'desc'));
+        const querySnapshot = await getDocs(q);
+        
+        const payrollDataArray = [];
+        querySnapshot.forEach((doc) => {
+          const employee = doc.data();
+          
+          // Extract salary amount (handle different formats like "$50,000", "50000", etc.)
+          const basicSalary = parseFloat(employee.salary?.replace(/[^0-9.-]+/g, '') || 0);
+          
+          // Calculate payroll components based on employee data
+          const allowances = Math.round(basicSalary * 0.1); // 10% of basic salary
+          const overtime = Math.round(basicSalary * 0.05); // 5% of basic salary
+          const bonuses = Math.round(basicSalary * 0.08); // 8% of basic salary
+          const grossSalary = basicSalary + allowances + overtime + bonuses;
+          
+          // Calculate deductions (tax, insurance, etc.)
+          const deductions = Math.round(grossSalary * 0.2); // 20% deductions
+          const netSalary = grossSalary - deductions;
+          
+          // Determine payroll status based on employee status
+          let payrollStatus = 'Pending';
+          if (employee.status === 'Active') {
+            payrollStatus = 'Processed';
+          } else if (employee.status === 'On Leave') {
+            payrollStatus = 'On Hold';
+          } else if (employee.status === 'Inactive') {
+            payrollStatus = 'Suspended';
+          }
+          
+          payrollDataArray.push({
+            id: doc.id,
+            employeeName: employee.name || `${employee.firstName || ''} ${employee.lastName || ''}`.trim(),
+            employeeId: doc.id.substring(0, 8).toUpperCase(),
+            department: employee.department || 'N/A',
+            position: employee.position || 'N/A',
+            email: employee.email || 'N/A',
+            phone: employee.phone || 'N/A',
+            basicSalary: basicSalary,
+            allowances: allowances,
+            overtime: overtime,
+            bonuses: bonuses,
+            grossSalary: grossSalary,
+            deductions: deductions,
+            netSalary: netSalary,
+            status: payrollStatus,
+            employeeStatus: employee.status || 'Unknown',
+            joinDate: employee.joinDate || employee.startDate,
+            createdAt: employee.createdAt,
+            updatedAt: employee.updatedAt,
+            // Additional employee data for better integration
+            address: employee.address || '',
+            emergencyContact: employee.emergencyContact || '',
+            emergencyPhone: employee.emergencyPhone || '',
+            skills: employee.skills || [],
+            notes: employee.notes || ''
+          });
+        });
+        
+        setPayrollData(payrollDataArray);
+        setError(null);
+      } catch (err) {
+        console.error('Error fetching payroll data:', err);
+        setError('Failed to load payroll data');
+      } finally {
+        setLoading(false);
       }
-    ];
-    setPayrollData(sampleData);
+    };
+
+    fetchPayrollData();
   }, []);
 
-  const periods = [
-    '2024-01', '2023-12', '2023-11', '2023-10', '2023-09', '2023-08'
-  ];
+  // Generate periods dynamically (current month and 11 previous months)
+  const generatePeriods = () => {
+    const periods = [];
+    const currentDate = new Date();
+    
+    for (let i = 0; i < 12; i++) {
+      const date = new Date(currentDate.getFullYear(), currentDate.getMonth() - i, 1);
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      periods.push(`${year}-${month}`);
+    }
+    
+    return periods;
+  };
+
+  const periods = generatePeriods();
 
   const handleProcessPayroll = () => {
     setIsProcessing(true);
@@ -99,6 +112,80 @@ export default function PayrollOverview() {
       setIsProcessing(false);
       alert('Payroll processed successfully!');
     }, 2000);
+  };
+
+  const handleRefreshData = async () => {
+    try {
+      setLoading(true);
+      const employeesRef = collection(db, 'employees');
+      const q = query(employeesRef, orderBy('createdAt', 'desc'));
+      const querySnapshot = await getDocs(q);
+      
+      const payrollDataArray = [];
+      querySnapshot.forEach((doc) => {
+        const employee = doc.data();
+        
+        // Extract salary amount (handle different formats like "$50,000", "50000", etc.)
+        const basicSalary = parseFloat(employee.salary?.replace(/[^0-9.-]+/g, '') || 0);
+        
+        // Calculate payroll components based on employee data
+        const allowances = Math.round(basicSalary * 0.1); // 10% of basic salary
+        const overtime = Math.round(basicSalary * 0.05); // 5% of basic salary
+        const bonuses = Math.round(basicSalary * 0.08); // 8% of basic salary
+        const grossSalary = basicSalary + allowances + overtime + bonuses;
+        
+        // Calculate deductions (tax, insurance, etc.)
+        const deductions = Math.round(grossSalary * 0.2); // 20% deductions
+        const netSalary = grossSalary - deductions;
+        
+        // Determine payroll status based on employee status
+        let payrollStatus = 'Pending';
+        if (employee.status === 'Active') {
+          payrollStatus = 'Processed';
+        } else if (employee.status === 'On Leave') {
+          payrollStatus = 'On Hold';
+        } else if (employee.status === 'Inactive') {
+          payrollStatus = 'Suspended';
+        }
+        
+        payrollDataArray.push({
+          id: doc.id,
+          employeeName: employee.name || `${employee.firstName || ''} ${employee.lastName || ''}`.trim(),
+          employeeId: doc.id.substring(0, 8).toUpperCase(),
+          department: employee.department || 'N/A',
+          position: employee.position || 'N/A',
+          email: employee.email || 'N/A',
+          phone: employee.phone || 'N/A',
+          basicSalary: basicSalary,
+          allowances: allowances,
+          overtime: overtime,
+          bonuses: bonuses,
+          grossSalary: grossSalary,
+          deductions: deductions,
+          netSalary: netSalary,
+          status: payrollStatus,
+          employeeStatus: employee.status || 'Unknown',
+          joinDate: employee.joinDate || employee.startDate,
+          createdAt: employee.createdAt,
+          updatedAt: employee.updatedAt,
+          // Additional employee data for better integration
+          address: employee.address || '',
+          emergencyContact: employee.emergencyContact || '',
+          emergencyPhone: employee.emergencyPhone || '',
+          skills: employee.skills || [],
+          notes: employee.notes || ''
+        });
+      });
+      
+      setPayrollData(payrollDataArray);
+      setError(null);
+      alert('Payroll data refreshed successfully!');
+    } catch (err) {
+      console.error('Error refreshing payroll data:', err);
+      setError('Failed to refresh payroll data');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const getStatusColor = (status) => {
@@ -114,6 +201,26 @@ export default function PayrollOverview() {
   const totalDeductions = payrollData.reduce((sum, emp) => sum + emp.deductions, 0);
   const totalNet = payrollData.reduce((sum, emp) => sum + emp.netSalary, 0);
   const processedCount = payrollData.filter(emp => emp.status === 'Processed').length;
+
+  if (loading) {
+    return (
+      <div className="p-6">
+        <div className="flex justify-center items-center h-64">
+          <div className="text-lg text-gray-600">Loading payroll data...</div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="p-6">
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+          <div className="text-red-800">{error}</div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-6">
@@ -133,6 +240,14 @@ export default function PayrollOverview() {
                 <option key={period} value={period}>{period}</option>
               ))}
             </select>
+            <div className="flex space-x-3">
+              <button
+                onClick={handleRefreshData}
+                disabled={loading}
+                className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors disabled:opacity-50"
+              >
+                {loading ? 'Refreshing...' : 'Refresh Data'}
+              </button>
             <button
               onClick={handleProcessPayroll}
               disabled={isProcessing}
@@ -140,6 +255,7 @@ export default function PayrollOverview() {
             >
               {isProcessing ? 'Processing...' : 'Process Payroll'}
             </button>
+            </div>
           </div>
         </div>
       </div>
@@ -213,6 +329,7 @@ export default function PayrollOverview() {
             <thead className="bg-gray-50">
               <tr>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Employee</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Position</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Basic Salary</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Allowances</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Overtime</th>
@@ -221,6 +338,7 @@ export default function PayrollOverview() {
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Deductions</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Net Pay</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Last Updated</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
               </tr>
             </thead>
@@ -232,6 +350,9 @@ export default function PayrollOverview() {
                       <div className="text-sm font-medium text-gray-900">{employee.employeeName}</div>
                       <div className="text-sm text-gray-500">{employee.employeeId} • {employee.department}</div>
                     </div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="text-sm text-gray-900">{employee.position}</div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                     ${employee.basicSalary.toLocaleString()}
@@ -258,6 +379,16 @@ export default function PayrollOverview() {
                     <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(employee.status)}`}>
                       {employee.status}
                     </span>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="text-sm text-gray-900">
+                      {employee.updatedAt?.toDate ? 
+                        employee.updatedAt.toDate().toLocaleDateString() + ' ' + employee.updatedAt.toDate().toLocaleTimeString() :
+                        employee.createdAt?.toDate ? 
+                        employee.createdAt.toDate().toLocaleDateString() + ' ' + employee.createdAt.toDate().toLocaleTimeString() :
+                        'N/A'
+                      }
+                    </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                     <div className="flex space-x-2">

@@ -1,9 +1,13 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc, query, orderBy, serverTimestamp } from 'firebase/firestore';
+import { db } from '../../../lib/firebaseClient';
+import DeleteConfirmation from '../../DeleteConfirmation';
 
 export default function PositionManagement() {
   const [positions, setPositions] = useState([]);
+  const [departments, setDepartments] = useState([]);
   const [isAddingNew, setIsAddingNew] = useState(false);
   const [editingPosition, setEditingPosition] = useState(null);
   const [newPosition, setNewPosition] = useState({
@@ -14,147 +18,59 @@ export default function PositionManagement() {
     salaryRange: '',
     level: ''
   });
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [positionToDelete, setPositionToDelete] = useState(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
-  // Sample position data
+  // Fetch positions and departments from Firebase
   useEffect(() => {
-    const samplePositions = [
-      {
-        id: 1,
-        title: 'Software Engineer',
-        department: 'IT',
-        description: 'Develop and maintain software applications',
-        requirements: 'Bachelor\'s in Computer Science, 2+ years experience',
-        salaryRange: '$60,000 - $90,000',
-        level: 'Mid-level',
-        employeeCount: 8,
-        status: 'Active'
-      },
-      {
-        id: 2,
-        title: 'HR Manager',
-        department: 'HR',
-        description: 'Manage human resources operations and policies',
-        requirements: 'Bachelor\'s in HR, 5+ years experience',
-        salaryRange: '$70,000 - $100,000',
-        level: 'Senior',
-        employeeCount: 1,
-        status: 'Active'
-      },
-      {
-        id: 3,
-        title: 'Marketing Specialist',
-        department: 'Marketing',
-        description: 'Develop and execute marketing campaigns',
-        requirements: 'Bachelor\'s in Marketing, 3+ years experience',
-        salaryRange: '$50,000 - $75,000',
-        level: 'Mid-level',
-        employeeCount: 5,
-        status: 'Active'
-      },
-      {
-        id: 4,
-        title: 'Accountant',
-        department: 'Finance',
-        description: 'Handle financial records and reporting',
-        requirements: 'Bachelor\'s in Accounting, CPA preferred',
-        salaryRange: '$55,000 - $80,000',
-        level: 'Mid-level',
-        employeeCount: 3,
-        status: 'Active'
-      },
-      {
-        id: 5,
-        title: 'Sales Manager',
-        department: 'Sales',
-        description: 'Lead sales team and manage client relationships',
-        requirements: 'Bachelor\'s degree, 5+ years sales experience',
-        salaryRange: '$80,000 - $120,000',
-        level: 'Senior',
-        employeeCount: 1,
-        status: 'Active'
-      },
-      {
-        id: 6,
-        title: 'Operations Manager',
-        department: 'Operations',
-        description: 'Oversee daily operations and process improvement',
-        requirements: 'Bachelor\'s degree, 4+ years operations experience',
-        salaryRange: '$65,000 - $95,000',
-        level: 'Senior',
-        employeeCount: 1,
-        status: 'Active'
-      },
-      {
-        id: 7,
-        title: 'Customer Service Rep',
-        department: 'Operations',
-        description: 'Handle customer inquiries and support',
-        requirements: 'High school diploma, 1+ years customer service',
-        salaryRange: '$35,000 - $45,000',
-        level: 'Entry-level',
-        employeeCount: 6,
-        status: 'Active'
-      },
-      {
-        id: 8,
-        title: 'Data Analyst',
-        department: 'IT',
-        description: 'Analyze data and create reports for decision making',
-        requirements: 'Bachelor\'s in Data Science, 2+ years experience',
-        salaryRange: '$55,000 - $80,000',
-        level: 'Mid-level',
-        employeeCount: 2,
-        status: 'Active'
-      },
-      {
-        id: 9,
-        title: 'Project Manager',
-        department: 'IT',
-        description: 'Manage software development projects',
-        requirements: 'Bachelor\'s degree, PMP certification preferred',
-        salaryRange: '$70,000 - $100,000',
-        level: 'Senior',
-        employeeCount: 2,
-        status: 'Active'
-      },
-      {
-        id: 10,
-        title: 'Business Analyst',
-        department: 'Operations',
-        description: 'Analyze business processes and recommend improvements',
-        requirements: 'Bachelor\'s in Business, 3+ years experience',
-        salaryRange: '$60,000 - $85,000',
-        level: 'Mid-level',
-        employeeCount: 3,
-        status: 'Active'
-      },
-      {
-        id: 11,
-        title: 'Designer',
-        department: 'Marketing',
-        description: 'Create visual designs and marketing materials',
-        requirements: 'Bachelor\'s in Design, portfolio required',
-        salaryRange: '$45,000 - $65,000',
-        level: 'Mid-level',
-        employeeCount: 2,
-        status: 'Active'
-      },
-      {
-        id: 12,
-        title: 'Developer',
-        department: 'IT',
-        description: 'Write and maintain code for applications',
-        requirements: 'Bachelor\'s in Computer Science, coding skills',
-        salaryRange: '$50,000 - $80,000',
-        level: 'Mid-level',
-        employeeCount: 4,
-        status: 'Active'
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        
+        // Fetch positions
+        const positionsRef = collection(db, 'positions');
+        const positionsQuery = query(positionsRef, orderBy('createdAt', 'desc'));
+        const positionsSnapshot = await getDocs(positionsQuery);
+        
+        const positionsData = [];
+        positionsSnapshot.forEach((doc) => {
+          positionsData.push({
+            id: doc.id,
+            ...doc.data()
+          });
+        });
+        setPositions(positionsData);
+
+        // Fetch departments
+        const departmentsRef = collection(db, 'departments');
+        const departmentsQuery = query(departmentsRef, orderBy('createdAt', 'desc'));
+        const departmentsSnapshot = await getDocs(departmentsQuery);
+        
+        const departmentsData = [];
+        departmentsSnapshot.forEach((doc) => {
+          departmentsData.push({
+            id: doc.id,
+            ...doc.data()
+          });
+        });
+        setDepartments(departmentsData);
+        
+        setError(null);
+      } catch (err) {
+        console.error('Error fetching data:', err);
+        setError('Failed to load data');
+      } finally {
+        setLoading(false);
       }
-    ];
-    setPositions(samplePositions);
+    };
+
+    fetchData();
   }, []);
 
-  const departments = ['IT', 'HR', 'Marketing', 'Finance', 'Sales', 'Operations', 'Customer Service'];
+  // Static options for form dropdowns
   const levels = ['Entry-level', 'Mid-level', 'Senior', 'Executive'];
 
   const handleInputChange = (e) => {
@@ -165,25 +81,43 @@ export default function PositionManagement() {
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setError(null);
+
+    try {
     if (editingPosition) {
       // Update existing position
+        const positionRef = doc(db, 'positions', editingPosition.id);
+        await updateDoc(positionRef, {
+          ...newPosition,
+          updatedAt: serverTimestamp()
+        });
+        
       setPositions(prev => prev.map(pos => 
         pos.id === editingPosition.id 
-          ? { ...pos, ...newPosition }
+            ? { ...pos, ...newPosition, updatedAt: new Date() }
           : pos
       ));
       setEditingPosition(null);
+        alert('Position updated successfully!');
     } else {
       // Add new position
-      const position = {
-        id: positions.length + 1,
+        const positionData = {
         ...newPosition,
         employeeCount: 0,
-        status: 'Active'
-      };
-      setPositions(prev => [...prev, position]);
+          status: 'Active',
+          createdAt: serverTimestamp(),
+          updatedAt: serverTimestamp()
+        };
+        
+        const docRef = await addDoc(collection(db, 'positions'), positionData);
+        const newPos = {
+          id: docRef.id,
+          ...positionData
+        };
+        setPositions(prev => [newPos, ...prev]);
+        alert('Position added successfully!');
     }
     
     setNewPosition({
@@ -195,6 +129,10 @@ export default function PositionManagement() {
       level: ''
     });
     setIsAddingNew(false);
+    } catch (err) {
+      console.error('Error saving position:', err);
+      setError('Failed to save position. Please try again.');
+    }
   };
 
   const handleEdit = (position) => {
@@ -210,9 +148,26 @@ export default function PositionManagement() {
     setIsAddingNew(true);
   };
 
-  const handleDelete = (id) => {
-    if (confirm('Are you sure you want to delete this position?')) {
-      setPositions(prev => prev.filter(pos => pos.id !== id));
+  const handleDelete = (position) => {
+    setPositionToDelete(position);
+    setShowDeleteModal(true);
+  };
+
+  const confirmDeletePosition = async () => {
+    if (!positionToDelete) return;
+    
+    setIsDeleting(true);
+    try {
+      await deleteDoc(doc(db, 'positions', positionToDelete.id));
+      setPositions(prev => prev.filter(pos => pos.id !== positionToDelete.id));
+      setShowDeleteModal(false);
+      setPositionToDelete(null);
+      alert('Position deleted successfully!');
+    } catch (err) {
+      console.error('Error deleting position:', err);
+      alert('Failed to delete position');
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -228,6 +183,16 @@ export default function PositionManagement() {
       level: ''
     });
   };
+
+  if (loading) {
+    return (
+      <div className="p-6">
+        <div className="flex justify-center items-center h-64">
+          <div className="text-lg text-gray-600">Loading positions...</div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-6">
@@ -245,6 +210,12 @@ export default function PositionManagement() {
           </button>
         </div>
       </div>
+
+      {error && (
+        <div className="mb-6 bg-red-50 border border-red-200 rounded-lg p-4">
+          <div className="text-red-800">{error}</div>
+        </div>
+      )}
 
       {/* Add/Edit Form */}
       {isAddingNew && (
@@ -279,7 +250,7 @@ export default function PositionManagement() {
                 >
                   <option value="">Select Department</option>
                   {departments.map(dept => (
-                    <option key={dept} value={dept}>{dept}</option>
+                    <option key={dept.id} value={dept.name}>{dept.name}</option>
                   ))}
                 </select>
               </div>
@@ -401,7 +372,7 @@ export default function PositionManagement() {
                         Edit
                       </button>
                       <button 
-                        onClick={() => handleDelete(position.id)}
+                          onClick={() => handleDelete(position)}
                         className="text-red-600 hover:text-red-900"
                       >
                         Delete
@@ -442,6 +413,20 @@ export default function PositionManagement() {
           </div>
         </div>
       </div>
+
+      {/* Delete Confirmation Modal */}
+      <DeleteConfirmation
+        isOpen={showDeleteModal}
+        onClose={() => {
+          setShowDeleteModal(false);
+          setPositionToDelete(null);
+        }}
+        onConfirm={confirmDeletePosition}
+        title="Delete Position"
+        message="Are you sure you want to delete this position? This will affect all employees with this position."
+        itemName={positionToDelete?.title}
+        isLoading={isDeleting}
+      />
     </div>
   );
 }

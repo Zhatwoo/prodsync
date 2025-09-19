@@ -1,6 +1,9 @@
 import { Roboto } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "./context/AuthContext";
+import { LeaveProvider } from "./context/LeaveContext";
+import { OvertimeProvider } from "./context/OvertimeContext";
+import { ScheduleProvider } from "./context/ScheduleContext";
 
 const roboto = Roboto({
   weight: ['300', '400', '500', '700', '900'],
@@ -20,7 +23,13 @@ export default function RootLayout({ children }) {
         className={`${roboto.variable} font-roboto antialiased`}
       >
         <AuthProvider>
-          {children}
+          <LeaveProvider>
+            <OvertimeProvider>
+              <ScheduleProvider>
+                {children}
+              </ScheduleProvider>
+            </OvertimeProvider>
+          </LeaveProvider>
         </AuthProvider>
       </body>
     </html>

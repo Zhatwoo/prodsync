@@ -1,11 +1,19 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc, query, orderBy, serverTimestamp } from 'firebase/firestore';
+import { db } from '../../../lib/firebaseClient';
+import DeleteConfirmation from '../../DeleteConfirmation';
 
 export default function TaxManagement() {
   const [taxSettings, setTaxSettings] = useState([]);
   const [isAddingNew, setIsAddingNew] = useState(false);
   const [editingTax, setEditingTax] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [taxToDelete, setTaxToDelete] = useState(null);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [newTax, setNewTax] = useState({
     name: '',
     type: '',
@@ -16,107 +24,49 @@ export default function TaxManagement() {
     isActive: true
   });
 
-  // Sample tax settings data
+  // Fetch tax settings and employee data from Firebase
   useEffect(() => {
-    const sampleTaxSettings = [
-      {
-        id: 1,
-        name: 'Federal Income Tax',
-        type: 'Income Tax',
-        jurisdiction: 'Federal',
-        rate: 22,
-        calculationType: 'Progressive',
-        description: 'Federal income tax based on progressive brackets',
-        isActive: true,
-        employeeCount: 25,
-        lastUpdated: '2024-01-01'
-      },
-      {
-        id: 2,
-        name: 'Social Security Tax',
-        type: 'Social Security',
-        jurisdiction: 'Federal',
-        rate: 6.2,
-        calculationType: 'Fixed Percentage',
-        description: 'Social Security tax on wages up to wage base',
-        isActive: true,
-        employeeCount: 25,
-        lastUpdated: '2024-01-01'
-      },
-      {
-        id: 3,
-        name: 'Medicare Tax',
-        type: 'Medicare',
-        jurisdiction: 'Federal',
-        rate: 1.45,
-        calculationType: 'Fixed Percentage',
-        description: 'Medicare tax on all wages',
-        isActive: true,
-        employeeCount: 25,
-        lastUpdated: '2024-01-01'
-      },
-      {
-        id: 4,
-        name: 'State Income Tax',
-        type: 'Income Tax',
-        jurisdiction: 'State',
-        rate: 5.5,
-        calculationType: 'Fixed Percentage',
-        description: 'State income tax',
-        isActive: true,
-        employeeCount: 25,
-        lastUpdated: '2024-01-01'
-      },
-      {
-        id: 5,
-        name: 'Local Income Tax',
-        type: 'Income Tax',
-        jurisdiction: 'Local',
-        rate: 2.0,
-        calculationType: 'Fixed Percentage',
-        description: 'Local municipality income tax',
-        isActive: true,
-        employeeCount: 20,
-        lastUpdated: '2024-01-01'
-      },
-      {
-        id: 6,
-        name: 'Unemployment Tax',
-        type: 'Unemployment',
-        jurisdiction: 'Federal',
-        rate: 0.6,
-        calculationType: 'Fixed Percentage',
-        description: 'Federal unemployment tax (FUTA)',
-        isActive: true,
-        employeeCount: 25,
-        lastUpdated: '2024-01-01'
-      },
-      {
-        id: 7,
-        name: 'State Unemployment Tax',
-        type: 'Unemployment',
-        jurisdiction: 'State',
-        rate: 2.7,
-        calculationType: 'Fixed Percentage',
-        description: 'State unemployment tax (SUTA)',
-        isActive: true,
-        employeeCount: 25,
-        lastUpdated: '2024-01-01'
-      },
-      {
-        id: 8,
-        name: 'Workers Compensation',
-        type: 'Workers Comp',
-        jurisdiction: 'State',
-        rate: 1.2,
-        calculationType: 'Fixed Percentage',
-        description: 'Workers compensation insurance',
-        isActive: true,
-        employeeCount: 25,
-        lastUpdated: '2024-01-01'
+    const fetchTaxSettings = async () => {
+      try {
+        setLoading(true);
+        
+        // Fetch tax settings
+        const taxSettingsRef = collection(db, 'taxSettings');
+        const q = query(taxSettingsRef, orderBy('createdAt', 'desc'));
+        const querySnapshot = await getDocs(q);
+        
+        const taxSettingsData = [];
+        querySnapshot.forEach((doc) => {
+          taxSettingsData.push({
+            id: doc.id,
+            ...doc.data()
+          });
+        });
+        
+        // Fetch employees to count how many are subject to tax settings
+        const employeesRef = collection(db, 'employees');
+        const employeesQuery = query(employeesRef, orderBy('createdAt', 'desc'));
+        const employeesSnapshot = await getDocs(employeesQuery);
+        
+        const activeEmployeeCount = employeesSnapshot.size;
+        
+        // Update tax settings with employee counts (assuming all active employees are subject to taxes)
+        const updatedTaxSettings = taxSettingsData.map(taxSetting => ({
+          ...taxSetting,
+          employeeCount: activeEmployeeCount
+        }));
+        
+        setTaxSettings(updatedTaxSettings);
+        setError(null);
+      } catch (err) {
+        console.error('Error fetching tax settings:', err);
+        setError('Failed to load tax settings');
+      } finally {
+        setLoading(false);
       }
-    ];
-    setTaxSettings(sampleTaxSettings);
+    };
+
+    fetchTaxSettings();
   }, []);
 
   const taxTypes = ['Income Tax', 'Social Security', 'Medicare', 'Unemployment', 'Workers Comp', 'Other'];
@@ -131,38 +81,56 @@ export default function TaxManagement() {
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (editingTax) {
-      // Update existing tax setting
-      setTaxSettings(prev => prev.map(tax => 
-        tax.id === editingTax.id 
-          ? { ...tax, ...newTax, rate: parseFloat(newTax.rate) }
-          : tax
-      ));
-      setEditingTax(null);
-    } else {
-      // Add new tax setting
-      const tax = {
-        id: taxSettings.length + 1,
+    try {
+      const taxData = {
         ...newTax,
         rate: parseFloat(newTax.rate),
-        employeeCount: 0,
-        lastUpdated: new Date().toISOString().split('T')[0]
+        isActive: true,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp()
       };
-      setTaxSettings(prev => [...prev, tax]);
+
+      if (editingTax) {
+        // Update existing tax setting
+        const taxRef = doc(db, 'taxSettings', editingTax.id);
+        await updateDoc(taxRef, {
+          ...taxData,
+          updatedAt: serverTimestamp()
+        });
+        
+        setTaxSettings(prev => prev.map(tax => 
+          tax.id === editingTax.id 
+            ? { ...tax, ...taxData }
+            : tax
+        ));
+        setEditingTax(null);
+      } else {
+        // Add new tax setting
+        const docRef = await addDoc(collection(db, 'taxSettings'), taxData);
+        const newTaxItem = {
+          id: docRef.id,
+          ...taxData
+        };
+        setTaxSettings(prev => [newTaxItem, ...prev]);
+      }
+      
+      setNewTax({
+        name: '',
+        type: '',
+        jurisdiction: '',
+        rate: '',
+        calculationType: '',
+        description: '',
+        isActive: true
+      });
+      setIsAddingNew(false);
+      alert('Tax setting saved successfully!');
+    } catch (err) {
+      console.error('Error saving tax setting:', err);
+      alert('Failed to save tax setting');
     }
-    
-    setNewTax({
-      name: '',
-      type: '',
-      jurisdiction: '',
-      rate: '',
-      calculationType: '',
-      description: '',
-      isActive: true
-    });
-    setIsAddingNew(false);
   };
 
   const handleEdit = (tax) => {
@@ -179,9 +147,26 @@ export default function TaxManagement() {
     setIsAddingNew(true);
   };
 
-  const handleDelete = (id) => {
-    if (confirm('Are you sure you want to delete this tax setting?')) {
-      setTaxSettings(prev => prev.filter(tax => tax.id !== id));
+  const handleDelete = (tax) => {
+    setTaxToDelete(tax);
+    setShowDeleteModal(true);
+  };
+
+  const confirmDeleteTax = async () => {
+    if (!taxToDelete) return;
+    
+    setIsDeleting(true);
+    try {
+      await deleteDoc(doc(db, 'taxSettings', taxToDelete.id));
+      setTaxSettings(prev => prev.filter(tax => tax.id !== taxToDelete.id));
+      setShowDeleteModal(false);
+      setTaxToDelete(null);
+      alert('Tax setting deleted successfully!');
+    } catch (err) {
+      console.error('Error deleting tax setting:', err);
+      alert('Failed to delete tax setting');
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -218,6 +203,26 @@ export default function TaxManagement() {
       default: return 'bg-gray-100 text-gray-800';
     }
   };
+
+  if (loading) {
+    return (
+      <div className="p-6">
+        <div className="flex justify-center items-center h-64">
+          <div className="text-lg text-gray-600">Loading tax settings...</div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="p-6">
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+          <div className="text-red-800">{error}</div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-6">
@@ -372,6 +377,7 @@ export default function TaxManagement() {
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Calculation</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Employees</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Last Updated</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
               </tr>
             </thead>
@@ -410,6 +416,16 @@ export default function TaxManagement() {
                       {tax.isActive ? 'Active' : 'Inactive'}
                     </span>
                   </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="text-sm text-gray-900">
+                      {tax.updatedAt?.toDate ? 
+                        tax.updatedAt.toDate().toLocaleDateString() + ' ' + tax.updatedAt.toDate().toLocaleTimeString() :
+                        tax.createdAt?.toDate ? 
+                        tax.createdAt.toDate().toLocaleDateString() + ' ' + tax.createdAt.toDate().toLocaleTimeString() :
+                        'N/A'
+                      }
+                    </div>
+                  </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                     <div className="flex space-x-2">
                       <button 
@@ -419,7 +435,7 @@ export default function TaxManagement() {
                         Edit
                       </button>
                       <button 
-                        onClick={() => handleDelete(tax.id)}
+                        onClick={() => handleDelete(tax)}
                         className="text-red-600 hover:text-red-900"
                       >
                         Delete
@@ -460,6 +476,20 @@ export default function TaxManagement() {
           </div>
         </div>
       </div>
+
+      {/* Delete Confirmation Modal */}
+      <DeleteConfirmation
+        isOpen={showDeleteModal}
+        onClose={() => {
+          setShowDeleteModal(false);
+          setTaxToDelete(null);
+        }}
+        onConfirm={confirmDeleteTax}
+        title="Delete Tax Setting"
+        message="Are you sure you want to delete this tax setting? This action cannot be undone."
+        itemName={taxToDelete?.name}
+        isLoading={isDeleting}
+      />
     </div>
   );
 }

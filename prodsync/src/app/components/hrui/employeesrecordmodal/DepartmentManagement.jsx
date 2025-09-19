@@ -1,6 +1,9 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc, query, orderBy, serverTimestamp } from 'firebase/firestore';
+import { db } from '../../../lib/firebaseClient';
+import DeleteConfirmation from '../../DeleteConfirmation';
 
 export default function DepartmentManagement() {
   const [departments, setDepartments] = useState([]);
@@ -13,72 +16,40 @@ export default function DepartmentManagement() {
     budget: '',
     location: ''
   });
+  const [loading, setLoading] = useState(true);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [departmentToDelete, setDepartmentToDelete] = useState(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [error, setError] = useState(null);
 
-  // Sample department data
+  // Fetch departments from Firebase
   useEffect(() => {
-    const sampleDepartments = [
-      {
-        id: 1,
-        name: 'Information Technology',
-        description: 'Handles all technology infrastructure and software development',
-        manager: 'John Smith',
-        budget: '$500,000',
-        location: 'Floor 3, Building A',
-        employeeCount: 25,
-        status: 'Active'
-      },
-      {
-        id: 2,
-        name: 'Human Resources',
-        description: 'Manages employee relations, recruitment, and benefits',
-        manager: 'Sarah Johnson',
-        budget: '$200,000',
-        location: 'Floor 2, Building A',
-        employeeCount: 8,
-        status: 'Active'
-      },
-      {
-        id: 3,
-        name: 'Marketing',
-        description: 'Responsible for brand promotion and customer acquisition',
-        manager: 'Mike Davis',
-        budget: '$300,000',
-        location: 'Floor 4, Building A',
-        employeeCount: 15,
-        status: 'Active'
-      },
-      {
-        id: 4,
-        name: 'Finance',
-        description: 'Manages financial planning, accounting, and budgeting',
-        manager: 'Emily Wilson',
-        budget: '$150,000',
-        location: 'Floor 2, Building B',
-        employeeCount: 12,
-        status: 'Active'
-      },
-      {
-        id: 5,
-        name: 'Sales',
-        description: 'Handles customer acquisition and revenue generation',
-        manager: 'David Brown',
-        budget: '$400,000',
-        location: 'Floor 1, Building A',
-        employeeCount: 20,
-        status: 'Active'
-      },
-      {
-        id: 6,
-        name: 'Operations',
-        description: 'Manages day-to-day business operations and logistics',
-        manager: 'Lisa Garcia',
-        budget: '$250,000',
-        location: 'Floor 1, Building B',
-        employeeCount: 18,
-        status: 'Active'
+    const fetchDepartments = async () => {
+      try {
+        setLoading(true);
+        const departmentsRef = collection(db, 'departments');
+        const q = query(departmentsRef, orderBy('createdAt', 'desc'));
+        const querySnapshot = await getDocs(q);
+        
+        const departmentsData = [];
+        querySnapshot.forEach((doc) => {
+          departmentsData.push({
+            id: doc.id,
+            ...doc.data()
+          });
+        });
+        
+        setDepartments(departmentsData);
+        setError(null);
+      } catch (err) {
+        console.error('Error fetching departments:', err);
+        setError('Failed to load departments');
+      } finally {
+        setLoading(false);
       }
-    ];
-    setDepartments(sampleDepartments);
+    };
+
+    fetchDepartments();
   }, []);
 
   const handleInputChange = (e) => {
@@ -89,35 +60,57 @@ export default function DepartmentManagement() {
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (editingDepartment) {
-      // Update existing department
-      setDepartments(prev => prev.map(dept => 
-        dept.id === editingDepartment.id 
-          ? { ...dept, ...newDepartment }
-          : dept
-      ));
-      setEditingDepartment(null);
-    } else {
-      // Add new department
-      const department = {
-        id: departments.length + 1,
-        ...newDepartment,
-        employeeCount: 0,
-        status: 'Active'
-      };
-      setDepartments(prev => [...prev, department]);
+    setError(null);
+
+    try {
+      if (editingDepartment) {
+        // Update existing department
+        const departmentRef = doc(db, 'departments', editingDepartment.id);
+        await updateDoc(departmentRef, {
+          ...newDepartment,
+          updatedAt: serverTimestamp()
+        });
+        
+        setDepartments(prev => prev.map(dept => 
+          dept.id === editingDepartment.id 
+            ? { ...dept, ...newDepartment, updatedAt: new Date() }
+            : dept
+        ));
+        setEditingDepartment(null);
+        alert('Department updated successfully!');
+      } else {
+        // Add new department
+        const departmentData = {
+          ...newDepartment,
+          employeeCount: 0,
+          status: 'Active',
+          createdAt: serverTimestamp(),
+          updatedAt: serverTimestamp()
+        };
+        
+        const docRef = await addDoc(collection(db, 'departments'), departmentData);
+        const newDept = {
+          id: docRef.id,
+          ...departmentData
+        };
+        setDepartments(prev => [newDept, ...prev]);
+        alert('Department added successfully!');
+      }
+      
+      setNewDepartment({
+        name: '',
+        description: '',
+        manager: '',
+        budget: '',
+        location: ''
+      });
+      setIsAddingNew(false);
+    } catch (err) {
+      console.error('Error saving department:', err);
+      setError('Failed to save department. Please try again.');
     }
-    
-    setNewDepartment({
-      name: '',
-      description: '',
-      manager: '',
-      budget: '',
-      location: ''
-    });
-    setIsAddingNew(false);
   };
 
   const handleEdit = (department) => {
@@ -132,9 +125,26 @@ export default function DepartmentManagement() {
     setIsAddingNew(true);
   };
 
-  const handleDelete = (id) => {
-    if (confirm('Are you sure you want to delete this department?')) {
-      setDepartments(prev => prev.filter(dept => dept.id !== id));
+  const handleDelete = (department) => {
+    setDepartmentToDelete(department);
+    setShowDeleteModal(true);
+  };
+
+  const confirmDeleteDepartment = async () => {
+    if (!departmentToDelete) return;
+    
+    setIsDeleting(true);
+    try {
+      await deleteDoc(doc(db, 'departments', departmentToDelete.id));
+      setDepartments(prev => prev.filter(dept => dept.id !== departmentToDelete.id));
+      setShowDeleteModal(false);
+      setDepartmentToDelete(null);
+      alert('Department deleted successfully!');
+    } catch (err) {
+      console.error('Error deleting department:', err);
+      alert('Failed to delete department');
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -149,6 +159,16 @@ export default function DepartmentManagement() {
       location: ''
     });
   };
+
+  if (loading) {
+    return (
+      <div className="p-6">
+        <div className="flex justify-center items-center h-64">
+          <div className="text-lg text-gray-600">Loading departments...</div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-6">
@@ -166,6 +186,12 @@ export default function DepartmentManagement() {
           </button>
         </div>
       </div>
+
+      {error && (
+        <div className="mb-6 bg-red-50 border border-red-200 rounded-lg p-4">
+          <div className="text-red-800">{error}</div>
+        </div>
+      )}
 
       {/* Add/Edit Form */}
       {isAddingNew && (
@@ -296,12 +322,12 @@ export default function DepartmentManagement() {
                       >
                         Edit
                       </button>
-                      <button 
-                        onClick={() => handleDelete(department.id)}
-                        className="text-red-600 hover:text-red-900"
-                      >
-                        Delete
-                      </button>
+                        <button
+                          onClick={() => handleDelete(department)}
+                          className="text-red-600 hover:text-red-900"
+                        >
+                          Delete
+                        </button>
                     </div>
                   </td>
                 </tr>
@@ -332,6 +358,20 @@ export default function DepartmentManagement() {
           </div>
         </div>
       </div>
+
+      {/* Delete Confirmation Modal */}
+      <DeleteConfirmation
+        isOpen={showDeleteModal}
+        onClose={() => {
+          setShowDeleteModal(false);
+          setDepartmentToDelete(null);
+        }}
+        onConfirm={confirmDeleteDepartment}
+        title="Delete Department"
+        message="Are you sure you want to delete this department? This will affect all employees in this department."
+        itemName={departmentToDelete?.name}
+        isLoading={isDeleting}
+      />
     </div>
   );
 }

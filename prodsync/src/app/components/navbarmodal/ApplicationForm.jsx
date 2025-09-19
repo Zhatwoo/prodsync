@@ -1,8 +1,12 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useLeaveContext } from '../../context/LeaveContext';
+import { useOvertimeContext } from '../../context/OvertimeContext';
 
 export default function ApplicationFormModal({ isOpen, onClose }) {
+  const { addLeaveRequest } = useLeaveContext();
+  const { addOvertimeRequest } = useOvertimeContext();
   const [currentTime, setCurrentTime] = useState(new Date());
   const [activeForm, setActiveForm] = useState('leave');
   const [isClosing, setIsClosing] = useState(false);
@@ -121,31 +125,81 @@ export default function ApplicationFormModal({ isOpen, onClose }) {
     }, 300);
   };
 
+  const calculateDays = (startDate, endDate) => {
+    if (!startDate || !endDate) return 0;
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    const diffTime = Math.abs(end - start);
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+    return diffDays;
+  };
+
+  const calculateHours = (startTime, endTime) => {
+    if (!startTime || !endTime) return 0;
+    const start = new Date(`2000-01-01T${startTime}`);
+    const end = new Date(`2000-01-01T${endTime}`);
+    const diffMs = end - start;
+    const diffHours = diffMs / (1000 * 60 * 60);
+    return Math.max(0, diffHours);
+  };
+
   const handleFormSubmit = (formType) => {
     let formData;
     switch (formType) {
       case 'leave':
-        formData = leaveForm;
+        // Calculate days for leave request
+        const days = calculateDays(leaveForm.startDate, leaveForm.endDate);
+        formData = {
+          ...leaveForm,
+          days: days,
+          employeeId: leaveForm.employeeId || `EMP${Date.now().toString().slice(-6)}`
+        };
+        
+        // Add to shared leave context
+        addLeaveRequest(formData);
+        alert('Leave application submitted successfully! HR will review your request.\n\n✅ Your request is now visible in the Leave Management system.');
         break;
       case 'overtime':
-        formData = overtimeForm;
+        // Calculate hours for overtime request
+        const hours = calculateHours(overtimeForm.startTime, overtimeForm.endTime);
+        const baseRate = 50; // Assuming $50 base rate
+        const payAmount = hours * 1.5 * baseRate; // Default 1.5x overtime rate
+        
+        formData = {
+          ...overtimeForm,
+          hours: hours,
+          rate: 1.5,
+          payAmount: payAmount,
+          employeeId: overtimeForm.employeeId || `EMP${Date.now().toString().slice(-6)}`,
+          project: 'General Project', // Default project
+          projectId: 'GEN001'
+        };
+        
+        // Add to shared overtime context
+        addOvertimeRequest(formData);
+        alert('Overtime application submitted successfully! HR will review your request.\n\n✅ Your request is now visible in the Overtime Management system.');
         break;
       case 'business-trip':
         formData = businessTripForm;
+        // Here you would typically send business trip data to your backend
+        console.log('Business trip form submitted:', formData);
+        alert('Business trip application submitted successfully!');
         break;
       case 'equipment':
         formData = equipmentForm;
+        // Here you would typically send equipment data to your backend
+        console.log('Equipment form submitted:', formData);
+        alert('Equipment request submitted successfully!');
         break;
       case 'training':
         formData = trainingForm;
+        // Here you would typically send training data to your backend
+        console.log('Training form submitted:', formData);
+        alert('Training request submitted successfully!');
         break;
       default:
         return;
     }
-
-    // Here you would typically send the data to your backend
-    console.log(`${formType} form submitted:`, formData);
-    alert(`${formType.charAt(0).toUpperCase() + formType.slice(1)} application submitted successfully!`);
     
     // Reset form after submission
     switch (formType) {

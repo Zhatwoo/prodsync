@@ -1,6 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { collection, addDoc, getDocs, query, orderBy, serverTimestamp } from 'firebase/firestore';
+import { db } from '../../../lib/firebaseClient';
 
 export default function NewEmployee() {
   const [formData, setFormData] = useState({
@@ -18,16 +20,56 @@ export default function NewEmployee() {
     skills: '',
     notes: ''
   });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [positions, setPositions] = useState([]);
+  const [departments, setDepartments] = useState([]);
+  const [loadingData, setLoadingData] = useState(true);
 
-  const departments = [
-    'IT', 'HR', 'Marketing', 'Finance', 'Sales', 'Operations', 'Customer Service'
-  ];
+  // Fetch positions and departments from Firebase
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoadingData(true);
+        
+        // Fetch positions
+        const positionsRef = collection(db, 'positions');
+        const positionsQuery = query(positionsRef, orderBy('createdAt', 'desc'));
+        const positionsSnapshot = await getDocs(positionsQuery);
+        
+        const positionsData = [];
+        positionsSnapshot.forEach((doc) => {
+          positionsData.push({
+            id: doc.id,
+            ...doc.data()
+          });
+        });
+        setPositions(positionsData);
 
-  const positions = [
-    'Software Engineer', 'HR Manager', 'Marketing Specialist', 'Accountant',
-    'Sales Manager', 'Operations Manager', 'Customer Service Rep', 'Data Analyst',
-    'Project Manager', 'Business Analyst', 'Designer', 'Developer'
-  ];
+        // Fetch departments
+        const departmentsRef = collection(db, 'departments');
+        const departmentsQuery = query(departmentsRef, orderBy('createdAt', 'desc'));
+        const departmentsSnapshot = await getDocs(departmentsQuery);
+        
+        const departmentsData = [];
+        departmentsSnapshot.forEach((doc) => {
+          departmentsData.push({
+            id: doc.id,
+            ...doc.data()
+          });
+        });
+        setDepartments(departmentsData);
+
+      } catch (err) {
+        console.error('Error fetching data:', err);
+        setError('Failed to load form data');
+      } finally {
+        setLoadingData(false);
+      }
+    };
+
+    fetchData();
+  }, []);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -37,35 +79,137 @@ export default function NewEmployee() {
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log('New employee data:', formData);
-    alert('Employee added successfully!');
-    
-    // Reset form
-    setFormData({
-      firstName: '',
-      lastName: '',
-      email: '',
-      phone: '',
-      position: '',
-      department: '',
-      salary: '',
-      startDate: '',
-      address: '',
-      emergencyContact: '',
-      emergencyPhone: '',
-      skills: '',
-      notes: ''
-    });
+    setLoading(true);
+    setError(null);
+
+    try {
+      // Prepare employee data for Firebase
+      const employeeData = {
+        name: `${formData.firstName} ${formData.lastName}`,
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        email: formData.email,
+        phone: formData.phone,
+        position: formData.position,
+        department: formData.department,
+        salary: formData.salary,
+        joinDate: formData.startDate,
+        address: formData.address,
+        emergencyContact: formData.emergencyContact,
+        emergencyPhone: formData.emergencyPhone,
+        skills: formData.skills ? formData.skills.split(',').map(skill => skill.trim()) : [],
+        notes: formData.notes,
+        status: 'Active',
+        avatar: `${formData.firstName.charAt(0)}${formData.lastName.charAt(0)}`,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp()
+      };
+
+      // Add employee to Firebase
+      const docRef = await addDoc(collection(db, 'employees'), employeeData);
+      console.log('Employee added with ID:', docRef.id);
+      
+      alert('Employee added successfully!');
+      
+      // Reset form
+      setFormData({
+        firstName: '',
+        lastName: '',
+        email: '',
+        phone: '',
+        position: '',
+        department: '',
+        salary: '',
+        startDate: '',
+        address: '',
+        emergencyContact: '',
+        emergencyPhone: '',
+        skills: '',
+        notes: ''
+      });
+    } catch (err) {
+      console.error('Error adding employee:', err);
+      setError('Failed to add employee. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loadingData) {
+    return (
+      <div className="p-6">
+        <div className="flex justify-center items-center h-64">
+          <div className="text-lg text-gray-600">Loading form data...</div>
+        </div>
+      </div>
+    );
+  }
+
+  const refreshData = async () => {
+    try {
+      setLoadingData(true);
+      
+      // Fetch positions
+      const positionsRef = collection(db, 'positions');
+      const positionsQuery = query(positionsRef, orderBy('createdAt', 'desc'));
+      const positionsSnapshot = await getDocs(positionsQuery);
+      
+      const positionsData = [];
+      positionsSnapshot.forEach((doc) => {
+        positionsData.push({
+          id: doc.id,
+          ...doc.data()
+        });
+      });
+      setPositions(positionsData);
+
+      // Fetch departments
+      const departmentsRef = collection(db, 'departments');
+      const departmentsQuery = query(departmentsRef, orderBy('createdAt', 'desc'));
+      const departmentsSnapshot = await getDocs(departmentsQuery);
+      
+      const departmentsData = [];
+      departmentsSnapshot.forEach((doc) => {
+        departmentsData.push({
+          id: doc.id,
+          ...doc.data()
+        });
+      });
+      setDepartments(departmentsData);
+
+    } catch (err) {
+      console.error('Error refreshing data:', err);
+      setError('Failed to refresh form data');
+    } finally {
+      setLoadingData(false);
+    }
   };
 
   return (
     <div className="p-6">
       <div className="mb-6">
-        <h2 className="text-2xl font-bold text-gray-900">Add New Employee</h2>
-        <p className="text-gray-600 mt-1">Create a new employee record</p>
+        <div className="flex justify-between items-center">
+          <div>
+            <h2 className="text-2xl font-bold text-gray-900">Add New Employee</h2>
+            <p className="text-gray-600 mt-1">Create a new employee record</p>
+          </div>
+          <button
+            type="button"
+            onClick={refreshData}
+            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-sm"
+          >
+            Refresh Options
+          </button>
+        </div>
       </div>
+
+      {error && (
+        <div className="mb-6 bg-red-50 border border-red-200 rounded-lg p-4">
+          <div className="text-red-800">{error}</div>
+        </div>
+      )}
 
       <form onSubmit={handleSubmit}>
         {/* Personal Information */}
@@ -156,7 +300,7 @@ export default function NewEmployee() {
                 >
                   <option value="">Select Position</option>
                   {positions.map(pos => (
-                    <option key={pos} value={pos}>{pos}</option>
+                    <option key={pos.id} value={pos.title}>{pos.title}</option>
                   ))}
                 </select>
               </div>
@@ -171,7 +315,7 @@ export default function NewEmployee() {
                 >
                   <option value="">Select Department</option>
                   {departments.map(dept => (
-                    <option key={dept} value={dept}>{dept}</option>
+                    <option key={dept.id} value={dept.name}>{dept.name}</option>
                   ))}
                 </select>
               </div>
@@ -294,9 +438,10 @@ export default function NewEmployee() {
           </button>
           <button
             type="submit"
-            className="px-6 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
+            disabled={loading}
+            className="px-6 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors disabled:opacity-50"
           >
-            Add Employee
+            {loading ? 'Adding Employee...' : 'Add Employee'}
           </button>
         </div>
       </form>
