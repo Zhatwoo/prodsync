@@ -3,6 +3,7 @@ import "./globals.css";
 import { AuthProvider } from "./context/AuthContext";
 import { LeaveProvider } from "./context/LeaveContext";
 import { OvertimeProvider } from "./context/OvertimeContext";
+import { ScheduleProvider } from "./context/ScheduleContext";
 
 const roboto = Roboto({
   weight: ['300', '400', '500', '700', '900'],
@@ -24,7 +25,9 @@ export default function RootLayout({ children }) {
         <AuthProvider>
           <LeaveProvider>
             <OvertimeProvider>
-              {children}
+              <ScheduleProvider>
+                {children}
+              </ScheduleProvider>
             </OvertimeProvider>
           </LeaveProvider>
         </AuthProvider>

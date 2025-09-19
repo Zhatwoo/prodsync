@@ -1,15 +1,18 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useSchedule } from '../../context/ScheduleContext';
 
 export default function TaskScheduleModal({ isOpen, onClose }) {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState(new Date());
-  const [tasks, setTasks] = useState({});
   const [newTask, setNewTask] = useState('');
   const [newTaskTime, setNewTaskTime] = useState('');
   const [newTaskPriority, setNewTaskPriority] = useState('medium');
   const [isClosing, setIsClosing] = useState(false);
+  
+  // Use shared context for task management
+  const { tasks, addTask, updateTask, deleteTask, getTasksForDate, formatDateKey } = useSchedule();
 
   // Update current date every minute
   useEffect(() => {
@@ -49,19 +52,11 @@ export default function TaskScheduleModal({ isOpen, onClose }) {
     return days;
   };
 
-  const formatDateKey = (date) => {
-    return date.toISOString().split('T')[0];
-  };
+  // formatDateKey and getTasksForDate are now provided by the context
 
-  const getTasksForDate = (date) => {
-    const dateKey = formatDateKey(date);
-    return tasks[dateKey] || [];
-  };
-
-  const addTask = () => {
+  const handleAddTask = () => {
     if (!newTask.trim()) return;
     
-    const dateKey = formatDateKey(selectedDate);
     const task = {
       id: Date.now(),
       text: newTask.trim(),
@@ -71,32 +66,23 @@ export default function TaskScheduleModal({ isOpen, onClose }) {
       createdAt: new Date()
     };
 
-    setTasks(prev => ({
-      ...prev,
-      [dateKey]: [...(prev[dateKey] || []), task]
-    }));
+    addTask(selectedDate, task);
 
     setNewTask('');
     setNewTaskTime('');
     setNewTaskPriority('medium');
   };
 
-  const toggleTaskComplete = (date, taskId) => {
-    const dateKey = formatDateKey(date);
-    setTasks(prev => ({
-      ...prev,
-      [dateKey]: prev[dateKey]?.map(task => 
-        task.id === taskId ? { ...task, completed: !task.completed } : task
-      ) || []
-    }));
+  const handleToggleTaskComplete = (date, taskId) => {
+    const currentTasks = getTasksForDate(date);
+    const task = currentTasks.find(t => t.id === taskId);
+    if (task) {
+      updateTask(date, taskId, { completed: !task.completed });
+    }
   };
 
-  const deleteTask = (date, taskId) => {
-    const dateKey = formatDateKey(date);
-    setTasks(prev => ({
-      ...prev,
-      [dateKey]: prev[dateKey]?.filter(task => task.id !== taskId) || []
-    }));
+  const handleDeleteTask = (date, taskId) => {
+    deleteTask(date, taskId);
   };
 
   const navigateMonth = (direction) => {
@@ -277,7 +263,7 @@ export default function TaskScheduleModal({ isOpen, onClose }) {
                     onChange={(e) => setNewTask(e.target.value)}
                     placeholder="Enter task description..."
                     className="w-full px-3 py-2 text-gray-900 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 placeholder-gray-500"
-                    onKeyPress={(e) => e.key === 'Enter' && addTask()}
+                    onKeyPress={(e) => e.key === 'Enter' && handleAddTask()}
                   />
                 </div>
                 <div>
@@ -301,7 +287,7 @@ export default function TaskScheduleModal({ isOpen, onClose }) {
                 </div>
               </div>
               <button
-                onClick={addTask}
+                onClick={handleAddTask}
                 className="mt-3 bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-blue-700 transition-colors flex items-center space-x-2"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -333,7 +319,7 @@ export default function TaskScheduleModal({ isOpen, onClose }) {
                       }`}
                     >
                       <button
-                        onClick={() => toggleTaskComplete(selectedDate, task.id)}
+                        onClick={() => handleToggleTaskComplete(selectedDate, task.id)}
                         className={`w-5 h-5 rounded border-2 flex items-center justify-center mr-3 transition-colors ${
                           task.completed
                             ? 'bg-green-500 border-green-500 text-white'
@@ -362,7 +348,7 @@ export default function TaskScheduleModal({ isOpen, onClose }) {
                       </div>
                       
                       <button
-                        onClick={() => deleteTask(selectedDate, task.id)}
+                        onClick={() => handleDeleteTask(selectedDate, task.id)}
                         className="p-1 text-gray-400 hover:text-red-500 transition-colors"
                       >
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
