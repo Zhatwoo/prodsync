@@ -32,7 +32,7 @@ export default function AdministratorLayout({ children }) {
       </div>
 
       {/* Main Content */}
-      <div className={`flex-1 transition-all duration-300 ${
+      <div className={`flex-1 transition-all duration-300 flex flex-col ${
         sidebarCollapsed ? 'lg:pl-16' : 'lg:pl-72'
       }`}>
         {/* Mobile header with sidebar toggle */}
@@ -53,7 +53,7 @@ export default function AdministratorLayout({ children }) {
         </div>
 
         {/* Page Content */}
-        <div className="pb-4 sm:pb-6 lg:pb-8">
+        <div className="flex-1 flex flex-col pb-4 sm:pb-6 lg:pb-8">
           {children}
         </div>
       </div>
