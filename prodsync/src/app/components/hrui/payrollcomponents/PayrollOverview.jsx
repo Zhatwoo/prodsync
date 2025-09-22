@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { collection, getDocs, query, orderBy, where } from 'firebase/firestore';
 import { db } from '../../../lib/firebaseClient';
+import { useCurrency } from '../../../context/CurrencyContext';
 import PermissionGuard from '../../PermissionGuard';
 import { usePermissions } from '../../../hooks/usePermissions';
 import { PERMISSIONS } from '../../../lib/permissions';
@@ -11,6 +12,7 @@ import PayrollRegister from './PayrollRegister';
 import SalaryRelease from './SalaryRelease';
 
 export default function PayrollOverview() {
+  const { formatCurrency } = useCurrency();
   const [payrollData, setPayrollData] = useState([]);
   const [selectedPeriod, setSelectedPeriod] = useState('2024-01');
   const [isProcessing, setIsProcessing] = useState(false);
@@ -417,7 +419,7 @@ export default function PayrollOverview() {
             </div>
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-600">Total Gross</p>
-              <p className="text-2xl font-bold text-gray-900">${totalGross.toLocaleString()}</p>
+              <p className="text-2xl font-bold text-gray-900">{formatCurrency(totalGross)}</p>
             </div>
           </div>
         </div>
@@ -431,7 +433,7 @@ export default function PayrollOverview() {
             </div>
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-600">Total Deductions</p>
-              <p className="text-2xl font-bold text-gray-900">${totalDeductions.toLocaleString()}</p>
+              <p className="text-2xl font-bold text-gray-900">{formatCurrency(totalDeductions)}</p>
             </div>
           </div>
         </div>
@@ -445,7 +447,7 @@ export default function PayrollOverview() {
             </div>
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-600">Net Pay</p>
-              <p className="text-2xl font-bold text-gray-900">${totalNet.toLocaleString()}</p>
+              <p className="text-2xl font-bold text-gray-900">{formatCurrency(totalNet)}</p>
             </div>
           </div>
         </div>
@@ -501,25 +503,25 @@ export default function PayrollOverview() {
                     <div className="text-sm text-gray-900">{employee.position}</div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    ${employee.basicSalary.toLocaleString()}
+                    {formatCurrency(employee.basicSalary)}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    ${employee.allowances.toLocaleString()}
+                    {formatCurrency(employee.allowances)}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    ${employee.overtime.toLocaleString()}
+                    {formatCurrency(employee.overtime)}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    ${employee.bonuses.toLocaleString()}
+                    {formatCurrency(employee.bonuses)}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                    ${employee.grossSalary.toLocaleString()}
+                    {formatCurrency(employee.grossSalary)}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    ${employee.deductions.toLocaleString()}
+                    {formatCurrency(employee.deductions)}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-green-600">
-                    ${employee.netSalary.toLocaleString()}
+                    {formatCurrency(employee.netSalary)}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(employee.status)}`}>

@@ -1,9 +1,14 @@
 // src/app/api/benefits/enrollment/route.js
 import { NextResponse } from "next/server";
-import { dbAdmin } from "../../../lib/firebaseAdmin";
+import { getDbAdmin } from "../../../lib/firebaseAdmin";
 
 export async function GET(request) {
   try {
+    const dbAdmin = getDbAdmin();
+    if (!dbAdmin) {
+      return NextResponse.json({ error: "Database not initialized" }, { status: 500 });
+    }
+
     const { searchParams } = new URL(request.url);
     const employeeId = searchParams.get('employeeId');
     const benefitId = searchParams.get('benefitId');
@@ -51,6 +56,11 @@ export async function GET(request) {
 
 export async function POST(request) {
   try {
+    const dbAdmin = getDbAdmin();
+    if (!dbAdmin) {
+      return NextResponse.json({ error: "Database not initialized" }, { status: 500 });
+    }
+
     const body = await request.json();
     
     // Validate required fields

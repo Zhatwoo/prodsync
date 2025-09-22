@@ -3,11 +3,13 @@
 import { useState, useEffect } from 'react';
 import { collection, getDocs, query, orderBy, where } from 'firebase/firestore';
 import { db } from '../../../lib/firebaseClient';
+import { useCurrency } from '../../../context/CurrencyContext';
 import PermissionGuard from '../../PermissionGuard';
 import { usePermissions } from '../../../hooks/usePermissions';
 import { PERMISSIONS } from '../../../lib/permissions';
 
 export default function PayrollRegister() {
+  const { formatCurrency } = useCurrency();
   const [payrollRecords, setPayrollRecords] = useState([]);
   const [selectedPeriod, setSelectedPeriod] = useState('');
   const [currentPayroll, setCurrentPayroll] = useState(null);
@@ -99,9 +101,9 @@ Processed At: ${currentPayroll.processedAt?.toDate ? currentPayroll.processedAt.
 Processed By: ${currentPayroll.processedBy}
 
 Total Employees: ${currentPayroll.employees.length}
-Total Gross Pay: $${currentPayroll.totalGrossPay.toLocaleString()}
-Total Deductions: $${currentPayroll.totalDeductions.toLocaleString()}
-Total Net Pay: $${currentPayroll.totalNetPay.toLocaleString()}
+Total Gross Pay: ${formatCurrency(currentPayroll.totalGrossPay)}
+Total Deductions: ${formatCurrency(currentPayroll.totalDeductions)}
+Total Net Pay: ${formatCurrency(currentPayroll.totalNetPay)}
 
 ================================================================================
 
@@ -115,12 +117,12 @@ ${currentPayroll.employees.map(emp => {
   const id = emp.employeeCode.padEnd(10);
   const dept = emp.department.padEnd(12);
   const pos = emp.position.padEnd(12);
-  const basePay = `$${emp.basePay.toLocaleString()}`.padEnd(8);
-  const overtime = `$${emp.overtimePay.toLocaleString()}`.padEnd(8);
-  const allowances = `$${emp.allowances.toLocaleString()}`.padEnd(10);
-  const deductions = `$${emp.totalDeductions.toLocaleString()}`.padEnd(10);
-  const gross = `$${emp.grossPay.toLocaleString()}`.padEnd(9);
-  const net = `$${emp.netPay.toLocaleString()}`.padEnd(7);
+  const basePay = `${formatCurrency(emp.basePay)}`.padEnd(8);
+  const overtime = `${formatCurrency(emp.overtimePay)}`.padEnd(8);
+  const allowances = `${formatCurrency(emp.allowances)}`.padEnd(10);
+  const deductions = `${formatCurrency(emp.totalDeductions)}`.padEnd(10);
+  const gross = `${formatCurrency(emp.grossPay)}`.padEnd(9);
+  const net = `${formatCurrency(emp.netPay)}`.padEnd(7);
   
   return `${name} | ${id} | ${dept} | ${pos} | ${basePay} | ${overtime} | ${allowances} | ${deductions} | ${gross} | ${net}`;
 }).join('\n')}
@@ -138,9 +140,9 @@ ${[...new Set(currentPayroll.employees.map(emp => emp.department))].map(dept => 
   
   return `${dept}:
   Employees: ${deptEmployees.length}
-  Gross Pay: $${deptGross.toLocaleString()}
-  Deductions: $${deptDeductions.toLocaleString()}
-  Net Pay: $${deptNet.toLocaleString()}
+  Gross Pay: ${formatCurrency(deptGross)}
+  Deductions: ${formatCurrency(deptDeductions)}
+  Net Pay: ${formatCurrency(deptNet)}
   
 `;
 }).join('')}
@@ -263,7 +265,7 @@ END OF REPORT
                   </div>
                   <div className="ml-4">
                     <p className="text-sm font-medium text-gray-600">Total Gross</p>
-                    <p className="text-2xl font-bold text-gray-900">₱{currentPayroll.totalGrossPay.toLocaleString()}</p>
+                    <p className="text-2xl font-bold text-gray-900">{formatCurrency(currentPayroll.totalGrossPay)}</p>
                   </div>
                 </div>
               </div>
@@ -277,7 +279,7 @@ END OF REPORT
                   </div>
                   <div className="ml-4">
                     <p className="text-sm font-medium text-gray-600">Total Deductions</p>
-                    <p className="text-2xl font-bold text-gray-900">₱{currentPayroll.totalDeductions.toLocaleString()}</p>
+                    <p className="text-2xl font-bold text-gray-900">{formatCurrency(currentPayroll.totalDeductions)}</p>
                   </div>
                 </div>
               </div>
@@ -291,7 +293,7 @@ END OF REPORT
                   </div>
                   <div className="ml-4">
                     <p className="text-sm font-medium text-gray-600">Net Pay</p>
-                    <p className="text-2xl font-bold text-gray-900">₱{currentPayroll.totalNetPay.toLocaleString()}</p>
+                    <p className="text-2xl font-bold text-gray-900">{formatCurrency(currentPayroll.totalNetPay)}</p>
                   </div>
                 </div>
               </div>
@@ -349,26 +351,26 @@ END OF REPORT
                           <div className="text-sm text-gray-900">{employee.department}</div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                          ₱{employee.basePay.toLocaleString()}
+                          {formatCurrency(employee.basePay)}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                          <div>₱{employee.overtimePay.toLocaleString()}</div>
+                          <div>{formatCurrency(employee.overtimePay)}</div>
                           <div className="text-xs text-gray-500">{employee.overtimeHours}h</div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                          ₱{employee.allowances.toLocaleString()}
+                          {formatCurrency(employee.allowances)}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                          <div>₱{employee.totalDeductions.toLocaleString()}</div>
+                          <div>{formatCurrency(employee.totalDeductions)}</div>
                           <div className="text-xs text-gray-500">
-                            Tax: ₱{employee.taxDeduction.toLocaleString()}
+                            Tax: {formatCurrency(employee.taxDeduction)}
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                          ₱{employee.grossPay.toLocaleString()}
+                          {formatCurrency(employee.grossPay)}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-green-600">
-                          ₱{employee.netPay.toLocaleString()}
+                          {formatCurrency(employee.netPay)}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                           <button
@@ -446,23 +448,23 @@ END OF REPORT
                     <div className="space-y-1 text-sm">
                       <div className="flex justify-between">
                         <span>Base Pay:</span>
-                        <span>₱{selectedEmployee.basePay.toLocaleString()}</span>
+                        <span>{formatCurrency(selectedEmployee.basePay)}</span>
                       </div>
                       <div className="flex justify-between">
                         <span>Overtime ({selectedEmployee.overtimeHours}h):</span>
-                        <span>₱{selectedEmployee.overtimePay.toLocaleString()}</span>
+                        <span>{formatCurrency(selectedEmployee.overtimePay)}</span>
                       </div>
                       <div className="flex justify-between">
                         <span>Allowances:</span>
-                        <span>₱{selectedEmployee.allowances.toLocaleString()}</span>
+                        <span>{formatCurrency(selectedEmployee.allowances)}</span>
                       </div>
                       <div className="flex justify-between">
                         <span>Benefits:</span>
-                        <span>₱{selectedEmployee.benefits.toLocaleString()}</span>
+                        <span>{formatCurrency(selectedEmployee.benefits)}</span>
                       </div>
                       <div className="flex justify-between border-t pt-1 font-semibold">
                         <span>Gross Pay:</span>
-                        <span>₱{selectedEmployee.grossPay.toLocaleString()}</span>
+                        <span>{formatCurrency(selectedEmployee.grossPay)}</span>
                       </div>
                     </div>
                   </div>
@@ -472,33 +474,33 @@ END OF REPORT
                     <div className="space-y-1 text-sm">
                       <div className="flex justify-between">
                         <span>Tax:</span>
-                        <span>₱{selectedEmployee.taxDeduction.toLocaleString()}</span>
+                        <span>{formatCurrency(selectedEmployee.taxDeduction)}</span>
                       </div>
                       <div className="flex justify-between">
                         <span>Insurance:</span>
-                        <span>₱{selectedEmployee.insuranceDeduction.toLocaleString()}</span>
+                        <span>{formatCurrency(selectedEmployee.insuranceDeduction)}</span>
                       </div>
                       {selectedEmployee.latePenalty > 0 && (
                         <div className="flex justify-between">
                           <span>Late Penalty:</span>
-                          <span>₱{selectedEmployee.latePenalty.toLocaleString()}</span>
+                          <span>{formatCurrency(selectedEmployee.latePenalty)}</span>
                         </div>
                       )}
                       {selectedEmployee.absenceDeduction > 0 && (
                         <div className="flex justify-between">
                           <span>Absence Deduction:</span>
-                          <span>₱{selectedEmployee.absenceDeduction.toLocaleString()}</span>
+                          <span>{formatCurrency(selectedEmployee.absenceDeduction)}</span>
                         </div>
                       )}
                       {selectedEmployee.leaveDeduction > 0 && (
                         <div className="flex justify-between">
                           <span>Leave Deduction:</span>
-                          <span>₱{selectedEmployee.leaveDeduction.toLocaleString()}</span>
+                          <span>{formatCurrency(selectedEmployee.leaveDeduction)}</span>
                         </div>
                       )}
                       <div className="flex justify-between border-t pt-1 font-semibold">
                         <span>Total Deductions:</span>
-                        <span>₱{selectedEmployee.totalDeductions.toLocaleString()}</span>
+                        <span>{formatCurrency(selectedEmployee.totalDeductions)}</span>
                       </div>
                     </div>
                   </div>
@@ -507,7 +509,7 @@ END OF REPORT
                 <div className="mt-6 pt-4 border-t">
                   <div className="flex justify-between text-lg font-bold">
                     <span>NET PAY:</span>
-                    <span className="text-green-600">₱{selectedEmployee.netPay.toLocaleString()}</span>
+                    <span className="text-green-600">{formatCurrency(selectedEmployee.netPay)}</span>
                   </div>
                 </div>
               </div>

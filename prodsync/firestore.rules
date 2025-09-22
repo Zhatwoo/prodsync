@@ -261,7 +261,9 @@ service cloud.firestore {
     // System Settings collection - Application settings
     match /systemSettings/{settingId} {
       allow read: if hasReadAccess();
-      allow write: if isAdmin();
+      allow create: if isAdmin() || isHR() || isAccounting();
+      allow update: if isAdmin() || isHR() || isAccounting();
+      allow delete: if isAdmin();
     }
     
     // Reminders collection - System reminders

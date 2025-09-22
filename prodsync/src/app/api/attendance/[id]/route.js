@@ -1,10 +1,14 @@
 // src/app/api/attendance/[id]/route.js
 import { NextResponse } from "next/server";
-import { dbAdmin } from "../../../../lib/firebaseAdmin";
+import { getDbAdmin } from "../../../lib/firebaseAdmin";
 
 export async function GET(request, { params }) {
   try {
     const { id } = params;
+    const dbAdmin = getDbAdmin();
+    if (!dbAdmin) {
+      return NextResponse.json({ error: "Database not initialized" }, { status: 500 });
+    }
     
     const doc = await dbAdmin.collection("attendance").doc(id).get();
     
@@ -26,6 +30,7 @@ export async function PUT(request, { params }) {
   try {
     const { id } = params;
     const body = await request.json();
+    const dbAdmin = getDbAdmin();
     
     // Check if attendance record exists
     const doc = await dbAdmin.collection("attendance").doc(id).get();
@@ -52,6 +57,10 @@ export async function PUT(request, { params }) {
 export async function DELETE(request, { params }) {
   try {
     const { id } = params;
+    const dbAdmin = getDbAdmin();
+    if (!dbAdmin) {
+      return NextResponse.json({ error: "Database not initialized" }, { status: 500 });
+    }
     
     // Check if attendance record exists
     const doc = await dbAdmin.collection("attendance").doc(id).get();

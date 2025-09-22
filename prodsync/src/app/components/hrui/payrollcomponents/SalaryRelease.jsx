@@ -3,11 +3,13 @@
 import { useState, useEffect } from 'react';
 import { collection, getDocs, query, orderBy, where, addDoc, updateDoc, doc, serverTimestamp } from 'firebase/firestore';
 import { db } from '../../../lib/firebaseClient';
+import { useCurrency } from '../../../context/CurrencyContext';
 import PermissionGuard from '../../PermissionGuard';
 import { usePermissions } from '../../../hooks/usePermissions';
 import { PERMISSIONS } from '../../../lib/permissions';
 
 export default function SalaryRelease() {
+  const { formatCurrency } = useCurrency();
   const [payrollRecords, setPayrollRecords] = useState([]);
   const [selectedPeriod, setSelectedPeriod] = useState('');
   const [currentPayroll, setCurrentPayroll] = useState(null);
@@ -144,7 +146,7 @@ export default function SalaryRelease() {
         notes: ''
       });
 
-      alert(`Salary released successfully for ${selectedEmployeesData.length} employees!\nTotal Amount: $${releaseRecord.totalAmount.toLocaleString()}`);
+      alert(`Salary released successfully for ${selectedEmployeesData.length} employees!\nTotal Amount: ${formatCurrency(releaseRecord.totalAmount)}`);
     } catch (err) {
       console.error('Error releasing salary:', err);
       alert('Failed to release salary');
@@ -264,7 +266,7 @@ export default function SalaryRelease() {
                   </div>
                   <div className="ml-4">
                     <p className="text-sm font-medium text-gray-600">Total Amount</p>
-                    <p className="text-2xl font-bold text-gray-900">₱{currentPayroll.totalNetPay.toLocaleString()}</p>
+                    <p className="text-2xl font-bold text-gray-900">{formatCurrency(currentPayroll.totalNetPay)}</p>
                   </div>
                 </div>
               </div>
@@ -278,7 +280,7 @@ export default function SalaryRelease() {
                   </div>
                   <div className="ml-4">
                     <p className="text-sm font-medium text-gray-600">Selected Amount</p>
-                    <p className="text-2xl font-bold text-gray-900">₱{totalSelectedAmount.toLocaleString()}</p>
+                    <p className="text-2xl font-bold text-gray-900">{formatCurrency(totalSelectedAmount)}</p>
                   </div>
                 </div>
               </div>
@@ -419,7 +421,7 @@ export default function SalaryRelease() {
                           <div className="text-sm text-gray-900">{employee.department}</div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-green-600">
-                          ₱{employee.netPay.toLocaleString()}
+                          {formatCurrency(employee.netPay)}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getReleaseStatusColor(employee.employeeId)}`}>
@@ -529,7 +531,7 @@ export default function SalaryRelease() {
                     </div>
                     <div className="flex justify-between mb-2">
                       <span>Total Amount:</span>
-                      <span className="font-medium">₱{totalSelectedAmount.toLocaleString()}</span>
+                      <span className="font-medium">{formatCurrency(totalSelectedAmount)}</span>
                     </div>
                     <div className="flex justify-between">
                       <span>Release Method:</span>

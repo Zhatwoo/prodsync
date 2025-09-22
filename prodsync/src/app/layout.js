@@ -4,6 +4,7 @@ import { AuthProvider } from "./context/AuthContext";
 import { LeaveProvider } from "./context/LeaveContext";
 import { OvertimeProvider } from "./context/OvertimeContext";
 import { ScheduleProvider } from "./context/ScheduleContext";
+import { CurrencyProvider } from "./context/CurrencyContext";
 
 const roboto = Roboto({
   weight: ['300', '400', '500', '700', '900'],
@@ -23,13 +24,15 @@ export default function RootLayout({ children }) {
         className={`${roboto.variable} font-roboto antialiased`}
       >
         <AuthProvider>
-          <LeaveProvider>
-            <OvertimeProvider>
-              <ScheduleProvider>
-                {children}
-              </ScheduleProvider>
-            </OvertimeProvider>
-          </LeaveProvider>
+          <CurrencyProvider>
+            <LeaveProvider>
+              <OvertimeProvider>
+                <ScheduleProvider>
+                  {children}
+                </ScheduleProvider>
+              </OvertimeProvider>
+            </LeaveProvider>
+          </CurrencyProvider>
         </AuthProvider>
       </body>
     </html>

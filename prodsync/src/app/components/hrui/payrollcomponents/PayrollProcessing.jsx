@@ -3,11 +3,13 @@
 import { useState, useEffect } from 'react';
 import { collection, getDocs, query, orderBy, where, addDoc, updateDoc, doc, serverTimestamp } from 'firebase/firestore';
 import { db } from '../../../lib/firebaseClient';
+import { useCurrency } from '../../../context/CurrencyContext';
 import PermissionGuard from '../../PermissionGuard';
 import { usePermissions } from '../../../hooks/usePermissions';
 import { PERMISSIONS } from '../../../lib/permissions';
 
 export default function PayrollProcessing() {
+  const { formatCurrency } = useCurrency();
   const [employees, setEmployees] = useState([]);
   const [attendanceData, setAttendanceData] = useState([]);
   const [overtimeData, setOvertimeData] = useState([]);
@@ -426,7 +428,7 @@ export default function PayrollProcessing() {
               </div>
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-600">Total Gross</p>
-                <p className="text-2xl font-bold text-gray-900">₱{totalGross.toLocaleString()}</p>
+                <p className="text-2xl font-bold text-gray-900">{formatCurrency(totalGross)}</p>
               </div>
             </div>
           </div>
@@ -440,7 +442,7 @@ export default function PayrollProcessing() {
               </div>
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-600">Total Deductions</p>
-                <p className="text-2xl font-bold text-gray-900">₱{totalDeductions.toLocaleString()}</p>
+                <p className="text-2xl font-bold text-gray-900">{formatCurrency(totalDeductions)}</p>
               </div>
             </div>
           </div>
@@ -454,7 +456,7 @@ export default function PayrollProcessing() {
               </div>
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-600">Net Pay</p>
-                <p className="text-2xl font-bold text-gray-900">₱{totalNet.toLocaleString()}</p>
+                <p className="text-2xl font-bold text-gray-900">{formatCurrency(totalNet)}</p>
               </div>
             </div>
           </div>
@@ -517,26 +519,26 @@ export default function PayrollProcessing() {
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        ₱{employee.basePay.toLocaleString()}
+                        {formatCurrency(employee.basePay)}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        <div>₱{employee.overtimePay.toLocaleString()}</div>
+                        <div>{formatCurrency(employee.overtimePay)}</div>
                         <div className="text-xs text-gray-500">{employee.overtimeHours}h</div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        ₱{employee.allowances.toLocaleString()}
+                        {formatCurrency(employee.allowances)}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        <div>₱{employee.totalDeductions.toLocaleString()}</div>
+                        <div>{formatCurrency(employee.totalDeductions)}</div>
                         <div className="text-xs text-gray-500">
-                          Tax: ₱{employee.taxDeduction.toLocaleString()}
+                          Tax: {formatCurrency(employee.taxDeduction)}
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                        ₱{employee.grossPay.toLocaleString()}
+                        {formatCurrency(employee.grossPay)}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-green-600">
-                        ₱{employee.netPay.toLocaleString()}
+                        {formatCurrency(employee.netPay)}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
@@ -593,7 +595,7 @@ export default function PayrollProcessing() {
               <div className="flex justify-between">
                 <span className="text-sm text-gray-600">Total Pay:</span>
                 <span className="text-sm font-medium text-gray-900">
-                  ₱{overtimeData.reduce((sum, record) => sum + (record.payAmount || 0), 0).toLocaleString()}
+                  {formatCurrency(overtimeData.reduce((sum, record) => sum + (record.payAmount || 0), 0))}
                 </span>
               </div>
             </div>

@@ -343,7 +343,7 @@ export default function FirebaseTestPage() {
               <div className="bg-gray-100 p-3 rounded font-mono text-xs">
                 <div>FIREBASE_PROJECT_ID=your-project-id</div>
                 <div>FIREBASE_CLIENT_EMAIL=your-service-account@your-project.iam.gserviceaccount.com</div>
-                <div>FIREBASE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\\n...\\n-----END PRIVATE KEY-----\\n"</div>
+                <div>FIREBASE_PRIVATE_KEY=&quot;-----BEGIN PRIVATE KEY-----\\n...\\n-----END PRIVATE KEY-----\\n&quot;</div>
               </div>
               
               <p><strong>If Firestore connection fails:</strong></p>

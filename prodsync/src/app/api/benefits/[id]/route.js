@@ -1,10 +1,14 @@
 // src/app/api/benefits/[id]/route.js
 import { NextResponse } from "next/server";
-import { dbAdmin } from "../../../../lib/firebaseAdmin";
+import { getDbAdmin } from "../../../lib/firebaseAdmin";
 
 export async function GET(request, { params }) {
   try {
     const { id } = params;
+    const dbAdmin = getDbAdmin();
+    if (!dbAdmin) {
+      return NextResponse.json({ error: "Database not initialized" }, { status: 500 });
+    }
     
     const doc = await dbAdmin.collection("benefits").doc(id).get();
     
@@ -26,6 +30,10 @@ export async function PUT(request, { params }) {
   try {
     const { id } = params;
     const body = await request.json();
+    const dbAdmin = getDbAdmin();
+    if (!dbAdmin) {
+      return NextResponse.json({ error: "Database not initialized" }, { status: 500 });
+    }
     
     // Validate required fields
     const requiredFields = ['name', 'category', 'description', 'cost', 'provider', 'effectiveDate', 'expiryDate'];
@@ -57,6 +65,10 @@ export async function PUT(request, { params }) {
 export async function DELETE(request, { params }) {
   try {
     const { id } = params;
+    const dbAdmin = getDbAdmin();
+    if (!dbAdmin) {
+      return NextResponse.json({ error: "Database not initialized" }, { status: 500 });
+    }
     
     // Check if benefit exists
     const doc = await dbAdmin.collection("benefits").doc(id).get();

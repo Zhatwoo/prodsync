@@ -3,9 +3,11 @@
 import { useState, useEffect } from 'react';
 import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc, query, orderBy, serverTimestamp } from 'firebase/firestore';
 import { db } from '../../../lib/firebaseClient';
+import { useCurrency } from '../../../context/CurrencyContext';
 import DeleteConfirmation from '../../DeleteConfirmation';
 
 export default function SalaryStructure() {
+  const { formatCurrency } = useCurrency();
   const [salaryStructures, setSalaryStructures] = useState([]);
   const [isAddingNew, setIsAddingNew] = useState(false);
   const [editingStructure, setEditingStructure] = useState(null);
@@ -447,11 +449,11 @@ export default function SalaryStructure() {
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-900">{structure.currency} {structure.baseSalary.toLocaleString()}</div>
+                    <div className="text-sm text-gray-900">{formatCurrency(structure.baseSalary)}</div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-sm text-gray-900">
-                      {structure.currency} {structure.minSalary.toLocaleString()} - {structure.maxSalary.toLocaleString()}
+                      {formatCurrency(structure.minSalary)} - {formatCurrency(structure.maxSalary)}
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
