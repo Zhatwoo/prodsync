@@ -1,9 +1,14 @@
 // src/app/api/benefits/route.js
 import { NextResponse } from "next/server";
-import { dbAdmin } from "../../lib/firebaseAdmin";
+import { getDbAdmin } from "../../lib/firebaseAdmin";
 
 export async function GET(request) {
   try {
+    const dbAdmin = getDbAdmin();
+    if (!dbAdmin) {
+      return NextResponse.json({ error: "Database not initialized" }, { status: 500 });
+    }
+
     const { searchParams } = new URL(request.url);
     const category = searchParams.get('category');
     const active = searchParams.get('active');

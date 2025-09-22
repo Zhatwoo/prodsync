@@ -140,8 +140,14 @@ export default function AttendanceModal({ isOpen, onClose }) {
         setAttendanceRecords(processedData);
         setTotalWorkDays(processedData.filter(record => record.status === 'completed').length);
       } else {
-        console.error('Failed to fetch attendance records');
+        const errorData = await attendanceResponse.json().catch(() => ({}));
+        console.error('Failed to fetch attendance records:', {
+          status: attendanceResponse.status,
+          statusText: attendanceResponse.statusText,
+          error: errorData.error || 'Unknown error'
+        });
         setAttendanceRecords([]);
+        setError(`Failed to fetch attendance: ${errorData.error || 'Unknown error'}`);
       }
     } catch (err) {
       console.error('Error fetching data:', err);

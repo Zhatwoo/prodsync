@@ -186,6 +186,54 @@ service cloud.firestore {
       allow delete: if isAdmin();
     }
     
+    // Processed Payroll collection - Calculated payroll data
+    match /processedPayroll/{payrollId} {
+      allow read: if isHR() || isAdmin() || isAccounting();
+      allow create: if isHR() || isAdmin() || isAccounting();
+      allow update: if isHR() || isAdmin() || isAccounting();
+      allow delete: if isAdmin();
+    }
+    
+    // Payroll Records collection - Payroll register data
+    match /payrollRecords/{recordId} {
+      allow read: if isHR() || isAdmin() || isAccounting();
+      allow create: if isHR() || isAdmin() || isAccounting();
+      allow update: if isHR() || isAdmin() || isAccounting();
+      allow delete: if isAdmin();
+    }
+    
+    // Salary Releases collection - Salary distribution records
+    match /salaryReleases/{releaseId} {
+      allow read: if isHR() || isAdmin() || isAccounting();
+      allow create: if isHR() || isAdmin() || isAccounting();
+      allow update: if isHR() || isAdmin() || isAccounting();
+      allow delete: if isAdmin();
+    }
+    
+    // Leave Requests collection - Employee leave management
+    match /leaveRequests/{leaveId} {
+      allow read: if hasReadAccess() || 
+        (isAuthenticated() && resource.data.employeeId == request.auth.uid);
+      allow create: if isAuthenticated() && 
+        (isEmployee(resource.data.employeeId) || isHR() || isAdmin());
+      allow update: if isHR() || isAdmin() || 
+        (isAuthenticated() && resource.data.employeeId == request.auth.uid && 
+         !('status' in request.resource.data.diff(resource.data).affectedKeys()));
+      allow delete: if isHR() || isAdmin();
+    }
+    
+    // Overtime Requests collection - Overtime management
+    match /overtimeRequests/{overtimeId} {
+      allow read: if hasReadAccess() || 
+        (isAuthenticated() && resource.data.employeeId == request.auth.uid);
+      allow create: if isAuthenticated() && 
+        (isEmployee(resource.data.employeeId) || isHR() || isAdmin());
+      allow update: if isHR() || isAdmin() || 
+        (isAuthenticated() && resource.data.employeeId == request.auth.uid && 
+         !('status' in request.resource.data.diff(resource.data).affectedKeys()));
+      allow delete: if isHR() || isAdmin();
+    }
+    
     // Permits collection - Business permits and licenses
     match /permits/{permitId} {
       allow read: if isAdmin() || isHR();

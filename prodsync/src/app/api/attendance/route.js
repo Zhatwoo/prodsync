@@ -1,15 +1,22 @@
 // src/app/api/attendance/route.js
 import { NextResponse } from "next/server";
-import { dbAdmin } from "../../lib/firebaseAdmin";
+import { getDbAdmin } from "../../lib/firebaseAdmin";
 
 export async function GET(request) {
   try {
+    const dbAdmin = getDbAdmin();
+    if (!dbAdmin) {
+      return NextResponse.json({ error: "Database not initialized" }, { status: 500 });
+    }
+
     const { searchParams } = new URL(request.url);
     const date = searchParams.get('date');
     const employeeId = searchParams.get('employeeId');
     
+    // Start with basic collection
     let query = dbAdmin.collection("attendance");
     
+    // Add filters
     if (date) {
       query = query.where('date', '==', date);
     }
@@ -17,8 +24,6 @@ export async function GET(request) {
     if (employeeId) {
       query = query.where('employeeId', '==', employeeId);
     }
-    
-    query = query.orderBy('createdAt', 'desc');
     
     const snapshot = await query.get();
     const attendance = snapshot.docs.map((doc) => ({
@@ -29,12 +34,20 @@ export async function GET(request) {
     return NextResponse.json(attendance);
   } catch (error) {
     console.error("Error fetching attendance:", error);
-    return NextResponse.json({ error: "Failed to fetch attendance" }, { status: 500 });
+    return NextResponse.json({ 
+      error: "Failed to fetch attendance",
+      details: error.message 
+    }, { status: 500 });
   }
 }
 
 export async function POST(request) {
   try {
+    const dbAdmin = getDbAdmin();
+    if (!dbAdmin) {
+      return NextResponse.json({ error: "Database not initialized" }, { status: 500 });
+    }
+
     const body = await request.json();
     
     // Validate required fields
