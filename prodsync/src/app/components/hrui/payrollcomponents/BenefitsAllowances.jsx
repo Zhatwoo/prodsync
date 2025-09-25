@@ -3,9 +3,11 @@
 import { useState, useEffect } from 'react';
 import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc, query, orderBy, serverTimestamp } from 'firebase/firestore';
 import { db } from '../../../lib/firebaseClient';
+import { useCurrency } from '../../../context/CurrencyContext';
 import DeleteConfirmation from '../../DeleteConfirmation';
 
 export default function BenefitsAllowances() {
+  const { formatCurrency } = useCurrency();
   const [benefits, setBenefits] = useState([]);
   const [isAddingNew, setIsAddingNew] = useState(false);
   const [editingBenefit, setEditingBenefit] = useState(null);
@@ -404,7 +406,7 @@ export default function BenefitsAllowances() {
                     <div className="text-sm text-gray-900">{benefit.category}</div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-900">${benefit.amount.toLocaleString()}</div>
+                    <div className="text-sm text-gray-900">{formatCurrency(benefit.amount)}</div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-sm text-gray-900">{benefit.frequency}</div>

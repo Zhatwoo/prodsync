@@ -3,8 +3,10 @@
 import { useState, useEffect } from 'react';
 import { collection, getDocs, query, orderBy, where } from 'firebase/firestore';
 import { db } from '../../../lib/firebaseClient';
+import { useCurrency } from '../../../context/CurrencyContext';
 
 export default function PayrollReports() {
+  const { formatCurrency } = useCurrency();
   const [reports, setReports] = useState([]);
   const [selectedReport, setSelectedReport] = useState('');
   // Set default period to current month
@@ -303,19 +305,19 @@ export default function PayrollReports() {
                 <div className="text-sm text-gray-600">Total Employees</div>
               </div>
               <div className="bg-green-50 rounded-lg p-4 text-center">
-                <div className="text-2xl font-bold text-green-600">${reportData.summary.totalGrossPay.toLocaleString()}</div>
+                <div className="text-2xl font-bold text-green-600">{formatCurrency(reportData.summary.totalGrossPay)}</div>
                 <div className="text-sm text-gray-600">Gross Pay</div>
               </div>
               <div className="bg-red-50 rounded-lg p-4 text-center">
-                <div className="text-2xl font-bold text-red-600">${reportData.summary.totalDeductions.toLocaleString()}</div>
+                <div className="text-2xl font-bold text-red-600">{formatCurrency(reportData.summary.totalDeductions)}</div>
                 <div className="text-sm text-gray-600">Deductions</div>
               </div>
               <div className="bg-purple-50 rounded-lg p-4 text-center">
-                <div className="text-2xl font-bold text-purple-600">${reportData.summary.totalNetPay.toLocaleString()}</div>
+                <div className="text-2xl font-bold text-purple-600">{formatCurrency(reportData.summary.totalNetPay)}</div>
                 <div className="text-sm text-gray-600">Net Pay</div>
               </div>
               <div className="bg-yellow-50 rounded-lg p-4 text-center">
-                <div className="text-2xl font-bold text-yellow-600">${reportData.summary.averageSalary.toLocaleString()}</div>
+                <div className="text-2xl font-bold text-yellow-600">{formatCurrency(reportData.summary.averageSalary)}</div>
                 <div className="text-sm text-gray-600">Avg Salary</div>
               </div>
             </div>
@@ -342,13 +344,13 @@ export default function PayrollReports() {
                         <div className="text-sm text-gray-900">{dept.employees}</div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-900">${dept.grossPay.toLocaleString()}</div>
+                        <div className="text-sm text-gray-900">{formatCurrency(dept.grossPay)}</div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-900">${dept.netPay.toLocaleString()}</div>
+                        <div className="text-sm text-gray-900">{formatCurrency(dept.netPay)}</div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-900">${Math.round(dept.netPay / dept.employees).toLocaleString()}</div>
+                        <div className="text-sm text-gray-900">{formatCurrency(Math.round(dept.netPay / dept.employees))}</div>
                       </td>
                     </tr>
                   ))}

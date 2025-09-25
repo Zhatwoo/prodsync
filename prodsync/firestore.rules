@@ -1,38 +1,290 @@
 rules_version = '2';
+
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Allow read/write access to authenticated users for development
-    // WARNING: This is for development only! Do not use in production.
-    match /{document=**} {
-      allow read, write: if request.auth != null;
+    
+    // Helper functions for role-based access
+    function isAuthenticated() {
+      return request.auth != null;
     }
     
-    // More restrictive rules for production (commented out for now)
-    // Uncomment and modify these rules for production use:
+    function getUserRole() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role;
+    }
     
-    // Users collection - users can read/write their own data
-    // match /users/{userId} {
-    //   allow read, write: if request.auth != null && request.auth.uid == userId;
-    // }
+    function isAdmin() {
+      return isAuthenticated() && getUserRole() in ['Administrator', 'administrator', 'admin'];
+    }
     
-    // Employees collection - authenticated users can read, only admins can write
-    // match /employees/{employeeId} {
-    //   allow read: if request.auth != null;
-    //   allow write: if request.auth != null && 
-    //     get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'administrator';
-    // }
+    function isHR() {
+      return isAuthenticated() && getUserRole() in ['HR', 'hr', 'HR Manager'];
+    }
     
-    // Positions and departments - authenticated users can read, only admins can write
-    // match /positions/{positionId} {
-    //   allow read: if request.auth != null;
-    //   allow write: if request.auth != null && 
-    //     get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'administrator';
-    // }
+    function isAccounting() {
+      return isAuthenticated() && getUserRole() in ['accounting', 'Accounting'];
+    }
     
-    // match /departments/{departmentId} {
-    //   allow read: if request.auth != null;
-    //   allow write: if request.auth != null && 
-    //     get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'administrator';
-    // }
+    function isSales() {
+      return isAuthenticated() && getUserRole() in ['Sales', 'sales'];
+    }
+    
+    function isAuditor() {
+      return isAuthenticated() && getUserRole() in ['auditor', 'Auditor'];
+    }
+    
+    function isCustomerService() {
+      return isAuthenticated() && getUserRole() in ['Customer Service'];
+    }
+    
+    function isFrontdesk() {
+      return isAuthenticated() && getUserRole() in ['Frontdesk'];
+    }
+    
+    function isEmployee(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+    
+    function hasReadAccess() {
+      return isAdmin() || isHR() || isAccounting() || isSales() || isAuditor() || isCustomerService() || isFrontdesk();
+    }
+    
+    function hasWriteAccess() {
+      return isAdmin() || isHR() || isAccounting();
+    }
+    
+    function hasDeleteAccess() {
+      return isAdmin() || isHR();
+    }
+    
+    // Users collection - User profiles and authentication data
+    match /users/{userId} {
+      allow read: if isAuthenticated() && (isEmployee(userId) || isAdmin() || isHR());
+      
+      // FIXED: Allow HR/Admin to create new user accounts for employees
+      allow create: if isHR() || isAdmin();
+      
+      // FIXED: Allow HR/Admin to update user accounts, and users to update their own
+      allow update: if (isHR() || isAdmin()) || 
+        (isEmployee(userId) && !('role' in request.resource.data.diff(resource.data).affectedKeys()));
+      
+      allow delete: if isAdmin();
+    }
+    
+    // Employees collection - Employee records and HR data
+    match /employees/{employeeId} {
+      allow read: if hasReadAccess();
+      allow create: if isHR() || isAdmin();
+      allow update: if isHR() || isAdmin();
+      allow delete: if isAdmin();
+    }
+    
+    // Departments collection - Organizational structure
+    match /departments/{departmentId} {
+      allow read: if hasReadAccess();
+      allow create: if isHR() || isAdmin();
+      allow update: if isHR() || isAdmin();
+      allow delete: if isAdmin();
+    }
+    
+    // Positions collection - Job positions and roles
+    match /positions/{positionId} {
+      allow read: if hasReadAccess();
+      allow create: if isHR() || isAdmin();
+      allow update: if isHR() || isAdmin();
+      allow delete: if isAdmin();
+    }
+    
+    // Documents collection - Employee documents and files
+    match /documents/{documentId} {
+      allow read: if hasReadAccess() || 
+        (isAuthenticated() && resource.data.employeeId == request.auth.uid);
+      allow create: if isHR() || isAdmin();
+      allow update: if isHR() || isAdmin();
+      allow delete: if isHR() || isAdmin();
+    }
+    
+    // Attendance collection - Time tracking and attendance
+    match /attendance/{attendanceId} {
+      allow read: if hasReadAccess() || 
+        (isAuthenticated() && resource.data.employeeId == request.auth.uid);
+      allow create: if isAuthenticated() && 
+        (isEmployee(resource.data.employeeId) || isHR() || isAdmin());
+      allow update: if isHR() || isAdmin() || 
+        (isAuthenticated() && resource.data.employeeId == request.auth.uid && 
+         !('approved' in request.resource.data.diff(resource.data).affectedKeys()));
+      allow delete: if isHR() || isAdmin();
+    }
+    
+    // Time Entries collection - Detailed time logs
+    match /timeEntries/{entryId} {
+      allow read: if hasReadAccess() || 
+        (isAuthenticated() && resource.data.employeeId == request.auth.uid);
+      allow create: if isAuthenticated() && 
+        (isEmployee(resource.data.employeeId) || isHR() || isAdmin());
+      allow update: if isHR() || isAdmin() || 
+        (isAuthenticated() && resource.data.employeeId == request.auth.uid);
+      allow delete: if isHR() || isAdmin();
+    }
+    
+    // Projects collection - Project management
+    match /projects/{projectId} {
+      allow read: if hasReadAccess();
+      allow create: if isAdmin() || isHR() || isSales();
+      allow update: if isAdmin() || isHR() || isSales();
+      allow delete: if isAdmin();
+    }
+    
+    // Benefits collection - Employee benefits
+    match /benefits/{benefitId} {
+      allow read: if hasReadAccess();
+      allow create: if isHR() || isAdmin();
+      allow update: if isHR() || isAdmin();
+      allow delete: if isAdmin();
+    }
+    
+    // Benefit Enrollments collection - Employee benefit enrollments
+    match /benefitEnrollments/{enrollmentId} {
+      allow read: if hasReadAccess() || 
+        (isAuthenticated() && resource.data.employeeId == request.auth.uid);
+      allow create: if isHR() || isAdmin() || 
+        (isAuthenticated() && resource.data.employeeId == request.auth.uid);
+      allow update: if isHR() || isAdmin() || 
+        (isAuthenticated() && resource.data.employeeId == request.auth.uid);
+      allow delete: if isHR() || isAdmin() || 
+        (isAuthenticated() && resource.data.employeeId == request.auth.uid);
+    }
+    
+    // Salary Structures collection - Pay structures
+    match /salaryStructures/{structureId} {
+      allow read: if isHR() || isAdmin() || isAccounting();
+      allow create: if isHR() || isAdmin();
+      allow update: if isHR() || isAdmin();
+      allow delete: if isAdmin();
+    }
+    
+    // Deductions collection - Payroll deductions
+    match /deductions/{deductionId} {
+      allow read: if isHR() || isAdmin() || isAccounting();
+      allow create: if isHR() || isAdmin();
+      allow update: if isHR() || isAdmin();
+      allow delete: if isAdmin();
+    }
+    
+    // Tax Settings collection - Tax configurations
+    match /taxSettings/{taxId} {
+      allow read: if isHR() || isAdmin() || isAccounting();
+      allow create: if isHR() || isAdmin();
+      allow update: if isHR() || isAdmin();
+      allow delete: if isAdmin();
+    }
+    
+    // Payroll Reports collection - Sensitive payroll data
+    match /payrollReports/{reportId} {
+      allow read: if isHR() || isAdmin() || isAccounting();
+      allow create: if isHR() || isAdmin() || isAccounting();
+      allow update: if isHR() || isAdmin();
+      allow delete: if isAdmin();
+    }
+    
+    // Processed Payroll collection - Calculated payroll data
+    match /processedPayroll/{payrollId} {
+      allow read: if isHR() || isAdmin() || isAccounting();
+      allow create: if isHR() || isAdmin() || isAccounting();
+      allow update: if isHR() || isAdmin() || isAccounting();
+      allow delete: if isAdmin();
+    }
+    
+    // Payroll Records collection - Payroll register data
+    match /payrollRecords/{recordId} {
+      allow read: if isHR() || isAdmin() || isAccounting();
+      allow create: if isHR() || isAdmin() || isAccounting();
+      allow update: if isHR() || isAdmin() || isAccounting();
+      allow delete: if isAdmin();
+    }
+    
+    // Salary Releases collection - Salary distribution records
+    match /salaryReleases/{releaseId} {
+      allow read: if isHR() || isAdmin() || isAccounting();
+      allow create: if isHR() || isAdmin() || isAccounting();
+      allow update: if isHR() || isAdmin() || isAccounting();
+      allow delete: if isAdmin();
+    }
+    
+    // Leave Requests collection - Employee leave management
+    match /leaveRequests/{leaveId} {
+      allow read: if hasReadAccess() || 
+        (isAuthenticated() && resource.data.employeeId == request.auth.uid);
+      allow create: if isAuthenticated() && 
+        (isEmployee(resource.data.employeeId) || isHR() || isAdmin());
+      allow update: if isHR() || isAdmin() || 
+        (isAuthenticated() && resource.data.employeeId == request.auth.uid && 
+         !('status' in request.resource.data.diff(resource.data).affectedKeys()));
+      allow delete: if isHR() || isAdmin();
+    }
+    
+    // Overtime Requests collection - Overtime management
+    match /overtimeRequests/{overtimeId} {
+      allow read: if hasReadAccess() || 
+        (isAuthenticated() && resource.data.employeeId == request.auth.uid);
+      allow create: if isAuthenticated() && 
+        (isEmployee(resource.data.employeeId) || isHR() || isAdmin());
+      allow update: if isHR() || isAdmin() || 
+        (isAuthenticated() && resource.data.employeeId == request.auth.uid && 
+         !('status' in request.resource.data.diff(resource.data).affectedKeys()));
+      allow delete: if isHR() || isAdmin();
+    }
+    
+    // Permits collection - Business permits and licenses
+    match /permits/{permitId} {
+      allow read: if isAdmin() || isHR();
+      allow create: if isAdmin() || isHR();
+      allow update: if isAdmin() || isHR();
+      allow delete: if isAdmin();
+    }
+    
+    // Visitors collection - Visitor logs
+    match /visitors/{visitorId} {
+      allow read: if isAdmin() || isHR() || isFrontdesk();
+      allow create: if isAdmin() || isHR() || isFrontdesk();
+      allow update: if isAdmin() || isHR() || isFrontdesk();
+      allow delete: if isAdmin();
+    }
+    
+    // Government Compliance collection - Compliance data
+    match /governmentCompliance/{complianceId} {
+      allow read: if isAdmin() || isHR();
+      allow create: if isAdmin() || isHR();
+      allow update: if isAdmin() || isHR();
+      allow delete: if isAdmin();
+    }
+    
+    // System Settings collection - Application settings
+    match /systemSettings/{settingId} {
+      allow read: if hasReadAccess();
+      allow create: if isAdmin() || isHR() || isAccounting();
+      allow update: if isAdmin() || isHR() || isAccounting();
+      allow delete: if isAdmin();
+    }
+    
+    // Reminders collection - System reminders
+    match /reminders/{reminderId} {
+      allow read: if hasReadAccess();
+      allow create: if isHR() || isAdmin();
+      allow update: if isHR() || isAdmin();
+      allow delete: if isHR() || isAdmin();
+    }
+    
+    // Attendance Reports collection - Attendance analytics
+    match /attendanceReports/{reportId} {
+      allow read: if isHR() || isAdmin() || isAuditor();
+      allow create: if isHR() || isAdmin();
+      allow update: if isHR() || isAdmin();
+      allow delete: if isAdmin();
+    }
+    
+    // Default deny rule for any unmatched paths
+    match /{document=**} {
+      allow read, write: if false;
+    }
   }
 }

@@ -125,28 +125,30 @@ export default function AttendanceModal({ isOpen, onClose }) {
       });
       setEmployees(employeesData);
 
-      // Fetch today's attendance records
+      // Fetch today's attendance records using API
       const today = new Date().toISOString().split('T')[0];
-      const attendanceRef = collection(db, 'attendance');
-      const attendanceQuery = query(
-        attendanceRef, 
-        where('date', '==', today)
-      );
-      const attendanceSnapshot = await getDocs(attendanceQuery);
+      const attendanceResponse = await fetch(`/api/attendance?date=${today}`);
       
-      const attendanceData = [];
-      attendanceSnapshot.forEach((doc) => {
-        const data = doc.data();
-        attendanceData.push({
-          id: doc.id,
+      if (attendanceResponse.ok) {
+        const attendanceData = await attendanceResponse.json();
+        const processedData = attendanceData.map(data => ({
           ...data,
           checkIn: data.checkIn ? new Date(`2000-01-01T${data.checkIn}`) : null,
           checkOut: data.checkOut ? new Date(`2000-01-01T${data.checkOut}`) : null
+        }));
+        
+        setAttendanceRecords(processedData);
+        setTotalWorkDays(processedData.filter(record => record.status === 'completed').length);
+      } else {
+        const errorData = await attendanceResponse.json().catch(() => ({}));
+        console.error('Failed to fetch attendance records:', {
+          status: attendanceResponse.status,
+          statusText: attendanceResponse.statusText,
+          error: errorData.error || 'Unknown error'
         });
-      });
-      
-      setAttendanceRecords(attendanceData);
-      setTotalWorkDays(attendanceData.filter(record => record.status === 'completed').length);
+        setAttendanceRecords([]);
+        setError(`Failed to fetch attendance: ${errorData.error || 'Unknown error'}`);
+      }
     } catch (err) {
       console.error('Error fetching data:', err);
       setError('Failed to load data');
@@ -191,20 +193,32 @@ export default function AttendanceModal({ isOpen, onClose }) {
         notes: notes,
         status: 'Present',
         lateMinutes: calculateLateMinutes(now.toTimeString().slice(0, 5)),
-        overtimeHours: 0,
-        createdAt: serverTimestamp(),
-        updatedAt: serverTimestamp()
+        overtimeHours: 0
       };
 
-      const docRef = await addDoc(collection(db, 'attendance'), attendanceData);
-      setCurrentAttendanceRecord({ id: docRef.id, ...attendanceData });
+      // Use API route instead of direct Firebase client operation
+      const response = await fetch('/api/attendance', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(attendanceData),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to check in');
+      }
+
+      const result = await response.json();
+      setCurrentAttendanceRecord({ id: result.id, ...attendanceData });
       
       // Refresh the data to show updated records
       fetchData();
       setError(null);
     } catch (err) {
       console.error('Error checking in:', err);
-      setError('Failed to check in');
+      setError(err.message || 'Failed to check in');
       setIsCheckedIn(false);
       setCheckInTime(null);
       setHasCheckedInToday(false);
@@ -233,11 +247,22 @@ export default function AttendanceModal({ isOpen, onClose }) {
         checkOut: now.toTimeString().slice(0, 5),
         duration: Math.round(hours * 100) / 100,
         status: 'Completed',
-        overtimeHours: calculateOvertimeHours(now.toTimeString().slice(0, 5)),
-        updatedAt: serverTimestamp()
+        overtimeHours: calculateOvertimeHours(now.toTimeString().slice(0, 5))
       };
 
-      await updateDoc(doc(db, 'attendance', currentAttendanceRecord.id), attendanceData);
+      // Use API route instead of direct Firebase client operation
+      const response = await fetch(`/api/attendance/${currentAttendanceRecord.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(attendanceData),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to check out');
+      }
       
       setHasCheckedOutToday(true);
       setIsCheckedIn(false);
@@ -249,7 +274,7 @@ export default function AttendanceModal({ isOpen, onClose }) {
       setError(null);
     } catch (err) {
       console.error('Error checking out:', err);
-      setError('Failed to check out');
+      setError(err.message || 'Failed to check out');
     }
   };
 
@@ -304,9 +329,9 @@ export default function AttendanceModal({ isOpen, onClose }) {
   if (!isOpen) return null;
 
   return (
-    <div className={`fixed top-16 left-1/2 transform -translate-x-1/2 z-50 w-80 max-h-[calc(100vh-6rem)] transition-all duration-300 ease-out ${
+    <div className={`fixed top-16 left-1/2 transform -translate-x-1/2 z-50 w-90 max-w-md sm:max-w-lg lg:max-w-xl max-h-[calc(100vh-6rem)] transition-all duration-300 ease-out ${
       isClosing ? 'animate-slideUp' : 'animate-slideDown'
-    }`} style={{ marginLeft: '-115px' }} data-modal="timecard">
+     }`} style={{ marginLeft: '-15%' }} data-modal="timecard">
       <div className="bg-white rounded-lg shadow-xl border border-gray-200 overflow-hidden">
         {/* Header */}
         <div className="bg-gradient-to-r from-green-600 to-green-800 px-6 py-4 text-white">
@@ -328,7 +353,7 @@ export default function AttendanceModal({ isOpen, onClose }) {
           </div>
         </div>
 
-        <div className="p-4 overflow-y-auto max-h-[calc(100vh-12rem)]">
+        <div className="p-3 sm:p-4 lg:p-6 overflow-y-auto max-h-[calc(100vh-12rem)]">
           {/* Error Display */}
           {error && (
             <div className="mb-4 bg-red-50 border border-red-200 rounded-lg p-3">
@@ -358,7 +383,7 @@ export default function AttendanceModal({ isOpen, onClose }) {
           <div className="bg-white border border-gray-200 rounded-lg p-4 mb-4">
             <h3 className="text-sm font-semibold text-gray-900 mb-3">Attendance Tracking</h3>
             
-            <div className="grid grid-cols-1 gap-3 mb-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-3 mb-3">
               <div>
                 <label className="block text-xs font-semibold text-gray-800 mb-2">
                   Employee *
@@ -525,7 +550,7 @@ export default function AttendanceModal({ isOpen, onClose }) {
           {/* Today's Summary */}
           <div className="bg-green-50 rounded-lg p-3 mb-4">
             <h3 className="text-sm font-semibold text-gray-900 mb-2">Today's Summary</h3>
-            <div className="grid grid-cols-3 gap-2">
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-3">
               <div className="text-center">
                 <div className="text-lg font-bold text-green-600">
                   {attendanceRecords.filter(record => record.status === 'Completed').length}
@@ -552,7 +577,7 @@ export default function AttendanceModal({ isOpen, onClose }) {
             <div className="px-4 py-3 border-b border-gray-200">
               <h3 className="text-sm font-semibold text-gray-900">All Employees Status Today</h3>
             </div>
-            <div className="p-2 max-h-32 overflow-y-auto">
+            <div className="p-2 sm:p-3 max-h-32 sm:max-h-40 overflow-y-auto">
               {employees.length === 0 ? (
                 <div className="p-2 text-center text-gray-600">
                   <p className="text-xs font-medium">No employees found</p>
@@ -563,10 +588,10 @@ export default function AttendanceModal({ isOpen, onClose }) {
                     const attendanceRecord = attendanceRecords.find(record => record.employeeId === employee.id);
                     const status = attendanceRecord ? attendanceRecord.status : 'Absent';
                     return (
-                      <div key={employee.id} className="flex items-center justify-between py-1 px-2 rounded text-xs">
+                      <div key={employee.id} className="flex items-center justify-between py-1 sm:py-2 px-2 sm:px-3 rounded text-xs">
                         <div className="flex-1 min-w-0">
-                          <div className="font-medium text-gray-900 truncate">{employee.name}</div>
-                          <div className="text-gray-500 truncate">{employee.department}</div>
+                          <div className="font-medium text-gray-900 truncate text-xs sm:text-sm">{employee.name}</div>
+                          <div className="text-gray-500 truncate text-xs">{employee.department}</div>
                         </div>
                         <span className={`inline-flex px-2 py-0.5 text-xs font-bold rounded-full ${
                           status === 'Present' ? 'bg-green-100 text-green-800' :
@@ -598,11 +623,11 @@ export default function AttendanceModal({ isOpen, onClose }) {
                   <p className="text-xs font-medium">No attendance records yet</p>
                 </div>
               ) : (
-                <div className="p-2">
+                <div className="p-2 sm:p-3">
                   {attendanceRecords.slice(0, 3).map((record) => (
-                    <div key={record.id} className="flex items-center justify-between py-2 border-b border-gray-100 last:border-b-0">
+                    <div key={record.id} className="flex items-center justify-between py-2 sm:py-3 border-b border-gray-100 last:border-b-0">
                       <div className="flex-1 min-w-0">
-                        <div className="text-xs font-semibold text-gray-900 truncate">{record.employeeName}</div>
+                        <div className="text-xs sm:text-sm font-semibold text-gray-900 truncate">{record.employeeName}</div>
                         <div className="text-xs text-gray-600 truncate">{record.department} • {record.shift}</div>
                       </div>
                       <div className="text-right">

@@ -32,6 +32,7 @@ import { db } from '../../../lib/firebaseClient';
 const Benefits = () => {
   const [benefits, setBenefits] = useState([]);
   const [employees, setEmployees] = useState([]);
+  const [enrollments, setEnrollments] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [editingBenefit, setEditingBenefit] = useState(null);
   const [viewMode, setViewMode] = useState(false);
@@ -41,6 +42,13 @@ const Benefits = () => {
   const [activeTab, setActiveTab] = useState('overview');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  
+  // Enrollment modal states
+  const [showEnrollmentModal, setShowEnrollmentModal] = useState(false);
+  const [selectedEmployee, setSelectedEmployee] = useState(null);
+  const [selectedBenefitForEnrollment, setSelectedBenefitForEnrollment] = useState(null);
+  const [bulkEnrollmentMode, setBulkEnrollmentMode] = useState(false);
+  const [selectedEmployees, setSelectedEmployees] = useState([]);
 
   // Form state
   const [formData, setFormData] = useState({
@@ -105,8 +113,30 @@ const Benefits = () => {
       }
     };
 
+    const fetchEnrollments = async () => {
+      try {
+        const enrollmentsRef = collection(db, 'benefitEnrollments');
+        const enrollmentsQuery = query(enrollmentsRef, orderBy('enrolledAt', 'desc'));
+        
+        const unsubscribe = onSnapshot(enrollmentsQuery, (snapshot) => {
+          const enrollmentsData = snapshot.docs.map(doc => ({
+            id: doc.id,
+            ...doc.data()
+          }));
+          setEnrollments(enrollmentsData);
+        }, (error) => {
+          console.error('Error fetching enrollments:', error);
+        });
+
+        return () => unsubscribe();
+      } catch (error) {
+        console.error('Error setting up enrollments listener:', error);
+      }
+    };
+
     fetchBenefits();
     fetchEmployees();
+    fetchEnrollments();
   }, []);
 
   const categories = [
@@ -207,6 +237,96 @@ const Benefits = () => {
   const handleView = (benefit) => {
     setSelectedBenefit(benefit);
     setViewMode(true);
+  };
+
+  // Enrollment functions
+  const handleEnrollEmployee = async (employeeId, benefitId) => {
+    try {
+      setError(null);
+      
+      const response = await fetch('/api/benefits/enrollment', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          employeeId,
+          benefitId,
+          status: 'active',
+          effectiveDate: new Date().toISOString()
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to enroll employee');
+      }
+
+      setShowEnrollmentModal(false);
+      setSelectedEmployee(null);
+      setSelectedBenefitForEnrollment(null);
+    } catch (error) {
+      console.error('Error enrolling employee:', error);
+      setError(error.message);
+    }
+  };
+
+  const handleBulkEnroll = async () => {
+    try {
+      setError(null);
+      
+      const enrollPromises = selectedEmployees.map(employeeId => 
+        handleEnrollEmployee(employeeId, selectedBenefitForEnrollment.id)
+      );
+
+      await Promise.all(enrollPromises);
+      
+      setBulkEnrollmentMode(false);
+      setSelectedEmployees([]);
+      setSelectedBenefitForEnrollment(null);
+    } catch (error) {
+      console.error('Error in bulk enrollment:', error);
+      setError(error.message);
+    }
+  };
+
+  const handleRemoveEnrollment = async (enrollmentId) => {
+    if (window.confirm('Are you sure you want to remove this enrollment?')) {
+      try {
+        setError(null);
+        
+        const response = await fetch(`/api/benefits/enrollment/${enrollmentId}`, {
+          method: 'DELETE',
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || 'Failed to remove enrollment');
+        }
+      } catch (error) {
+        console.error('Error removing enrollment:', error);
+        setError(error.message);
+      }
+    }
+  };
+
+  const openEnrollmentModal = (benefit) => {
+    setSelectedBenefitForEnrollment(benefit);
+    setShowEnrollmentModal(true);
+  };
+
+  const getEnrollmentsForBenefit = (benefitId) => {
+    return enrollments.filter(enrollment => enrollment.benefitId === benefitId);
+  };
+
+  const getEnrollmentsForEmployee = (employeeId) => {
+    return enrollments.filter(enrollment => enrollment.employeeId === employeeId);
+  };
+
+  const isEmployeeEnrolled = (employeeId, benefitId) => {
+    return enrollments.some(enrollment => 
+      enrollment.employeeId === employeeId && enrollment.benefitId === benefitId
+    );
   };
 
   const filteredBenefits = benefits.filter(benefit => {
@@ -555,6 +675,14 @@ const Benefits = () => {
                         Edit
                       </button>
                       <button
+                        onClick={() => openEnrollmentModal(benefit)}
+                        className="flex-1 inline-flex items-center justify-center px-3 py-2 border border-blue-300 text-sm font-medium rounded-md text-blue-700 bg-white hover:bg-blue-50"
+                        disabled={!benefit.isActive}
+                      >
+                        <AcademicCapIcon className="h-4 w-4 mr-1" />
+                        Enroll
+                      </button>
+                      <button
                         onClick={() => handleDelete(benefit.id)}
                         className="inline-flex items-center justify-center px-3 py-2 border border-red-300 text-sm font-medium rounded-md text-red-700 bg-white hover:bg-red-50"
                       >
@@ -573,9 +701,179 @@ const Benefits = () => {
       {/* Enrollment Tab */}
       {activeTab === 'enrollment' && (
         <div className="space-y-6">
+          {/* Enrollment Controls */}
           <div className="bg-white border border-gray-200 rounded-lg p-6">
-            <h3 className="text-lg font-medium text-gray-900 mb-4">Employee Enrollment</h3>
-            <p className="text-gray-600">Enrollment management features will be implemented here.</p>
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
+              <div>
+                <h3 className="text-lg font-medium text-gray-900">Employee Enrollment Management</h3>
+                <p className="text-sm text-gray-600 mt-1">Manage employee enrollments and track benefit participation</p>
+              </div>
+              <div className="flex space-x-3">
+                <button
+                  onClick={() => setBulkEnrollmentMode(true)}
+                  className="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
+                >
+                  <PlusIcon className="h-5 w-5 mr-2" />
+                  Bulk Enrollment
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Enrollment Statistics */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="bg-white border border-gray-200 rounded-lg p-6">
+              <div className="flex items-center">
+                <div className="p-2 bg-blue-100 rounded-lg">
+                  <AcademicCapIcon className="h-6 w-6 text-blue-600" />
+                </div>
+                <div className="ml-4">
+                  <p className="text-sm font-medium text-gray-600">Total Enrollments</p>
+                  <p className="text-2xl font-bold text-gray-900">{enrollments.length}</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white border border-gray-200 rounded-lg p-6">
+              <div className="flex items-center">
+                <div className="p-2 bg-green-100 rounded-lg">
+                  <HeartIcon className="h-6 w-6 text-green-600" />
+                </div>
+                <div className="ml-4">
+                  <p className="text-sm font-medium text-gray-600">Active Enrollments</p>
+                  <p className="text-2xl font-bold text-gray-900">
+                    {enrollments.filter(e => e.status === 'active').length}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white border border-gray-200 rounded-lg p-6">
+              <div className="flex items-center">
+                <div className="p-2 bg-purple-100 rounded-lg">
+                  <CurrencyDollarIcon className="h-6 w-6 text-purple-600" />
+                </div>
+                <div className="ml-4">
+                  <p className="text-sm font-medium text-gray-600">Monthly Enrollment Cost</p>
+                  <p className="text-2xl font-bold text-gray-900">
+                    ${enrollments.reduce((total, enrollment) => {
+                      const benefit = benefits.find(b => b.id === enrollment.benefitId);
+                      return total + (benefit ? benefit.cost : 0);
+                    }, 0).toLocaleString()}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Enrollment List */}
+          <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
+            <div className="px-6 py-4 border-b border-gray-200 bg-gray-50">
+              <h3 className="text-lg font-semibold text-gray-900">Recent Enrollments</h3>
+            </div>
+            <div className="overflow-x-auto">
+              {enrollments.length === 0 ? (
+                <div className="text-center py-12">
+                  <AcademicCapIcon className="mx-auto h-12 w-12 text-gray-400" />
+                  <h3 className="mt-2 text-sm font-medium text-gray-900">No enrollments found</h3>
+                  <p className="mt-1 text-sm text-gray-500">
+                    Start by enrolling employees in available benefits.
+                  </p>
+                </div>
+              ) : (
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Employee
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Benefit
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Category
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Cost
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Status
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Enrolled Date
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Actions
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {enrollments.map((enrollment) => {
+                      const employee = employees.find(e => e.id === enrollment.employeeId);
+                      const benefit = benefits.find(b => b.id === enrollment.benefitId);
+                      
+                      if (!employee || !benefit) return null;
+                      
+                      return (
+                        <tr key={enrollment.id} className="hover:bg-gray-50">
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <div className="flex items-center">
+                              <div className="flex-shrink-0 h-10 w-10">
+                                <div className="h-10 w-10 rounded-full bg-gray-300 flex items-center justify-center">
+                                  <span className="text-sm font-medium text-gray-700">
+                                    {employee.name ? employee.name.charAt(0).toUpperCase() : 'E'}
+                                  </span>
+                                </div>
+                              </div>
+                              <div className="ml-4">
+                                <div className="text-sm font-medium text-gray-900">
+                                  {employee.name || 'Unknown Employee'}
+                                </div>
+                                <div className="text-sm text-gray-500">
+                                  {employee.position || 'No Position'}
+                                </div>
+                              </div>
+                            </div>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <div className="text-sm text-gray-900">{benefit.name}</div>
+                            <div className="text-sm text-gray-500">{benefit.provider}</div>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 capitalize">
+                              {benefit.category}
+                            </span>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                            ${benefit.cost}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                              enrollment.status === 'active' 
+                                ? 'bg-green-100 text-green-800' 
+                                : 'bg-red-100 text-red-800'
+                            }`}>
+                              {enrollment.status}
+                            </span>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            {new Date(enrollment.enrolledAt).toLocaleDateString()}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                            <button
+                              onClick={() => handleRemoveEnrollment(enrollment.id)}
+                              className="text-red-600 hover:text-red-900"
+                            >
+                              <TrashIcon className="h-4 w-4" />
+                            </button>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              )}
+            </div>
           </div>
         </div>
       )}
@@ -938,6 +1236,293 @@ const Benefits = () => {
                 >
                   Edit Benefit
                 </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Enrollment Modal */}
+      {showEnrollmentModal && selectedBenefitForEnrollment && (
+        <div 
+          className="fixed inset-0 backdrop-blur-sm flex items-center justify-center p-4 z-50 modal-backdrop"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              setShowEnrollmentModal(false);
+              setSelectedEmployee(null);
+              setSelectedBenefitForEnrollment(null);
+            }
+          }}
+        >
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto modal-popup">
+            <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 rounded-t-xl">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-xl font-semibold text-gray-900">
+                    Enroll Employees in {selectedBenefitForEnrollment.name}
+                  </h3>
+                  <p className="text-sm text-gray-600 mt-1">
+                    Select employees to enroll in this benefit
+                  </p>
+                </div>
+                <button
+                  onClick={() => {
+                    setShowEnrollmentModal(false);
+                    setSelectedEmployee(null);
+                    setSelectedBenefitForEnrollment(null);
+                  }}
+                  className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                >
+                  <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+            
+            <div className="p-6">
+              <div className="space-y-6">
+                {/* Benefit Info */}
+                <div className="bg-gray-50 rounded-lg p-4">
+                  <div className="flex items-center space-x-4">
+                    <div className="p-3 bg-blue-100 rounded-lg">
+                      {React.createElement(getCategoryIcon(selectedBenefitForEnrollment.category), {
+                        className: "h-8 w-8 text-blue-600"
+                      })}
+                    </div>
+                    <div>
+                      <h4 className="text-lg font-semibold text-gray-900">{selectedBenefitForEnrollment.name}</h4>
+                      <p className="text-sm text-gray-600">${selectedBenefitForEnrollment.cost} per month</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Employee Selection */}
+                <div className="bg-gray-50 rounded-lg p-4">
+                  <h5 className="text-lg font-semibold text-gray-900 mb-4">Select Employees</h5>
+                  <div className="max-h-96 overflow-y-auto">
+                    {employees.length === 0 ? (
+                      <div className="text-center py-8">
+                        <p className="text-gray-500">No employees found</p>
+                      </div>
+                    ) : (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        {employees.map((employee) => {
+                          const isEnrolled = isEmployeeEnrolled(employee.id, selectedBenefitForEnrollment.id);
+                          return (
+                            <div
+                              key={employee.id}
+                              className={`border rounded-lg p-3 cursor-pointer transition-colors ${
+                                isEnrolled 
+                                  ? 'border-green-300 bg-green-50' 
+                                  : 'border-gray-200 hover:border-blue-300 hover:bg-blue-50'
+                              }`}
+                              onClick={() => {
+                                if (!isEnrolled) {
+                                  handleEnrollEmployee(employee.id, selectedBenefitForEnrollment.id);
+                                }
+                              }}
+                            >
+                              <div className="flex items-center space-x-3">
+                                <div className="flex-shrink-0 h-10 w-10">
+                                  <div className="h-10 w-10 rounded-full bg-gray-300 flex items-center justify-center">
+                                    <span className="text-sm font-medium text-gray-700">
+                                      {employee.name ? employee.name.charAt(0).toUpperCase() : 'E'}
+                                    </span>
+                                  </div>
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <p className="text-sm font-medium text-gray-900 truncate">
+                                    {employee.name || 'Unknown Employee'}
+                                  </p>
+                                  <p className="text-sm text-gray-500 truncate">
+                                    {employee.position || 'No Position'}
+                                  </p>
+                                </div>
+                                {isEnrolled && (
+                                  <div className="flex-shrink-0">
+                                    <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                      Enrolled
+                                    </span>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Bulk Enrollment Modal */}
+      {bulkEnrollmentMode && (
+        <div 
+          className="fixed inset-0 backdrop-blur-sm flex items-center justify-center p-4 z-50 modal-backdrop"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              setBulkEnrollmentMode(false);
+              setSelectedEmployees([]);
+              setSelectedBenefitForEnrollment(null);
+            }
+          }}
+        >
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-6xl max-h-[90vh] overflow-y-auto modal-popup">
+            <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 rounded-t-xl">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-xl font-semibold text-gray-900">Bulk Employee Enrollment</h3>
+                  <p className="text-sm text-gray-600 mt-1">
+                    Select a benefit and multiple employees for bulk enrollment
+                  </p>
+                </div>
+                <button
+                  onClick={() => {
+                    setBulkEnrollmentMode(false);
+                    setSelectedEmployees([]);
+                    setSelectedBenefitForEnrollment(null);
+                  }}
+                  className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                >
+                  <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+            
+            <div className="p-6">
+              <div className="space-y-6">
+                {/* Benefit Selection */}
+                <div className="bg-gray-50 rounded-lg p-4">
+                  <h5 className="text-lg font-semibold text-gray-900 mb-4">Select Benefit</h5>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                    {benefits.filter(b => b.isActive).map((benefit) => (
+                      <div
+                        key={benefit.id}
+                        className={`border rounded-lg p-3 cursor-pointer transition-colors ${
+                          selectedBenefitForEnrollment?.id === benefit.id
+                            ? 'border-blue-500 bg-blue-50'
+                            : 'border-gray-200 hover:border-blue-300 hover:bg-blue-50'
+                        }`}
+                        onClick={() => setSelectedBenefitForEnrollment(benefit)}
+                      >
+                        <div className="flex items-center space-x-3">
+                          <div className="p-2 bg-blue-100 rounded-lg">
+                            {React.createElement(getCategoryIcon(benefit.category), {
+                              className: "h-5 w-5 text-blue-600"
+                            })}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium text-gray-900 truncate">{benefit.name}</p>
+                            <p className="text-sm text-gray-500">${benefit.cost}/month</p>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Employee Selection */}
+                {selectedBenefitForEnrollment && (
+                  <div className="bg-gray-50 rounded-lg p-4">
+                    <h5 className="text-lg font-semibold text-gray-900 mb-4">
+                      Select Employees for {selectedBenefitForEnrollment.name}
+                    </h5>
+                    <div className="max-h-96 overflow-y-auto">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        {employees.map((employee) => {
+                          const isEnrolled = isEmployeeEnrolled(employee.id, selectedBenefitForEnrollment.id);
+                          const isSelected = selectedEmployees.includes(employee.id);
+                          
+                          return (
+                            <div
+                              key={employee.id}
+                              className={`border rounded-lg p-3 cursor-pointer transition-colors ${
+                                isEnrolled 
+                                  ? 'border-green-300 bg-green-50 cursor-not-allowed'
+                                  : isSelected
+                                  ? 'border-blue-500 bg-blue-50'
+                                  : 'border-gray-200 hover:border-blue-300 hover:bg-blue-50'
+                              }`}
+                              onClick={() => {
+                                if (!isEnrolled) {
+                                  if (isSelected) {
+                                    setSelectedEmployees(prev => prev.filter(id => id !== employee.id));
+                                  } else {
+                                    setSelectedEmployees(prev => [...prev, employee.id]);
+                                  }
+                                }
+                              }}
+                            >
+                              <div className="flex items-center space-x-3">
+                                <div className="flex-shrink-0 h-10 w-10">
+                                  <div className="h-10 w-10 rounded-full bg-gray-300 flex items-center justify-center">
+                                    <span className="text-sm font-medium text-gray-700">
+                                      {employee.name ? employee.name.charAt(0).toUpperCase() : 'E'}
+                                    </span>
+                                  </div>
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <p className="text-sm font-medium text-gray-900 truncate">
+                                    {employee.name || 'Unknown Employee'}
+                                  </p>
+                                  <p className="text-sm text-gray-500 truncate">
+                                    {employee.position || 'No Position'}
+                                  </p>
+                                </div>
+                                <div className="flex-shrink-0">
+                                  {isEnrolled ? (
+                                    <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                      Enrolled
+                                    </span>
+                                  ) : isSelected ? (
+                                    <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                      Selected
+                                    </span>
+                                  ) : null}
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+            
+            {/* Footer */}
+            <div className="sticky bottom-0 bg-white border-t border-gray-200 px-6 py-4 rounded-b-xl">
+              <div className="flex justify-between items-center">
+                <div className="text-sm text-gray-600">
+                  {selectedEmployees.length} employee{selectedEmployees.length !== 1 ? 's' : ''} selected
+                </div>
+                <div className="flex space-x-3">
+                  <button
+                    onClick={() => {
+                      setBulkEnrollmentMode(false);
+                      setSelectedEmployees([]);
+                      setSelectedBenefitForEnrollment(null);
+                    }}
+                    className="px-6 py-3 border border-gray-300 rounded-lg text-gray-700 font-medium hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleBulkEnroll}
+                    disabled={!selectedBenefitForEnrollment || selectedEmployees.length === 0}
+                    className="px-6 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    Enroll {selectedEmployees.length} Employee{selectedEmployees.length !== 1 ? 's' : ''}
+                  </button>
+                </div>
               </div>
             </div>
           </div>
