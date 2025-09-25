@@ -54,243 +54,94 @@ const AppSuite = () => {
     }
   }, [showReportModal]);
 
-  // Sample data - in real app, this would come from API/database
-  const [dailyReports, setDailyReports] = useState([
-    {
-      id: 'DR-001',
-      employeeId: 'EMP-001',
-      employeeName: 'Neo Dela Torre',
-      department: 'Sales',
-      position: 'Software Developer',
-      reportDate: '2024-01-25',
-      submissionTime: '2024-01-25T17:30:00',
-      status: 'submitted',
-      consultations: [
-        { time: '9:30', place: 'Office Meeting Room A', client: 'ABC Corporation' },
-        { time: '10:30', place: 'Client Office - Makati', client: 'XYZ Industries' },
-        { time: '11:30', place: 'Virtual Meeting', client: 'DEF Solutions' },
-        { time: '12:30', place: '', client: '' },
-        { time: '1:30', place: 'Office Conference Room', client: 'GHI Technologies' },
-        { time: '2:30', place: 'Client Site - BGC', client: 'JKL Enterprises' },
-        { time: '3:30', place: 'Virtual Meeting', client: 'MNO Systems' },
-        { time: '4:30', place: 'Office Meeting Room B', client: 'PQR Solutions' },
-        { time: '5:30', place: '', client: '' },
-        { time: '6:30', place: '', client: '' }
-      ],
-      tasks: [
-        { task: 'Client meeting with ABC Corp', status: 'completed', timeSpent: '2 hours' },
-        { task: 'Follow up on pending proposals', status: 'completed', timeSpent: '1.5 hours' },
-        { task: 'Prepare quarterly sales report', status: 'in-progress', timeSpent: '1 hour' }
-      ],
-      achievements: [
-        'Closed deal with ABC Corp worth $50,000',
-        'Generated 3 new leads',
-        'Updated CRM with latest client information'
-      ],
-      challenges: [
-        'Delayed response from XYZ Company',
-        'Technical issues with presentation software'
-      ],
-      tomorrowPlans: [
-        'Prepare presentation for new client',
-        'Follow up on pending proposals',
-        'Attend team meeting at 10 AM'
-      ],
-      notes: 'Productive day with successful client meeting. Need to focus on proposal follow-ups tomorrow.',
-      attachments: ['presentation_draft.pdf', 'client_notes.docx'],
-      approvedBy: null,
-      approvedDate: null,
-      feedback: null
-    },
-    {
-      id: 'DR-002',
-      employeeId: 'EMP-002',
-      employeeName: 'Sarah Johnson',
-      department: 'Marketing',
-      position: 'Marketing Specialist',
-      reportDate: '2024-01-25',
-      submissionTime: '2024-01-25T18:15:00',
-      status: 'approved',
-      consultations: [
-        { time: '9:30', place: 'Office Meeting Room A', client: 'Marketing Agency ABC' },
-        { time: '10:30', place: 'Virtual Meeting', client: 'Client XYZ' },
-        { time: '11:30', place: '', client: '' },
-        { time: '12:30', place: '', client: '' },
-        { time: '1:30', place: 'Office Conference Room', client: 'Brand Partners' },
-        { time: '2:30', place: 'Client Office - Ortigas', client: 'Digital Solutions Inc' },
-        { time: '3:30', place: 'Virtual Meeting', client: 'Creative Studio' },
-        { time: '4:30', place: '', client: '' },
-        { time: '5:30', place: '', client: '' },
-        { time: '6:30', place: '', client: '' }
-      ],
-      tasks: [
-        { task: 'Social media content creation', status: 'completed', timeSpent: '3 hours' },
-        { task: 'Email campaign setup', status: 'completed', timeSpent: '2 hours' },
-        { task: 'Analytics report review', status: 'completed', timeSpent: '1 hour' }
-      ],
-      achievements: [
-        'Created 5 engaging social media posts',
-        'Launched email campaign with 95% delivery rate',
-        'Improved website traffic by 15%'
-      ],
-      challenges: [
-        'Limited stock photos for content creation',
-        'Email template compatibility issues'
-      ],
-      tomorrowPlans: [
-        'Analyze campaign performance metrics',
-        'Create content calendar for next week',
-        'Meeting with design team'
-      ],
-      notes: 'Successful campaign launch. Need to monitor performance closely.',
-      attachments: ['campaign_metrics.xlsx', 'content_calendar.pdf'],
-      approvedBy: 'Jane Manager',
-      approvedDate: '2024-01-26T09:00:00',
-      feedback: 'Great work on the campaign launch. Keep monitoring the metrics.'
-    },
-    {
-      id: 'DR-003',
-      employeeId: 'EMP-003',
-      employeeName: 'Mike Davis',
-      department: 'IT',
-      position: 'Software Developer',
-      reportDate: '2024-01-25',
-      submissionTime: '2024-01-25T19:00:00',
-      status: 'pending',
-      consultations: [
-        { time: '9:30', place: 'Office Meeting Room A', client: 'Tech Solutions Corp' },
-        { time: '10:30', place: 'Virtual Meeting', client: 'Development Team' },
-        { time: '11:30', place: 'Office Conference Room', client: 'QA Department' },
-        { time: '12:30', place: '', client: '' },
-        { time: '1:30', place: 'Client Site - BGC', client: 'Software Company ABC' },
-        { time: '2:30', place: 'Virtual Meeting', client: 'External Developer' },
-        { time: '3:30', place: 'Office Meeting Room B', client: 'Project Manager' },
-        { time: '4:30', place: '', client: '' },
-        { time: '5:30', place: '', client: '' },
-        { time: '6:30', place: '', client: '' }
-      ],
-      tasks: [
-        { task: 'Bug fixes for user authentication', status: 'completed', timeSpent: '4 hours' },
-        { task: 'Code review for new features', status: 'completed', timeSpent: '2 hours' },
-        { task: 'Database optimization', status: 'in-progress', timeSpent: '1 hour' }
-      ],
-      achievements: [
-        'Fixed 3 critical authentication bugs',
-        'Completed code review for 2 pull requests',
-        'Improved database query performance by 20%'
-      ],
-      challenges: [
-        'Complex authentication flow issues',
-        'Database performance bottlenecks'
-      ],
-      tomorrowPlans: [
-        'Complete database optimization',
-        'Implement new security features',
-        'Team standup meeting'
-      ],
-      notes: 'Made good progress on authentication fixes. Database optimization needs more attention.',
-      attachments: ['bug_fixes_log.txt', 'performance_report.pdf'],
-      approvedBy: null,
-      approvedDate: null,
-      feedback: null
-    },
-    {
-      id: 'DR-004',
-      employeeId: 'EMP-004',
-      employeeName: 'Lisa Chen',
-      department: 'HR',
-      position: 'HR Coordinator',
-      reportDate: '2024-01-24',
-      submissionTime: '2024-01-24T17:45:00',
-      status: 'submitted',
-      consultations: [
-        { time: '9:30', place: 'Office Meeting Room A', client: 'New Employee - John' },
-        { time: '10:30', place: 'Office Conference Room', client: 'Benefits Provider' },
-        { time: '11:30', place: 'Virtual Meeting', client: 'HR Consultant' },
-        { time: '12:30', place: '', client: '' },
-        { time: '1:30', place: 'Office Meeting Room B', client: 'Department Manager' },
-        { time: '2:30', place: 'Virtual Meeting', client: 'Training Coordinator' },
-        { time: '3:30', place: '', client: '' },
-        { time: '4:30', place: '', client: '' },
-        { time: '5:30', place: '', client: '' },
-        { time: '6:30', place: '', client: '' }
-      ],
-      tasks: [
-        { task: 'New employee onboarding', status: 'completed', timeSpent: '3 hours' },
-        { task: 'Benefits enrollment processing', status: 'completed', timeSpent: '2 hours' },
-        { task: 'Performance review scheduling', status: 'in-progress', timeSpent: '1 hour' }
-      ],
-      achievements: [
-        'Successfully onboarded 2 new employees',
-        'Processed 5 benefits enrollments',
-        'Scheduled 8 performance reviews'
-      ],
-      challenges: [
-        'Delayed documentation from new hires',
-        'Scheduling conflicts for reviews'
-      ],
-      tomorrowPlans: [
-        'Complete performance review scheduling',
-        'Prepare training materials',
-        'Employee satisfaction survey analysis'
-      ],
-      notes: 'Busy day with onboarding activities. Need to follow up on pending documentation.',
-      attachments: ['onboarding_checklist.pdf', 'benefits_summary.xlsx'],
-      approvedBy: null,
-      approvedDate: null,
-      feedback: null
-    },
-    {
-      id: 'DR-005',
-      employeeId: 'EMP-005',
-      employeeName: 'David Wilson',
-      department: 'Finance',
-      position: 'Financial Analyst',
-      reportDate: '2024-01-24',
-      submissionTime: '2024-01-24T18:30:00',
-      status: 'approved',
-      consultations: [
-        { time: '9:30', place: 'Office Meeting Room A', client: 'Accounting Firm' },
-        { time: '10:30', place: 'Virtual Meeting', client: 'Bank Representative' },
-        { time: '11:30', place: 'Office Conference Room', client: 'Audit Team' },
-        { time: '12:30', place: '', client: '' },
-        { time: '1:30', place: 'Client Office - Makati', client: 'Investment Advisor' },
-        { time: '2:30', place: 'Virtual Meeting', client: 'Tax Consultant' },
-        { time: '3:30', place: 'Office Meeting Room B', client: 'Department Head' },
-        { time: '4:30', place: '', client: '' },
-        { time: '5:30', place: '', client: '' },
-        { time: '6:30', place: '', client: '' }
-      ],
-      tasks: [
-        { task: 'Monthly financial report preparation', status: 'completed', timeSpent: '4 hours' },
-        { task: 'Budget variance analysis', status: 'completed', timeSpent: '2 hours' },
-        { task: 'Expense report review', status: 'completed', timeSpent: '1 hour' }
-      ],
-      achievements: [
-        'Completed monthly financial report',
-        'Identified 3 budget variances',
-        'Processed 15 expense reports'
-      ],
-      challenges: [
-        'Missing receipts from some departments',
-        'Complex budget calculations'
-      ],
-      tomorrowPlans: [
-        'Present financial report to management',
-        'Follow up on missing receipts',
-        'Quarterly budget planning'
-      ],
-      notes: 'Monthly report completed on time. Need to address budget variances.',
-      attachments: ['monthly_report.pdf', 'budget_analysis.xlsx'],
-      approvedBy: 'Tom Director',
-      approvedDate: '2024-01-25T10:00:00',
-      feedback: 'Excellent work on the monthly report. Address the budget variances promptly.'
-    }
-  ]);
+  // Real data from API - will be fetched from database
+  const [dailyReports, setDailyReports] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   const [departments] = useState([
     'Sales', 'Marketing', 'IT', 'HR', 'Finance', 'Operations'
   ]);
+
+  // Fetch daily reports from API
+  const fetchDailyReports = async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      
+      console.log('Attempting to fetch daily reports from API...');
+      const response = await fetch('/api/daily-reports');
+      
+      if (!response.ok) {
+        // If API is not available, provide sample data for testing
+        if (response.status === 404) {
+          console.warn('API endpoint not found, using sample data');
+          setError('API endpoint not available - using sample data. Please restart the development server.');
+          
+          // Provide sample data for testing
+          const sampleData = [
+            {
+              id: 'DR-SAMPLE-001',
+              employeeId: 'EMP-001',
+              employeeName: 'Sample User',
+              department: 'IT',
+              position: 'Developer',
+              reportDate: new Date().toISOString().split('T')[0],
+              submissionTime: new Date().toISOString(),
+              status: 'submitted',
+              consultations: [],
+              tasks: [],
+              achievements: [],
+              challenges: [],
+              tomorrowPlans: [],
+              notes: 'Sample daily report - API not available',
+              attachments: [],
+              approvedBy: null,
+              approvedDate: null,
+              feedback: null
+            }
+          ];
+          setDailyReports(sampleData);
+          return;
+        }
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const result = await response.json();
+      if (result.success) {
+        setDailyReports(result.data);
+        console.log(`Successfully fetched ${result.data.length} reports`);
+      } else {
+        throw new Error(result.error || 'Failed to fetch reports');
+      }
+    } catch (error) {
+      console.error('Error fetching daily reports:', error);
+      setError(`API Error: ${error.message}. Please restart the development server.`);
+      // Fallback to empty array if API fails
+      setDailyReports([]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Load data on component mount
+  useEffect(() => {
+    fetchDailyReports();
+    
+    // Make refresh function available globally for DailyReport component
+    window.refreshAppSuiteData = fetchDailyReports;
+    
+    // Set up polling for real-time updates (every 30 seconds)
+    const pollingInterval = setInterval(() => {
+      fetchDailyReports();
+    }, 30000);
+    
+    // Cleanup on unmount
+    return () => {
+      window.refreshAppSuiteData = null;
+      clearInterval(pollingInterval);
+    };
+  }, []); // Remove isLoading dependency to prevent infinite loop
 
   // Calculate metrics
   const totalReports = dailyReports.length;
@@ -344,40 +195,136 @@ const AppSuite = () => {
     }
   };
 
-  const handleApproveReport = (reportId) => {
-    setDailyReports(prev => prev.map(report => 
-      report.id === reportId 
-        ? { ...report, status: 'approved', approvedBy: 'Current User', approvedDate: new Date().toISOString() }
-        : report
-    ));
+  const handleApproveReport = async (reportId) => {
+    try {
+      const response = await fetch(`/api/daily-reports/${reportId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          action: 'approve',
+          approvedBy: 'Current Administrator'
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const result = await response.json();
+      if (result.success) {
+        // Update local state with the updated report
+        setDailyReports(prev => prev.map(report => 
+          report.id === reportId ? result.data : report
+        ));
+      } else {
+        throw new Error(result.error || 'Failed to approve report');
+      }
+    } catch (error) {
+      console.error('Error approving report:', error);
+      alert(`Error approving report: ${error.message}`);
+    }
   };
 
-  const handleRejectReport = (reportId) => {
-    setDailyReports(prev => prev.map(report => 
-      report.id === reportId 
-        ? { ...report, status: 'rejected', approvedBy: 'Current User', approvedDate: new Date().toISOString() }
-        : report
-    ));
+  const handleRejectReport = async (reportId) => {
+    try {
+      const response = await fetch(`/api/daily-reports/${reportId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          action: 'reject',
+          approvedBy: 'Current Administrator'
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const result = await response.json();
+      if (result.success) {
+        // Update local state with the updated report
+        setDailyReports(prev => prev.map(report => 
+          report.id === reportId ? result.data : report
+        ));
+      } else {
+        throw new Error(result.error || 'Failed to reject report');
+      }
+    } catch (error) {
+      console.error('Error rejecting report:', error);
+      alert(`Error rejecting report: ${error.message}`);
+    }
   };
 
-  const handleBulkApprove = () => {
-    setDailyReports(prev => prev.map(report => 
-      selectedReports.includes(report.id)
-        ? { ...report, status: 'approved', approvedBy: 'Current User', approvedDate: new Date().toISOString() }
-        : report
-    ));
-    setSelectedReports([]);
-    setShowBulkActions(false);
+  const handleBulkApprove = async () => {
+    try {
+      const promises = selectedReports.map(reportId => 
+        fetch(`/api/daily-reports/${reportId}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            action: 'approve',
+            approvedBy: 'Current Administrator'
+          }),
+        })
+      );
+
+      const responses = await Promise.all(promises);
+      const results = await Promise.all(responses.map(res => res.json()));
+
+      // Check if all operations were successful
+      const failedOperations = results.filter(result => !result.success);
+      if (failedOperations.length > 0) {
+        throw new Error(`${failedOperations.length} reports failed to approve`);
+      }
+
+      // Refresh the data to get updated reports
+      await fetchDailyReports();
+      setSelectedReports([]);
+      setShowBulkActions(false);
+    } catch (error) {
+      console.error('Error bulk approving reports:', error);
+      alert(`Error bulk approving reports: ${error.message}`);
+    }
   };
 
-  const handleBulkReject = () => {
-    setDailyReports(prev => prev.map(report => 
-      selectedReports.includes(report.id)
-        ? { ...report, status: 'rejected', approvedBy: 'Current User', approvedDate: new Date().toISOString() }
-        : report
-    ));
-    setSelectedReports([]);
-    setShowBulkActions(false);
+  const handleBulkReject = async () => {
+    try {
+      const promises = selectedReports.map(reportId => 
+        fetch(`/api/daily-reports/${reportId}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            action: 'reject',
+            approvedBy: 'Current Administrator'
+          }),
+        })
+      );
+
+      const responses = await Promise.all(promises);
+      const results = await Promise.all(responses.map(res => res.json()));
+
+      // Check if all operations were successful
+      const failedOperations = results.filter(result => !result.success);
+      if (failedOperations.length > 0) {
+        throw new Error(`${failedOperations.length} reports failed to reject`);
+      }
+
+      // Refresh the data to get updated reports
+      await fetchDailyReports();
+      setSelectedReports([]);
+      setShowBulkActions(false);
+    } catch (error) {
+      console.error('Error bulk rejecting reports:', error);
+      alert(`Error bulk rejecting reports: ${error.message}`);
+    }
   };
 
   const generateDailyReportPDF = (report) => {
@@ -547,6 +494,7 @@ const AppSuite = () => {
         input[type="text"], input[type="email"], input[type="tel"], input[type="date"], select, textarea {
           color: #111827 !important;
           background-color: #ffffff !important;
+          border-color: #d1d5db !important;
         }
         
         input::placeholder {
@@ -562,6 +510,7 @@ const AppSuite = () => {
         .search-input, .filter-select {
           color: #111827 !important;
           background-color: #ffffff !important;
+          border-color: #d1d5db !important;
         }
         
         .search-input::placeholder {
@@ -572,12 +521,34 @@ const AppSuite = () => {
         div input[type="text"], div select, div input[type="date"] {
           color: #111827 !important;
           background-color: #ffffff !important;
+          border-color: #d1d5db !important;
         }
         
         /* Target the specific filter section */
         .px-6.py-4 input, .px-6.py-4 select {
           color: #111827 !important;
           background-color: #ffffff !important;
+          border-color: #d1d5db !important;
+        }
+        
+        /* Fix white text on white background issues */
+        .text-white {
+          color: #111827 !important;
+        }
+        
+        /* Ensure all text in cards is dark */
+        .bg-white .text-white {
+          color: #111827 !important;
+        }
+        
+        /* Fix button text visibility */
+        button.text-white {
+          color: #ffffff !important;
+        }
+        
+        /* Fix any other white text issues */
+        .text-gray-900, .text-gray-800, .text-gray-700 {
+          color: #111827 !important;
         }
       `}</style>
       
@@ -668,25 +639,113 @@ const AppSuite = () => {
       {/* Tab Content */}
       {activeTab === 'overview' && (
         <div className="space-y-6">
+          {/* Error Message */}
+          {error && (
+            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+              <div className="flex">
+                <div className="flex-shrink-0">
+                  <ExclamationTriangleIcon className="h-5 w-5 text-yellow-400" />
+                </div>
+                <div className="ml-3">
+                  <h3 className="text-sm font-medium text-yellow-800">API Connection Issue</h3>
+                  <div className="mt-2 text-sm text-yellow-700">
+                    <p>{error}</p>
+                    {error.includes('404') && (
+                      <div className="mt-2 p-3 bg-yellow-100 rounded-md">
+                        <p className="font-medium">Quick Fix:</p>
+                        <ol className="list-decimal list-inside mt-1 space-y-1">
+                          <li>Stop the development server (Ctrl+C)</li>
+                          <li>Run: <code className="bg-yellow-200 px-1 rounded">npm run dev</code></li>
+                          <li>Wait for server to fully start</li>
+                          <li>Refresh this page</li>
+                        </ol>
+                      </div>
+                    )}
+                  </div>
+                  <div className="mt-4 space-x-2">
+                    <button
+                      onClick={fetchDailyReports}
+                      className="bg-yellow-100 px-3 py-2 rounded-md text-sm font-medium text-yellow-800 hover:bg-yellow-200"
+                    >
+                      Try Again
+                    </button>
+                    <button
+                      onClick={() => setError(null)}
+                      className="bg-gray-100 px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-200"
+                    >
+                      Dismiss
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Recent Reports */}
           <div className="bg-white rounded-lg shadow">
             <div className="px-6 py-4 border-b border-gray-200">
-              <h3 className="text-lg font-medium text-gray-900">Recent Daily Reports</h3>
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-medium text-gray-900">Recent Daily Reports</h3>
+                <div className="flex items-center space-x-3">
+                  <button
+                    onClick={fetchDailyReports}
+                    disabled={isLoading}
+                    className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <svg 
+                      className={`h-4 w-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} 
+                      xmlns="http://www.w3.org/2000/svg" 
+                      fill="none" 
+                      viewBox="0 0 24 24"
+                    >
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Refresh
+                  </button>
+                  {isLoading && (
+                    <div className="flex items-center text-sm text-gray-500">
+                      <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      Loading...
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
             <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Report ID</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Employee</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Department</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {dailyReports.slice(0, 5).map((report) => (
+              {isLoading ? (
+                <div className="p-8 text-center">
+                  <div className="flex items-center justify-center">
+                    <svg className="animate-spin -ml-1 mr-3 h-8 w-8 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Loading daily reports...
+                  </div>
+                </div>
+              ) : dailyReports.length === 0 ? (
+                <div className="p-8 text-center">
+                  <DocumentTextIcon className="mx-auto h-12 w-12 text-gray-400" />
+                  <h3 className="mt-2 text-sm font-medium text-gray-900">No reports found</h3>
+                  <p className="mt-1 text-sm text-gray-500">No daily reports have been submitted yet.</p>
+                </div>
+              ) : (
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Report ID</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Employee</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Department</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {dailyReports.slice(0, 5).map((report) => (
                     <tr key={report.id}>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                         {report.id}
@@ -729,16 +788,30 @@ const AppSuite = () => {
                         </div>
                       </td>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                    ))}
+                  </tbody>
+                </table>
+              )}
             </div>
           </div>
 
           {/* Department Summary */}
           <div className="bg-white rounded-lg shadow">
             <div className="px-6 py-4 border-b border-gray-200">
-              <h3 className="text-lg font-medium text-gray-900">Department Summary</h3>
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-medium text-gray-900">Department Summary</h3>
+                {(filterDepartment !== 'all' || filterStatus !== 'all') && (
+                  <button
+                    onClick={() => {
+                      setFilterDepartment('all');
+                      setFilterStatus('all');
+                    }}
+                    className="text-sm text-blue-600 hover:text-blue-800 font-medium"
+                  >
+                    Clear Filters
+                  </button>
+                )}
+              </div>
             </div>
             <div className="p-6">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -749,25 +822,63 @@ const AppSuite = () => {
                   const pending = deptReports.filter(report => report.status === 'pending').length;
                   
                   return (
-                    <div key={dept} className="border border-gray-200 rounded-lg p-4">
+                    <div 
+                      key={dept} 
+                      className={`border rounded-lg p-4 hover:bg-gray-50 cursor-pointer transition-colors ${
+                        filterDepartment === dept 
+                          ? 'border-blue-500 bg-blue-50' 
+                          : 'border-gray-200'
+                      }`}
+                      onClick={() => {
+                        setFilterDepartment(dept);
+                        setActiveTab('reports'); // Switch to reports tab to see filtered results
+                      }}
+                    >
                       <h4 className="font-medium text-gray-900 mb-2">{dept}</h4>
-                      <div className="space-y-1 text-sm">
-                        <div className="flex justify-between">
-                          <span className="text-gray-600">Total:</span>
-                          <span className="font-medium">{deptReports.length}</span>
+                        <div className="space-y-1 text-sm">
+                          <div className="flex justify-between">
+                            <span className="text-black">Total:</span>
+                            <span className="font-medium text-black">{deptReports.length}</span>
+                          </div>
+                          <div 
+                            className="flex justify-between hover:bg-blue-50 p-1 rounded cursor-pointer"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setFilterDepartment(dept);
+                              setFilterStatus('submitted');
+                              setActiveTab('reports');
+                            }}
+                          >
+                            <span className="text-black">Submitted:</span>
+                            <span className="font-medium text-black hover:text-blue-600">{submitted}</span>
+                          </div>
+                          <div 
+                            className="flex justify-between hover:bg-green-50 p-1 rounded cursor-pointer"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setFilterDepartment(dept);
+                              setFilterStatus('approved');
+                              setActiveTab('reports');
+                            }}
+                          >
+                            <span className="text-black">Approved:</span>
+                            <span className="font-medium text-black hover:text-green-600">{approved}</span>
+                          </div>
+                          <div 
+                            className="flex justify-between hover:bg-yellow-50 p-1 rounded cursor-pointer"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setFilterDepartment(dept);
+                              setFilterStatus('pending');
+                              setActiveTab('reports');
+                            }}
+                          >
+                            <span className="text-black">Pending:</span>
+                            <span className="font-medium text-black hover:text-yellow-600">{pending}</span>
+                          </div>
                         </div>
-                        <div className="flex justify-between">
-                          <span className="text-gray-600">Submitted:</span>
-                          <span className="font-medium text-blue-600">{submitted}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-gray-600">Approved:</span>
-                          <span className="font-medium text-green-600">{approved}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-gray-600">Pending:</span>
-                          <span className="font-medium text-yellow-600">{pending}</span>
-                        </div>
+                      <div className="mt-2 text-xs text-blue-600 hover:text-blue-800">
+                        Click to view reports →
                       </div>
                     </div>
                   );
@@ -847,9 +958,9 @@ const AppSuite = () => {
                     onChange={(e) => setSearchTerm(e.target.value)}
                     className="search-input pl-10 pr-4 py-2 border border-gray-300 rounded-md w-full focus:ring-blue-500 focus:border-blue-500"
                     style={{ 
-                      color: '#111827 !important', 
-                      backgroundColor: '#ffffff !important',
-                      WebkitTextFillColor: '#111827 !important'
+                      color: '#111827', 
+                      backgroundColor: '#ffffff',
+                      WebkitTextFillColor: '#111827'
                     }}
                   />
                 </div>
@@ -859,9 +970,9 @@ const AppSuite = () => {
                 onChange={(e) => setFilterStatus(e.target.value)}
                 className="filter-select px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
                 style={{ 
-                  color: '#111827 !important', 
-                  backgroundColor: '#ffffff !important',
-                  WebkitTextFillColor: '#111827 !important'
+                  color: '#111827', 
+                  backgroundColor: '#ffffff',
+                  WebkitTextFillColor: '#111827'
                 }}
               >
                 <option value="all">All Status</option>
@@ -875,9 +986,9 @@ const AppSuite = () => {
                 onChange={(e) => setFilterDepartment(e.target.value)}
                 className="filter-select px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
                 style={{ 
-                  color: '#111827 !important', 
-                  backgroundColor: '#ffffff !important',
-                  WebkitTextFillColor: '#111827 !important'
+                  color: '#111827', 
+                  backgroundColor: '#ffffff',
+                  WebkitTextFillColor: '#111827'
                 }}
               >
                 <option value="all">All Departments</option>
@@ -891,9 +1002,9 @@ const AppSuite = () => {
                 onChange={(e) => setFilterDate(e.target.value)}
                 className="px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
                 style={{ 
-                  color: '#111827 !important', 
-                  backgroundColor: '#ffffff !important',
-                  WebkitTextFillColor: '#111827 !important'
+                  color: '#111827', 
+                  backgroundColor: '#ffffff',
+                  WebkitTextFillColor: '#111827'
                 }}
               />
             </div>
@@ -901,28 +1012,50 @@ const AppSuite = () => {
 
           {/* Reports Table */}
           <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-6 py-3 text-left">
-                    <input
-                      type="checkbox"
-                      checked={selectedReports.length === filteredReports.length && filteredReports.length > 0}
-                      onChange={handleSelectAll}
-                      className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                    />
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Report ID</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Employee</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Department</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Submission Time</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {filteredReports.map((report) => (
+            {isLoading ? (
+              <div className="p-8 text-center">
+                <div className="flex items-center justify-center">
+                  <svg className="animate-spin -ml-1 mr-3 h-8 w-8 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  Loading daily reports...
+                </div>
+              </div>
+            ) : filteredReports.length === 0 ? (
+              <div className="p-8 text-center">
+                <DocumentTextIcon className="mx-auto h-12 w-12 text-gray-400" />
+                <h3 className="mt-2 text-sm font-medium text-gray-900">No reports found</h3>
+                <p className="mt-1 text-sm text-gray-500">
+                  {dailyReports.length === 0 
+                    ? "No daily reports have been submitted yet."
+                    : "No reports match your current filters."
+                  }
+                </p>
+              </div>
+            ) : (
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-6 py-3 text-left">
+                      <input
+                        type="checkbox"
+                        checked={selectedReports.length === filteredReports.length && filteredReports.length > 0}
+                        onChange={handleSelectAll}
+                        className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                      />
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Report ID</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Employee</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Department</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Submission Time</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {filteredReports.map((report) => (
                   <tr key={report.id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap">
                       <input
@@ -999,9 +1132,10 @@ const AppSuite = () => {
                       </div>
                     </td>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                  ))}
+                </tbody>
+              </table>
+            )}
           </div>
         </div>
       )}

@@ -68,27 +68,60 @@ export default function DailyReportModal({ isOpen, onClose }) {
     setIsSubmitting(true);
     
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      // Get current user information from localStorage or context
+      const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
       
-      // Here you would typically send the data to your backend
-      console.log('Daily Report submitted:', {
-        date: formatDate(currentTime),
+      // Prepare report data
+      const reportData = {
+        employeeId: currentUser.uid || 'unknown',
+        employeeName: currentUser.displayName || currentUser.email || 'Unknown User',
+        department: currentUser.department || 'General',
+        position: currentUser.position || 'Employee',
+        reportDate: currentTime.toISOString().split('T')[0], // YYYY-MM-DD format
         hourlyNotes: hourlyNotes,
-        submittedAt: new Date().toISOString()
+        tasks: [],
+        achievements: [],
+        challenges: [],
+        tomorrowPlans: [],
+        notes: '',
+        attachments: []
+      };
+      
+      // Submit to API
+      const response = await fetch('/api/daily-reports', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(reportData),
       });
       
-      // Show success message (you can customize this)
-      alert('Daily report submitted successfully!');
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
       
-      // Reset form and close modal
-      setHourlyNotes({});
-      setShowConfirmModal(false);
-      handleClose();
+      const result = await response.json();
+      
+      if (result.success) {
+        // Show success message
+        alert('Daily report submitted successfully!');
+        
+        // Reset form and close modal
+        setHourlyNotes({});
+        setShowConfirmModal(false);
+        handleClose();
+        
+        // Optionally trigger a refresh of the AppSuite data
+        if (window.refreshAppSuiteData) {
+          window.refreshAppSuiteData();
+        }
+      } else {
+        throw new Error(result.error || 'Failed to submit report');
+      }
       
     } catch (error) {
       console.error('Error submitting daily report:', error);
-      alert('Error submitting daily report. Please try again.');
+      alert(`Error submitting daily report: ${error.message}`);
     } finally {
       setIsSubmitting(false);
     }
