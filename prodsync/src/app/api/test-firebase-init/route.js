@@ -4,12 +4,12 @@ import { NextResponse } from "next/server";
 export async function GET() {
   try {
     // Import Firebase Admin dynamically
-    const { dbAdmin, authAdmin, isFirebaseAdminConfigured } = await import("../../lib/firebaseAdmin");
+    const { getDbAdmin, getAuthAdmin, isFirebaseAdminConfigured } = await import("../../lib/firebaseAdmin");
     
     const diagnostics = {
       isConfigured: isFirebaseAdminConfigured(),
-      hasDbAdmin: !!dbAdmin,
-      hasAuthAdmin: !!authAdmin,
+      hasDbAdmin: !!getDbAdmin(),
+      hasAuthAdmin: !!getAuthAdmin(),
       timestamp: new Date().toISOString()
     };
 

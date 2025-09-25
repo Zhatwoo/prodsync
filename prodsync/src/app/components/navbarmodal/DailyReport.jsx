@@ -1,11 +1,15 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useAuth } from '../../context/AuthContext';
 
 export default function DailyReportModal({ isOpen, onClose }) {
+  const { user } = useAuth();
   const [currentTime, setCurrentTime] = useState(new Date());
   const [hourlyNotes, setHourlyNotes] = useState({});
   const [isClosing, setIsClosing] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
 
   // Update current time every second
   useEffect(() => {
@@ -58,6 +62,85 @@ export default function DailyReportModal({ isOpen, onClose }) {
     }, 300);
   };
 
+  const handleSubmit = () => {
+    if (!user) {
+      alert('Please log in to submit a daily report.');
+      return;
+    }
+    setShowConfirmModal(true);
+  };
+
+  const confirmSubmit = async () => {
+    setIsSubmitting(true);
+    
+    try {
+      // Check if user is authenticated
+      if (!user) {
+        throw new Error('User not authenticated. Please log in again.');
+      }
+      
+      // Prepare report data using authenticated user information
+      const reportData = {
+        employeeId: user.uid,
+        employeeName: user.displayName || user.fullName || user.email || 'Unknown User',
+        department: user.department || 'General',
+        position: user.position || user.jobTitle || 'Employee',
+        reportDate: currentTime.toISOString().split('T')[0], // YYYY-MM-DD format
+        hourlyNotes: hourlyNotes,
+        tasks: [],
+        achievements: [],
+        challenges: [],
+        tomorrowPlans: [],
+        notes: '',
+        attachments: []
+      };
+      
+      // Submit to API
+      const response = await fetch('/api/daily-reports', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(reportData),
+      });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const result = await response.json();
+      
+      if (result.success) {
+        // Show success message
+        alert('Daily report submitted successfully!');
+        
+        // Reset form and close modal
+        setHourlyNotes({});
+        setShowConfirmModal(false);
+        handleClose();
+        
+        // Optionally trigger a refresh of the AppSuite data
+        if (window.refreshAppSuiteData) {
+          window.refreshAppSuiteData();
+        }
+      } else {
+        throw new Error(result.error || 'Failed to submit report');
+      }
+      
+    } catch (error) {
+      console.error('Error submitting daily report:', error);
+      alert(`Error submitting daily report: ${error.message}`);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const cancelSubmit = () => {
+    setShowConfirmModal(false);
+  };
+
+  const hasNotes = Object.values(hourlyNotes).some(note => note.trim() !== '');
+
   if (!isOpen) return null;
 
   return (
@@ -71,6 +154,12 @@ export default function DailyReportModal({ isOpen, onClose }) {
             <div>
               <h2 className="text-2xl font-bold">Daily Report</h2>
               <p className="text-purple-100 mt-1">{formatDate(currentTime)}</p>
+              {user && (
+                <div className="mt-2 text-sm text-purple-200">
+                  <span className="font-medium">Submitted by:</span> {user.displayName || user.fullName || user.email}
+                  {user.department && <span className="ml-2">• {user.department}</span>}
+                </div>
+              )}
             </div>
             <button
               onClick={handleClose}
@@ -134,8 +223,87 @@ export default function DailyReportModal({ isOpen, onClose }) {
               </table>
             </div>
           </div>
+
+          {/* Submit Button */}
+          <div className="mt-4 flex justify-end space-x-2">
+            <button
+              onClick={handleClose}
+              className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleSubmit}
+              disabled={!hasNotes || !user}
+              className={`px-6 py-2 text-sm font-medium text-white rounded-lg transition-colors ${
+                hasNotes && user
+                  ? 'bg-purple-600 hover:bg-purple-700' 
+                  : 'bg-gray-300 cursor-not-allowed'
+              }`}
+            >
+              {!user ? 'Please Log In' : 'Submit Report'}
+            </button>
+          </div>
         </div>
       </div>
+
+      {/* Confirmation Modal */}
+      {showConfirmModal && (
+        <div className="fixed inset-0 backdrop-blur-sm flex items-center justify-center z-60">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4 shadow-xl">
+            <div className="flex items-center mb-4">
+              <div className="flex-shrink-0">
+                <svg className="h-6 w-6 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                </svg>
+              </div>
+              <div className="ml-3">
+                <h3 className="text-lg font-medium text-gray-900">Confirm Submission</h3>
+              </div>
+            </div>
+            
+            <div className="mb-6">
+              <p className="text-sm text-gray-600">
+                Are you sure you want to submit your daily report for <strong>{formatDate(currentTime)}</strong>?
+              </p>
+              <p className="text-sm text-gray-500 mt-2">
+                This action cannot be undone. Make sure all your entries are correct.
+              </p>
+            </div>
+
+            <div className="flex justify-end space-x-3">
+              <button
+                onClick={cancelSubmit}
+                disabled={isSubmitting}
+                className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmSubmit}
+                disabled={isSubmitting}
+                className={`px-6 py-2 text-sm font-medium text-white rounded-lg transition-colors flex items-center ${
+                  isSubmitting 
+                    ? 'bg-gray-400 cursor-not-allowed' 
+                    : 'bg-purple-600 hover:bg-purple-700'
+                }`}
+              >
+                {isSubmitting ? (
+                  <>
+                    <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Submitting...
+                  </>
+                ) : (
+                  'Confirm Submit'
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

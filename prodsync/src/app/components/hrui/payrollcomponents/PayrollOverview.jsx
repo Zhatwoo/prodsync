@@ -3,13 +3,25 @@
 import { useState, useEffect } from 'react';
 import { collection, getDocs, query, orderBy, where } from 'firebase/firestore';
 import { db } from '../../../lib/firebaseClient';
+import { useCurrency } from '../../../context/CurrencyContext';
+import PermissionGuard from '../../PermissionGuard';
+import { usePermissions } from '../../../hooks/usePermissions';
+import { PERMISSIONS } from '../../../lib/permissions';
+import PayrollProcessing from './PayrollProcessing';
+import PayrollRegister from './PayrollRegister';
+import SalaryRelease from './SalaryRelease';
 
 export default function PayrollOverview() {
+  const { formatCurrency } = useCurrency();
   const [payrollData, setPayrollData] = useState([]);
   const [selectedPeriod, setSelectedPeriod] = useState('2024-01');
   const [isProcessing, setIsProcessing] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [activeTab, setActiveTab] = useState('overview');
+
+  // Permission checking
+  const { can, canPerform, isHR, isAdmin } = usePermissions();
 
   // Fetch payroll data from Firebase (employees collection)
   useEffect(() => {
@@ -25,7 +37,16 @@ export default function PayrollOverview() {
           const employee = doc.data();
           
           // Extract salary amount (handle different formats like "$50,000", "50000", etc.)
-          const basicSalary = parseFloat(employee.salary?.replace(/[^0-9.-]+/g, '') || 0);
+          let basicSalary = 0;
+          if (employee.salary !== undefined && employee.salary !== null) {
+            if (typeof employee.salary === 'string') {
+              basicSalary = parseFloat(employee.salary.replace(/[^0-9.-]+/g, '') || 0);
+            } else if (typeof employee.salary === 'number') {
+              basicSalary = employee.salary;
+            } else {
+              console.warn('Unexpected salary data type:', typeof employee.salary, employee.salary);
+            }
+          }
           
           // Calculate payroll components based on employee data
           const allowances = Math.round(basicSalary * 0.1); // 10% of basic salary
@@ -126,7 +147,16 @@ export default function PayrollOverview() {
         const employee = doc.data();
         
         // Extract salary amount (handle different formats like "$50,000", "50000", etc.)
-        const basicSalary = parseFloat(employee.salary?.replace(/[^0-9.-]+/g, '') || 0);
+        let basicSalary = 0;
+        if (employee.salary !== undefined && employee.salary !== null) {
+          if (typeof employee.salary === 'string') {
+            basicSalary = parseFloat(employee.salary.replace(/[^0-9.-]+/g, '') || 0);
+          } else if (typeof employee.salary === 'number') {
+            basicSalary = employee.salary;
+          } else {
+            console.warn('Unexpected salary data type:', typeof employee.salary, employee.salary);
+          }
+        }
         
         // Calculate payroll components based on employee data
         const allowances = Math.round(basicSalary * 0.1); // 10% of basic salary
@@ -223,45 +253,163 @@ export default function PayrollOverview() {
   }
 
   return (
-    <div className="p-6">
-      <div className="mb-6">
-        <div className="flex justify-between items-center">
-          <div>
-            <h2 className="text-2xl font-bold text-gray-900">Payroll Overview</h2>
-            <p className="text-gray-600 mt-1">Manage and monitor payroll processing</p>
-          </div>
-          <div className="flex items-center space-x-4">
-            <select
-              value={selectedPeriod}
-              onChange={(e) => setSelectedPeriod(e.target.value)}
-              className="px-3 py-2 text-gray-900 bg-white border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500"
-            >
-              {periods.map(period => (
-                <option key={period} value={period}>{period}</option>
-              ))}
-            </select>
-            <div className="flex space-x-3">
-              <button
-                onClick={handleRefreshData}
-                disabled={loading}
-                className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors disabled:opacity-50"
+    <PermissionGuard permission={PERMISSIONS.PAYROLL_VIEW}>
+      <div className="p-6">
+        <div className="mb-6">
+          <div className="flex justify-between items-center">
+            <div>
+              <h2 className="text-2xl font-bold text-gray-900">Payroll Management System</h2>
+              <p className="text-gray-600 mt-1">Complete payroll processing workflow</p>
+            </div>
+            <div className="flex items-center space-x-4">
+              <select
+                value={selectedPeriod}
+                onChange={(e) => setSelectedPeriod(e.target.value)}
+                className="px-3 py-2 text-gray-900 bg-white border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500"
               >
-                {loading ? 'Refreshing...' : 'Refresh Data'}
-              </button>
-            <button
-              onClick={handleProcessPayroll}
-              disabled={isProcessing}
-              className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition-colors disabled:opacity-50"
-            >
-              {isProcessing ? 'Processing...' : 'Process Payroll'}
-            </button>
+                {periods.map(period => (
+                  <option key={period} value={period}>{period}</option>
+                ))}
+              </select>
+              <div className="flex space-x-3">
+                <button
+                  onClick={handleRefreshData}
+                  disabled={loading}
+                  className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors disabled:opacity-50"
+                >
+                  {loading ? 'Refreshing...' : 'Refresh Data'}
+                </button>
+                <button
+                  onClick={handleProcessPayroll}
+                  disabled={isProcessing}
+                  className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition-colors disabled:opacity-50"
+                >
+                  {isProcessing ? 'Processing...' : 'Process Payroll'}
+                </button>
+              </div>
             </div>
           </div>
         </div>
-      </div>
 
-      {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+        {/* System Flow Visualization */}
+        <div className="mb-6 bg-gradient-to-r from-blue-50 to-green-50 rounded-lg p-6">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Integrated Payroll System Flow</h3>
+          <div className="flex items-center justify-between">
+            <div className="text-center">
+              <div className="bg-blue-100 rounded-full p-3 mb-2">
+                <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <p className="text-sm font-medium text-gray-700">Employee Attendance</p>
+              <p className="text-xs text-gray-500">Timecard System</p>
+            </div>
+            <div className="flex-1 h-0.5 bg-gray-300 mx-4"></div>
+            <div className="text-center">
+              <div className="bg-green-100 rounded-full p-3 mb-2">
+                <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                </svg>
+              </div>
+              <p className="text-sm font-medium text-gray-700">Timekeeping Data</p>
+              <p className="text-xs text-gray-500">Records & Overtime</p>
+            </div>
+            <div className="flex-1 h-0.5 bg-gray-300 mx-4"></div>
+            <div className="text-center">
+              <div className="bg-purple-100 rounded-full p-3 mb-2">
+                <svg className="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                </svg>
+              </div>
+              <p className="text-sm font-medium text-gray-700">Payroll Processing</p>
+              <p className="text-xs text-gray-500">Calculate & Compute</p>
+            </div>
+            <div className="flex-1 h-0.5 bg-gray-300 mx-4"></div>
+            <div className="text-center">
+              <div className="bg-yellow-100 rounded-full p-3 mb-2">
+                <svg className="w-6 h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
+                </svg>
+              </div>
+              <p className="text-sm font-medium text-gray-700">Payroll Register</p>
+              <p className="text-xs text-gray-500">Net Pay Listing</p>
+            </div>
+            <div className="flex-1 h-0.5 bg-gray-300 mx-4"></div>
+            <div className="text-center">
+              <div className="bg-red-100 rounded-full p-3 mb-2">
+                <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+              </div>
+              <p className="text-sm font-medium text-gray-700">Payslip Generation</p>
+              <p className="text-xs text-gray-500">Gross, Deductions, Net</p>
+            </div>
+            <div className="flex-1 h-0.5 bg-gray-300 mx-4"></div>
+            <div className="text-center">
+              <div className="bg-indigo-100 rounded-full p-3 mb-2">
+                <svg className="w-6 h-6 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                </svg>
+              </div>
+              <p className="text-sm font-medium text-gray-700">Salary Release</p>
+              <p className="text-xs text-gray-500">Bank/Cash/Check</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Tab Navigation */}
+        <div className="mb-6">
+          <div className="border-b border-gray-200">
+            <nav className="-mb-px flex space-x-8">
+              <button
+                onClick={() => setActiveTab('overview')}
+                className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                  activeTab === 'overview'
+                    ? 'border-green-500 text-green-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
+              >
+                Overview
+              </button>
+              <button
+                onClick={() => setActiveTab('processing')}
+                className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                  activeTab === 'processing'
+                    ? 'border-green-500 text-green-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
+              >
+                Processing
+              </button>
+              <button
+                onClick={() => setActiveTab('register')}
+                className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                  activeTab === 'register'
+                    ? 'border-green-500 text-green-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
+              >
+                Register
+              </button>
+              <button
+                onClick={() => setActiveTab('release')}
+                className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                  activeTab === 'release'
+                    ? 'border-green-500 text-green-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
+              >
+                Salary Release
+              </button>
+            </nav>
+          </div>
+        </div>
+
+        {/* Tab Content */}
+        {activeTab === 'overview' && (
+          <>
+            {/* Summary Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
         <div className="bg-white border border-gray-200 rounded-lg p-6">
           <div className="flex items-center">
             <div className="p-2 bg-green-100 rounded-lg">
@@ -271,7 +419,7 @@ export default function PayrollOverview() {
             </div>
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-600">Total Gross</p>
-              <p className="text-2xl font-bold text-gray-900">${totalGross.toLocaleString()}</p>
+              <p className="text-2xl font-bold text-gray-900">{formatCurrency(totalGross)}</p>
             </div>
           </div>
         </div>
@@ -285,7 +433,7 @@ export default function PayrollOverview() {
             </div>
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-600">Total Deductions</p>
-              <p className="text-2xl font-bold text-gray-900">${totalDeductions.toLocaleString()}</p>
+              <p className="text-2xl font-bold text-gray-900">{formatCurrency(totalDeductions)}</p>
             </div>
           </div>
         </div>
@@ -299,7 +447,7 @@ export default function PayrollOverview() {
             </div>
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-600">Net Pay</p>
-              <p className="text-2xl font-bold text-gray-900">${totalNet.toLocaleString()}</p>
+              <p className="text-2xl font-bold text-gray-900">{formatCurrency(totalNet)}</p>
             </div>
           </div>
         </div>
@@ -355,25 +503,25 @@ export default function PayrollOverview() {
                     <div className="text-sm text-gray-900">{employee.position}</div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    ${employee.basicSalary.toLocaleString()}
+                    {formatCurrency(employee.basicSalary)}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    ${employee.allowances.toLocaleString()}
+                    {formatCurrency(employee.allowances)}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    ${employee.overtime.toLocaleString()}
+                    {formatCurrency(employee.overtime)}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    ${employee.bonuses.toLocaleString()}
+                    {formatCurrency(employee.bonuses)}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                    ${employee.grossSalary.toLocaleString()}
+                    {formatCurrency(employee.grossSalary)}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    ${employee.deductions.toLocaleString()}
+                    {formatCurrency(employee.deductions)}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-green-600">
-                    ${employee.netSalary.toLocaleString()}
+                    {formatCurrency(employee.netSalary)}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(employee.status)}`}>
@@ -403,6 +551,21 @@ export default function PayrollOverview() {
           </table>
         </div>
       </div>
-    </div>
+          </>
+        )}
+
+        {activeTab === 'processing' && (
+          <PayrollProcessing />
+        )}
+
+        {activeTab === 'register' && (
+          <PayrollRegister />
+        )}
+
+        {activeTab === 'release' && (
+          <SalaryRelease />
+        )}
+      </div>
+    </PermissionGuard>
   );
 }

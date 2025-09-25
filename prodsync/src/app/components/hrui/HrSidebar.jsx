@@ -441,6 +441,43 @@ export default function HrSidebar({ isCollapsed, onToggleCollapse, userEmail }) 
                   </span>
                 </button>
               </Tooltip>
+              <Tooltip 
+                content={
+                  <div>
+                    <div className="font-semibold mb-2">Test Permissions</div>
+                    <div className="text-xs opacity-90">
+                      <ul className="space-y-1">
+                        <li>• View current permissions</li>
+                        <li>• Test permission system</li>
+                        <li>• Debug role access</li>
+                        <li>• Verify UI restrictions</li>
+                      </ul>
+                    </div>
+                  </div>
+                }
+                position="cursor"
+              >
+                <Link
+                  href="/positionpages/hrpage/permission-test"
+                  className="w-full flex items-center px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-indigo-700 hover:bg-indigo-100 rounded-lg transition-colors"
+                >
+                  <span className="mr-1 sm:mr-1.5 md:mr-2 text-sm sm:text-base flex-shrink-0">🔧</span>
+                  <span className="truncate">
+                    <span className="hidden sm:block">Test Permissions</span>
+                    <span className="block sm:hidden">Test</span>
+                  </span>
+                </Link>
+                <Link
+                  href="/positionpages/hrpage/firebase-test"
+                  className="w-full flex items-center px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-indigo-700 hover:bg-indigo-100 rounded-lg transition-colors"
+                >
+                  <span className="mr-1 sm:mr-1.5 md:mr-2 text-sm sm:text-base flex-shrink-0">🔥</span>
+                  <span className="truncate">
+                    <span className="hidden sm:block">Test Firebase</span>
+                    <span className="block sm:hidden">Firebase</span>
+                  </span>
+                </Link>
+              </Tooltip>
             </div>
           </div>
         </div>

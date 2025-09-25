@@ -7,7 +7,6 @@ import SalaryStructure from '../../../components/hrui/payrollcomponents/SalarySt
 import BenefitsAllowances from '../../../components/hrui/payrollcomponents/BenefitsAllowances';
 import Deductions from '../../../components/hrui/payrollcomponents/Deductions';
 import PayrollReports from '../../../components/hrui/payrollcomponents/PayrollReports';
-import TaxManagement from '../../../components/hrui/payrollcomponents/TaxManagement';
 import RequireRole from '../../../components/RequireRole';
 import { usePayrollStats } from '../../../hooks/usePayrollStats';
 
@@ -20,9 +19,8 @@ export default function PayrollPage() {
     { id: 'payrollOverview', name: 'Payroll Overview', icon: '💰' },
     { id: 'salaryStructure', name: 'Salary Structure', icon: '📊' },
     { id: 'benefitsAllowances', name: 'Benefits & Allowances', icon: '🎁' },
-    { id: 'deductions', name: 'Deductions', icon: '📉' },
-    { id: 'payrollReports', name: 'Payroll Reports', icon: '📈' },
-    { id: 'taxManagement', name: 'Tax Management', icon: '🧾' }
+    { id: 'deductions', name: 'Deductions & Tax', icon: '📉' },
+    { id: 'payrollReports', name: 'Payroll Reports', icon: '📈' }
   ];
 
   const renderActiveComponent = () => {
@@ -37,8 +35,6 @@ export default function PayrollPage() {
         return <Deductions />;
       case 'payrollReports':
         return <PayrollReports />;
-      case 'taxManagement':
-        return <TaxManagement />;
       default:
         return <PayrollOverview />;
     }
