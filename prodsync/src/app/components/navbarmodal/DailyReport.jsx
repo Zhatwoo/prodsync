@@ -1,8 +1,10 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useAuth } from '../../context/AuthContext';
 
 export default function DailyReportModal({ isOpen, onClose }) {
+  const { user } = useAuth();
   const [currentTime, setCurrentTime] = useState(new Date());
   const [hourlyNotes, setHourlyNotes] = useState({});
   const [isClosing, setIsClosing] = useState(false);
@@ -61,6 +63,10 @@ export default function DailyReportModal({ isOpen, onClose }) {
   };
 
   const handleSubmit = () => {
+    if (!user) {
+      alert('Please log in to submit a daily report.');
+      return;
+    }
     setShowConfirmModal(true);
   };
 
@@ -68,15 +74,17 @@ export default function DailyReportModal({ isOpen, onClose }) {
     setIsSubmitting(true);
     
     try {
-      // Get current user information from localStorage or context
-      const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
+      // Check if user is authenticated
+      if (!user) {
+        throw new Error('User not authenticated. Please log in again.');
+      }
       
-      // Prepare report data
+      // Prepare report data using authenticated user information
       const reportData = {
-        employeeId: currentUser.uid || 'unknown',
-        employeeName: currentUser.displayName || currentUser.email || 'Unknown User',
-        department: currentUser.department || 'General',
-        position: currentUser.position || 'Employee',
+        employeeId: user.uid,
+        employeeName: user.displayName || user.fullName || user.email || 'Unknown User',
+        department: user.department || 'General',
+        position: user.position || user.jobTitle || 'Employee',
         reportDate: currentTime.toISOString().split('T')[0], // YYYY-MM-DD format
         hourlyNotes: hourlyNotes,
         tasks: [],
@@ -146,6 +154,12 @@ export default function DailyReportModal({ isOpen, onClose }) {
             <div>
               <h2 className="text-2xl font-bold">Daily Report</h2>
               <p className="text-purple-100 mt-1">{formatDate(currentTime)}</p>
+              {user && (
+                <div className="mt-2 text-sm text-purple-200">
+                  <span className="font-medium">Submitted by:</span> {user.displayName || user.fullName || user.email}
+                  {user.department && <span className="ml-2">• {user.department}</span>}
+                </div>
+              )}
             </div>
             <button
               onClick={handleClose}
@@ -220,14 +234,14 @@ export default function DailyReportModal({ isOpen, onClose }) {
             </button>
             <button
               onClick={handleSubmit}
-              disabled={!hasNotes}
+              disabled={!hasNotes || !user}
               className={`px-6 py-2 text-sm font-medium text-white rounded-lg transition-colors ${
-                hasNotes 
+                hasNotes && user
                   ? 'bg-purple-600 hover:bg-purple-700' 
                   : 'bg-gray-300 cursor-not-allowed'
               }`}
             >
-              Submit Report
+              {!user ? 'Please Log In' : 'Submit Report'}
             </button>
           </div>
         </div>
