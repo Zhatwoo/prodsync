@@ -1,8 +1,10 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useAuth } from '../../context/AuthContext';
 
 export default function DailyReportModal({ isOpen, onClose }) {
+  const { user } = useAuth();
   const [currentTime, setCurrentTime] = useState(new Date());
   const [hourlyNotes, setHourlyNotes] = useState({});
   const [isClosing, setIsClosing] = useState(false);
@@ -61,6 +63,10 @@ export default function DailyReportModal({ isOpen, onClose }) {
   };
 
   const handleSubmit = () => {
+    if (!user) {
+      alert('Please log in to submit a daily report.');
+      return;
+    }
     setShowConfirmModal(true);
   };
 
@@ -68,27 +74,62 @@ export default function DailyReportModal({ isOpen, onClose }) {
     setIsSubmitting(true);
     
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      // Check if user is authenticated
+      if (!user) {
+        throw new Error('User not authenticated. Please log in again.');
+      }
       
-      // Here you would typically send the data to your backend
-      console.log('Daily Report submitted:', {
-        date: formatDate(currentTime),
+      // Prepare report data using authenticated user information
+      const reportData = {
+        employeeId: user.uid,
+        employeeName: user.displayName || user.fullName || user.email || 'Unknown User',
+        department: user.department || 'General',
+        position: user.position || user.jobTitle || 'Employee',
+        reportDate: currentTime.toISOString().split('T')[0], // YYYY-MM-DD format
         hourlyNotes: hourlyNotes,
-        submittedAt: new Date().toISOString()
+        tasks: [],
+        achievements: [],
+        challenges: [],
+        tomorrowPlans: [],
+        notes: '',
+        attachments: []
+      };
+      
+      // Submit to API
+      const response = await fetch('/api/daily-reports', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(reportData),
       });
       
-      // Show success message (you can customize this)
-      alert('Daily report submitted successfully!');
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
       
-      // Reset form and close modal
-      setHourlyNotes({});
-      setShowConfirmModal(false);
-      handleClose();
+      const result = await response.json();
+      
+      if (result.success) {
+        // Show success message
+        alert('Daily report submitted successfully!');
+        
+        // Reset form and close modal
+        setHourlyNotes({});
+        setShowConfirmModal(false);
+        handleClose();
+        
+        // Optionally trigger a refresh of the AppSuite data
+        if (window.refreshAppSuiteData) {
+          window.refreshAppSuiteData();
+        }
+      } else {
+        throw new Error(result.error || 'Failed to submit report');
+      }
       
     } catch (error) {
       console.error('Error submitting daily report:', error);
-      alert('Error submitting daily report. Please try again.');
+      alert(`Error submitting daily report: ${error.message}`);
     } finally {
       setIsSubmitting(false);
     }
@@ -113,6 +154,12 @@ export default function DailyReportModal({ isOpen, onClose }) {
             <div>
               <h2 className="text-2xl font-bold">Daily Report</h2>
               <p className="text-purple-100 mt-1">{formatDate(currentTime)}</p>
+              {user && (
+                <div className="mt-2 text-sm text-purple-200">
+                  <span className="font-medium">Submitted by:</span> {user.displayName || user.fullName || user.email}
+                  {user.department && <span className="ml-2">• {user.department}</span>}
+                </div>
+              )}
             </div>
             <button
               onClick={handleClose}
@@ -187,14 +234,14 @@ export default function DailyReportModal({ isOpen, onClose }) {
             </button>
             <button
               onClick={handleSubmit}
-              disabled={!hasNotes}
+              disabled={!hasNotes || !user}
               className={`px-6 py-2 text-sm font-medium text-white rounded-lg transition-colors ${
-                hasNotes 
+                hasNotes && user
                   ? 'bg-purple-600 hover:bg-purple-700' 
                   : 'bg-gray-300 cursor-not-allowed'
               }`}
             >
-              Submit Report
+              {!user ? 'Please Log In' : 'Submit Report'}
             </button>
           </div>
         </div>

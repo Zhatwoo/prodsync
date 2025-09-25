@@ -282,6 +282,55 @@ service cloud.firestore {
       allow delete: if isAdmin();
     }
     
+    // Schedules collection - Employee work schedules
+    match /schedules/{scheduleId} {
+      allow read: if hasReadAccess() || 
+        (isAuthenticated() && resource.data.employeeId == request.auth.uid);
+      allow create: if isHR() || isAdmin() || 
+        (isAuthenticated() && resource.data.employeeId == request.auth.uid);
+      allow update: if isHR() || isAdmin() || 
+        (isAuthenticated() && resource.data.employeeId == request.auth.uid);
+      allow delete: if isHR() || isAdmin();
+    }
+    
+    // Tasks collection - Task management
+    match /tasks/{taskId} {
+      allow read: if hasReadAccess() || 
+        (isAuthenticated() && resource.data.employeeId == request.auth.uid);
+      allow create: if isHR() || isAdmin() || 
+        (isAuthenticated() && resource.data.employeeId == request.auth.uid);
+      allow update: if isHR() || isAdmin() || 
+        (isAuthenticated() && resource.data.employeeId == request.auth.uid);
+      allow delete: if isHR() || isAdmin();
+    }
+    
+    // Timekeeping collection - Time tracking data
+    match /timekeeping/{timekeepingId} {
+      allow read: if hasReadAccess() || 
+        (isAuthenticated() && resource.data.employeeId == request.auth.uid);
+      allow create: if isAuthenticated() && 
+        (isEmployee(resource.data.employeeId) || isHR() || isAdmin());
+      allow update: if isHR() || isAdmin() || 
+        (isAuthenticated() && resource.data.employeeId == request.auth.uid);
+      allow delete: if isHR() || isAdmin();
+    }
+    
+    // Audit Logs collection - System audit trails
+    match /auditLogs/{logId} {
+      allow read: if isHR() || isAdmin() || isAuditor();
+      allow create: if isHR() || isAdmin() || isAuditor();
+      allow update: if isHR() || isAdmin();
+      allow delete: if isAdmin();
+    }
+    
+    // System Analytics collection - System performance data
+    match /systemAnalytics/{analyticsId} {
+      allow read: if isHR() || isAdmin() || isAuditor();
+      allow create: if isHR() || isAdmin();
+      allow update: if isHR() || isAdmin();
+      allow delete: if isAdmin();
+    }
+    
     // Default deny rule for any unmatched paths
     match /{document=**} {
       allow read, write: if false;
