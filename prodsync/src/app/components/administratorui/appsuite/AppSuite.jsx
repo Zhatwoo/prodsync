@@ -604,18 +604,28 @@ const AppSuite = () => {
           border-color: #d1d5db !important;
         }
         
-        /* Fix white text on white background issues */
-        .text-white {
+        /* Fix white text on white background issues - but NOT for buttons */
+        .text-white:not(button):not(button *) {
           color: #111827 !important;
         }
         
-        /* Ensure all text in cards is dark */
-        .bg-white .text-white {
+        /* Ensure all text in cards is dark - but NOT for buttons */
+        .bg-white .text-white:not(button):not(button *) {
           color: #111827 !important;
         }
         
-        /* Fix button text visibility */
-        button.text-white {
+        /* Fix button text visibility - ALWAYS WHITE */
+        button.text-white, 
+        button.text-white *,
+        button .text-white,
+        .bg-green-600, 
+        .bg-red-600, 
+        .bg-blue-600,
+        .bg-gray-600,
+        .bg-green-600 *,
+        .bg-red-600 *,
+        .bg-blue-600 *,
+        .bg-gray-600 * {
           color: #ffffff !important;
         }
         
@@ -1052,7 +1062,7 @@ const AppSuite = () => {
                     <span className="text-sm text-gray-600">{selectedReports.length} selected</span>
                     <button
                       onClick={() => setShowBulkActions(!showBulkActions)}
-                      className="px-3 py-1 bg-blue-100 text-blue-700 rounded-md text-sm hover:bg-blue-200"
+                      className="px-3 py-1 bg-blue-600 text-white rounded-md text-sm hover:bg-blue-700"
                     >
                       Bulk Actions
                     </button>
@@ -1089,7 +1099,7 @@ const AppSuite = () => {
                 </button>
                 <button
                   onClick={() => setShowBulkActions(false)}
-                  className="px-3 py-1 bg-gray-300 text-gray-700 rounded-md text-sm hover:bg-gray-400"
+                  className="px-3 py-1 bg-gray-600 text-white rounded-md text-sm hover:bg-gray-700"
                 >
                   Cancel
                 </button>
@@ -2063,7 +2073,7 @@ const AppSuite = () => {
                     setShowReportModal(false);
                     setSelectedReport(null);
                   }}
-                  className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50"
+                  className="px-4 py-2 border border-gray-600 rounded-md text-sm font-medium text-white bg-gray-600 hover:bg-gray-700"
                 >
                   Close
                 </button>
