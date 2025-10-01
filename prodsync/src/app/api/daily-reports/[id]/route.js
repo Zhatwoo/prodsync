@@ -1,50 +1,39 @@
 import { NextResponse } from 'next/server';
+import { getDbAdmin } from '../../../lib/firebaseAdmin';
 
 export async function GET(request, { params }) {
   try {
     const { id } = params;
+    const dbAdmin = getDbAdmin();
     
-    // In a real application, this would fetch from a database
-    // For now, return a sample report
-    const sampleReport = {
-      id: id,
-      employeeId: 'EMP-001',
-      employeeName: 'John Doe',
-      department: 'IT',
-      position: 'Developer',
-      reportDate: new Date().toISOString().split('T')[0],
-      submissionTime: new Date().toISOString(),
-      status: 'submitted',
-      consultations: [],
-      tasks: [
-        {
-          task: 'Fix login bug',
-          timeSpent: '2 hours',
-          status: 'completed'
-        }
-      ],
-      achievements: [
-        'Fixed critical login issue',
-        'Completed code review'
-      ],
-      challenges: [
-        'Complex debugging required',
-        'Time constraints'
-      ],
-      tomorrowPlans: [
-        'Implement new feature',
-        'Code review session'
-      ],
-      notes: 'Productive day with good progress on bug fixes',
-      attachments: [],
-      approvedBy: null,
-      approvedDate: null,
-      feedback: null
+    if (!dbAdmin) {
+      throw new Error('Firebase Admin not initialized');
+    }
+    
+    // Fetch daily report from Firebase Firestore using Admin SDK
+    const reportRef = dbAdmin.collection('dailyReports').doc(id);
+    const reportSnap = await reportRef.get();
+    
+    if (!reportSnap.exists) {
+      return NextResponse.json({
+        success: false,
+        error: 'Daily report not found'
+      }, { status: 404 });
+    }
+    
+    const data = reportSnap.data();
+    const report = {
+      id: reportSnap.id,
+      ...data,
+      // Convert Firestore timestamps to ISO strings for consistency
+      submissionTime: data.submissionTime?.toDate?.()?.toISOString() || data.submissionTime,
+      approvedDate: data.approvedDate?.toDate?.()?.toISOString() || data.approvedDate,
+      reportDate: data.reportDate || new Date().toISOString().split('T')[0]
     };
 
     return NextResponse.json({
       success: true,
-      data: sampleReport,
+      data: report,
       message: 'Daily report fetched successfully'
     });
   } catch (error) {
@@ -60,45 +49,35 @@ export async function PUT(request, { params }) {
   try {
     const { id } = params;
     const body = await request.json();
+    const dbAdmin = getDbAdmin();
     
-    // In a real application, this would update the database
-    console.log(`Updating daily report ${id}:`, body);
+    if (!dbAdmin) {
+      throw new Error('Firebase Admin not initialized');
+    }
     
-    // Simulate approval/rejection
-    const updatedReport = {
-      id: id,
-      employeeId: 'EMP-001',
-      employeeName: 'John Doe',
-      department: 'IT',
-      position: 'Developer',
-      reportDate: new Date().toISOString().split('T')[0],
-      submissionTime: new Date().toISOString(),
+    // Update daily report in Firebase Firestore using Admin SDK
+    const reportRef = dbAdmin.collection('dailyReports').doc(id);
+    
+    const updateData = {
       status: body.action === 'approve' ? 'approved' : 'rejected',
-      consultations: [],
-      tasks: [
-        {
-          task: 'Fix login bug',
-          timeSpent: '2 hours',
-          status: 'completed'
-        }
-      ],
-      achievements: [
-        'Fixed critical login issue',
-        'Completed code review'
-      ],
-      challenges: [
-        'Complex debugging required',
-        'Time constraints'
-      ],
-      tomorrowPlans: [
-        'Implement new feature',
-        'Code review session'
-      ],
-      notes: 'Productive day with good progress on bug fixes',
-      attachments: [],
       approvedBy: body.approvedBy || 'Current Administrator',
-      approvedDate: new Date().toISOString(),
+      approvedDate: new Date(),
+      updatedAt: new Date(),
       feedback: body.action === 'approve' ? 'Report approved' : 'Report rejected'
+    };
+    
+    await reportRef.update(updateData);
+    
+    // Fetch the updated report
+    const updatedReportSnap = await reportRef.get();
+    const data = updatedReportSnap.data();
+    const updatedReport = {
+      id: updatedReportSnap.id,
+      ...data,
+      // Convert Firestore timestamps to ISO strings for consistency
+      submissionTime: data.submissionTime?.toDate?.()?.toISOString() || data.submissionTime,
+      approvedDate: data.approvedDate?.toDate?.()?.toISOString() || data.approvedDate,
+      reportDate: data.reportDate || new Date().toISOString().split('T')[0]
     };
 
     return NextResponse.json({
@@ -118,9 +97,17 @@ export async function PUT(request, { params }) {
 export async function DELETE(request, { params }) {
   try {
     const { id } = params;
+    const dbAdmin = getDbAdmin();
     
-    // In a real application, this would delete from the database
-    console.log(`Deleting daily report ${id}`);
+    if (!dbAdmin) {
+      throw new Error('Firebase Admin not initialized');
+    }
+    
+    // Delete daily report from Firebase Firestore using Admin SDK
+    const reportRef = dbAdmin.collection('dailyReports').doc(id);
+    await reportRef.delete();
+    
+    console.log(`Daily report ${id} deleted successfully`);
     
     return NextResponse.json({
       success: true,

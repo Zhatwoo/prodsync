@@ -37,6 +37,7 @@ const AppSuite = () => {
   const [selectedReport, setSelectedReport] = useState(null);
   const [showBulkActions, setShowBulkActions] = useState(false);
   const [trendsPeriod, setTrendsPeriod] = useState('7days');
+  const [departmentView, setDepartmentView] = useState('approval'); // 'approval' or 'volume'
 
   // Handle escape key to close modal
   useEffect(() => {
@@ -418,41 +419,52 @@ const AppSuite = () => {
     doc.text('CHECKED BY:', pageWidth - 60, 35);
     doc.line(pageWidth - 60, 37, pageWidth - 20, 37);
     
-    // Consultation Details Table Header
+    // Hourly Activity Table Header
     yPos = 50;
     doc.setFontSize(11);
     doc.setFont('helvetica', 'bold');
     
     // Table headers
-    doc.text('CONSULTATION PLACE', 20, yPos);
-    doc.text('TIME IN', pageWidth / 2 - 20, yPos);
-    doc.text('CLIENT NAME', pageWidth - 60, yPos);
+    doc.text('TIME', 20, yPos);
+    doc.text('ACTIVITY / NOTES', 60, yPos);
     
-    // Draw table lines
+    // Draw table header line
     doc.line(20, yPos + 2, pageWidth - 20, yPos + 2);
     
-    // Consultation data rows
+    // Hourly data rows (8 AM to 6 PM)
     yPos += 8;
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(10);
     
-    const timeSlots = ['9:30', '10:30', '11:30', '12:30', '1:30', '2:30', '3:30', '4:30', '5:30', '6:30'];
+    // Generate time slots from 8 AM to 6 PM
+    const hourlySlots = Array.from({ length: 11 }, (_, i) => {
+      const hour = 8 + i;
+      return {
+        hour: hour,
+        displayTime: hour > 12 ? `${hour - 12}:00 PM` : hour === 12 ? '12:00 PM' : `${hour}:00 AM`
+      };
+    });
     
-    timeSlots.forEach((time, index) => {
-      const consultation = report.consultations ? report.consultations[index] : { place: '', client: '' };
+    hourlySlots.forEach((slot) => {
+      // Get activity from hourlyNotes
+      const activity = (report.hourlyNotes && report.hourlyNotes[slot.hour]) 
+        ? report.hourlyNotes[slot.hour] 
+        : '';
       
       // Draw row lines
       doc.line(20, yPos - 2, pageWidth - 20, yPos - 2);
       doc.line(20, yPos + 4, pageWidth - 20, yPos + 4);
       doc.line(20, yPos - 2, 20, yPos + 4);
-      doc.line(pageWidth / 2 - 20, yPos - 2, pageWidth / 2 - 20, yPos + 4);
-      doc.line(pageWidth - 60, yPos - 2, pageWidth - 60, yPos + 4);
+      doc.line(55, yPos - 2, 55, yPos + 4);
       doc.line(pageWidth - 20, yPos - 2, pageWidth - 20, yPos + 4);
       
-      // Add text
-      doc.text(consultation.place || '', 22, yPos);
-      doc.text(time, pageWidth / 2 - 18, yPos);
-      doc.text(consultation.client || '', pageWidth - 58, yPos);
+      // Add text with safe values
+      doc.text(slot.displayTime, 22, yPos);
+      
+      // Handle long text by truncating if needed
+      const maxWidth = pageWidth - 80;
+      const activityText = activity.length > 60 ? activity.substring(0, 60) + '...' : activity;
+      doc.text(activityText, 60, yPos);
       
       yPos += 6;
     });
@@ -460,25 +472,31 @@ const AppSuite = () => {
     // Add report date
     yPos += 10;
     doc.setFontSize(10);
-    doc.text(`Report Date: ${report.reportDate}`, 20, yPos);
-    doc.text(`Report ID: ${report.id}`, pageWidth - 60, yPos);
+    doc.text(`Report Date: ${report.reportDate || 'N/A'}`, 20, yPos);
+    doc.text(`Report ID: ${report.id || 'N/A'}`, pageWidth - 60, yPos);
     
     // Add status
     yPos += 8;
-    doc.text(`Status: ${report.status.toUpperCase()}`, 20, yPos);
+    doc.text(`Status: ${(report.status || 'unknown').toUpperCase()}`, 20, yPos);
     
     // Add approval information if available
     if (report.approvedBy) {
       yPos += 8;
       doc.text(`Approved By: ${report.approvedBy}`, 20, yPos);
       if (report.approvedDate) {
-        const approvedDate = new Date(report.approvedDate).toLocaleDateString();
-        doc.text(`Approved Date: ${approvedDate}`, pageWidth - 80, yPos);
+        try {
+          const approvedDate = new Date(report.approvedDate).toLocaleDateString();
+          doc.text(`Approved Date: ${approvedDate}`, pageWidth - 80, yPos);
+        } catch (error) {
+          doc.text(`Approved Date: ${report.approvedDate}`, pageWidth - 80, yPos);
+        }
       }
     }
     
     // Save the PDF
-    const fileName = `Daily_Report_${report.id}_${report.employeeName.replace(/\s+/g, '_')}.pdf`;
+    const safeEmployeeName = (report.employeeName || 'Unknown_Employee').replace(/\s+/g, '_');
+    const safeReportId = report.id || 'Unknown_ID';
+    const fileName = `Daily_Report_${safeReportId}_${safeEmployeeName}.pdf`;
     doc.save(fileName);
   };
 
@@ -870,12 +888,12 @@ const AppSuite = () => {
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Report ID</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Employee</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Department</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Report ID</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Employee</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Department</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
@@ -887,10 +905,7 @@ const AppSuite = () => {
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div>
                           <div className="text-sm font-medium text-gray-900">{report.employeeName}</div>
-                          <div className="text-sm text-gray-500">{report.position}</div>
-                          {report.employeeId && (
-                            <div className="text-xs text-gray-400">ID: {report.employeeId.substring(0, 8)}...</div>
-                          )}
+                          <div className="text-sm text-gray-500">{report.employeeEmail || 'No email'}</div>
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
@@ -1343,9 +1358,9 @@ const AppSuite = () => {
              <div className="group bg-gradient-to-br from-blue-50 to-blue-100 rounded-2xl p-6 border border-blue-200 hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
                <div className="flex items-center justify-between">
                  <div>
-                   <p className="text-sm font-semibold text-white uppercase tracking-wide">Total Reports</p>
-                   <p className="text-4xl font-bold text-white mt-2">{totalReports}</p>
-                   <p className="text-sm text-white mt-1">All time submissions</p>
+                   <p className="text-sm font-semibold text-blue-900 uppercase tracking-wide">Total Reports</p>
+                   <p className="text-4xl font-bold text-blue-900 mt-2">{totalReports}</p>
+                   <p className="text-sm text-blue-700 mt-1">All time submissions</p>
                  </div>
                  <div className="p-4 bg-blue-500 rounded-2xl group-hover:scale-110 transition-transform duration-300">
                    <DocumentTextIcon className="h-8 w-8 text-white" />
@@ -1356,11 +1371,11 @@ const AppSuite = () => {
              <div className="group bg-gradient-to-br from-green-50 to-green-100 rounded-2xl p-6 border border-green-200 hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
                <div className="flex items-center justify-between">
                  <div>
-                   <p className="text-sm font-semibold text-white uppercase tracking-wide">Approval Rate</p>
-                   <p className="text-4xl font-bold text-white mt-2">
+                   <p className="text-sm font-semibold text-green-900 uppercase tracking-wide">Approval Rate</p>
+                   <p className="text-4xl font-bold text-green-900 mt-2">
                      {totalReports > 0 ? Math.round((approvedReports / totalReports) * 100) : 0}%
                    </p>
-                   <p className="text-sm text-white mt-1">{approvedReports} approved</p>
+                   <p className="text-sm text-green-700 mt-1">{approvedReports} approved</p>
                  </div>
                  <div className="p-4 bg-green-500 rounded-2xl group-hover:scale-110 transition-transform duration-300">
                    <CheckCircleIcon className="h-8 w-8 text-white" />
@@ -1371,9 +1386,9 @@ const AppSuite = () => {
              <div className="group bg-gradient-to-br from-yellow-50 to-yellow-100 rounded-2xl p-6 border border-yellow-200 hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
                <div className="flex items-center justify-between">
                  <div>
-                   <p className="text-sm font-semibold text-white uppercase tracking-wide">Pending Review</p>
-                   <p className="text-4xl font-bold text-white mt-2">{pendingReports}</p>
-                   <p className="text-sm text-white mt-1">Awaiting approval</p>
+                   <p className="text-sm font-semibold text-yellow-900 uppercase tracking-wide">Pending Review</p>
+                   <p className="text-4xl font-bold text-yellow-900 mt-2">{pendingReports}</p>
+                   <p className="text-sm text-yellow-700 mt-1">Awaiting approval</p>
                  </div>
                  <div className="p-4 bg-yellow-500 rounded-2xl group-hover:scale-110 transition-transform duration-300">
                    <ClockIcon className="h-8 w-8 text-white" />
@@ -1384,11 +1399,11 @@ const AppSuite = () => {
              <div className="group bg-gradient-to-br from-purple-50 to-purple-100 rounded-2xl p-6 border border-purple-200 hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
                <div className="flex items-center justify-between">
                  <div>
-                   <p className="text-sm font-semibold text-white uppercase tracking-wide">Submission Rate</p>
-                   <p className="text-4xl font-bold text-white mt-2">
+                   <p className="text-sm font-semibold text-purple-900 uppercase tracking-wide">Submission Rate</p>
+                   <p className="text-4xl font-bold text-purple-900 mt-2">
                      {totalReports > 0 ? Math.round((submittedReports / totalReports) * 100) : 0}%
                    </p>
-                   <p className="text-sm text-white mt-1">{submittedReports} submitted</p>
+                   <p className="text-sm text-purple-700 mt-1">{submittedReports} submitted</p>
                  </div>
                  <div className="p-4 bg-purple-500 rounded-2xl group-hover:scale-110 transition-transform duration-300">
                    <ChartBarIcon className="h-8 w-8 text-white" />
@@ -1409,7 +1424,7 @@ const AppSuite = () => {
                        onClick={() => setTrendsPeriod('7days')}
                        className={`px-3 py-1 rounded-lg text-sm font-medium transition-colors ${
                          trendsPeriod === '7days' 
-                           ? 'bg-blue-500 text-white' 
+                           ? 'bg-blue-500 text-white !text-white' 
                            : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                        }`}
                      >
@@ -1419,12 +1434,12 @@ const AppSuite = () => {
                        onClick={() => setTrendsPeriod('30days')}
                        className={`px-3 py-1 rounded-lg text-sm font-medium transition-colors ${
                          trendsPeriod === '30days' 
-                           ? 'bg-blue-500 text-white' 
+                           ? 'bg-blue-500 text-white !text-white' 
                            : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                        }`}
                      >
                        30 Days
-                </button>
+                     </button>
               </div>
             </div>
                  
@@ -1618,10 +1633,24 @@ const AppSuite = () => {
                  <div className="flex items-center justify-between mb-6">
                    <h4 className="text-xl font-bold text-gray-900">🏢 Department Performance</h4>
                    <div className="flex space-x-2">
-                     <button className="px-4 py-2 bg-green-500 text-white rounded-lg text-sm font-medium">
+                     <button 
+                       onClick={() => setDepartmentView('approval')}
+                       className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                         departmentView === 'approval' 
+                           ? 'bg-green-500 text-white !text-white' 
+                           : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                       }`}
+                     >
                        By Approval
                      </button>
-                     <button className="px-4 py-2 bg-gray-100 text-gray-600 rounded-lg text-sm font-medium hover:bg-gray-200">
+                     <button 
+                       onClick={() => setDepartmentView('volume')}
+                       className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                         departmentView === 'volume' 
+                           ? 'bg-blue-500 text-white !text-white' 
+                           : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                       }`}
+                     >
                        By Volume
                      </button>
                    </div>
@@ -1634,12 +1663,21 @@ const AppSuite = () => {
                      const approved = deptReports.filter(report => report.status === 'approved').length;
                      const pending = deptReports.filter(report => report.status === 'pending').length;
                      const approvalRate = deptReports.length > 0 ? Math.round((approved / deptReports.length) * 100) : 0;
+                     const totalVolume = deptReports.length;
+                     
+                     // Calculate max volume for progress bar in volume view
+                     const maxVolume = Math.max(...departments.map(d => 
+                       dailyReports.filter(report => report.department === d).length
+                     ));
+                     const volumePercentage = maxVolume > 0 ? Math.round((totalVolume / maxVolume) * 100) : 0;
                      
                      return (
                        <div key={dept} className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl p-4 border border-gray-200 hover:shadow-md transition-all duration-300">
                          <div className="flex items-center justify-between mb-3">
                            <h5 className="font-bold text-gray-900 text-lg">{dept}</h5>
-                           <span className="text-2xl font-bold text-blue-600">{approvalRate}%</span>
+                           <span className="text-2xl font-bold text-blue-600">
+                             {departmentView === 'approval' ? `${approvalRate}%` : totalVolume}
+                           </span>
                          </div>
                          <div className="grid grid-cols-3 gap-3 text-center">
                            <div className="bg-white rounded-lg p-2">
@@ -1657,8 +1695,12 @@ const AppSuite = () => {
                          </div>
                          <div className="mt-3 bg-gray-200 rounded-full h-3">
                            <div 
-                             className="bg-gradient-to-r from-green-400 to-blue-500 h-3 rounded-full transition-all duration-700"
-                             style={{ width: `${approvalRate}%` }}
+                             className={`h-3 rounded-full transition-all duration-700 ${
+                               departmentView === 'approval' 
+                                 ? 'bg-gradient-to-r from-green-400 to-blue-500' 
+                                 : 'bg-gradient-to-r from-blue-400 to-purple-500'
+                             }`}
+                             style={{ width: `${departmentView === 'approval' ? approvalRate : volumePercentage}%` }}
                            ></div>
                          </div>
                        </div>
@@ -1703,18 +1745,18 @@ const AppSuite = () => {
            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
              {/* Quick Stats */}
              <div className="bg-gradient-to-br from-indigo-50 to-indigo-100 rounded-2xl p-6 border border-indigo-200">
-               <h4 className="text-lg font-bold text-white mb-4 flex items-center">
+               <h4 className="text-lg font-bold text-indigo-900 mb-4 flex items-center">
                  <span className="text-2xl mr-2">⚡</span>
                  Quick Statistics
                </h4>
                <div className="space-y-4">
                  <div className="flex justify-between items-center bg-white rounded-lg p-3">
                    <span className="text-sm font-medium text-gray-600">Average Reports/Day</span>
-                   <span className="text-xl font-bold text-white">{Math.round(dailyReports.length / 30)}</span>
+                   <span className="text-xl font-bold text-indigo-600">{Math.round(dailyReports.length / 30)}</span>
                  </div>
                  <div className="flex justify-between items-center bg-white rounded-lg p-3">
                    <span className="text-sm font-medium text-gray-600">Most Active Dept</span>
-                   <span className="text-xl font-bold text-white">
+                   <span className="text-xl font-bold text-indigo-600">
                      {departments.reduce((a, b) => 
                        dailyReports.filter(r => r.department === a).length > 
                        dailyReports.filter(r => r.department === b).length ? a : b, departments[0]
@@ -1723,14 +1765,14 @@ const AppSuite = () => {
                  </div>
                  <div className="flex justify-between items-center bg-white rounded-lg p-3">
                    <span className="text-sm font-medium text-gray-600">Response Time</span>
-                   <span className="text-xl font-bold text-white">2.3 days</span>
+                   <span className="text-xl font-bold text-indigo-600">2.3 days</span>
                  </div>
                </div>
              </div>
 
              {/* Recent Activity */}
              <div className="bg-gradient-to-br from-emerald-50 to-emerald-100 rounded-2xl p-6 border border-emerald-200">
-               <h4 className="text-lg font-bold text-white mb-4 flex items-center">
+               <h4 className="text-lg font-bold text-emerald-900 mb-4 flex items-center">
                  <span className="text-2xl mr-2">🔄</span>
                  Recent Activity
                </h4>
@@ -1760,7 +1802,7 @@ const AppSuite = () => {
 
              {/* Export Options */}
              <div className="bg-gradient-to-br from-rose-50 to-rose-100 rounded-2xl p-6 border border-rose-200">
-               <h4 className="text-lg font-bold text-white mb-4 flex items-center">
+               <h4 className="text-lg font-bold text-rose-900 mb-4 flex items-center">
                  <span className="text-2xl mr-2">📤</span>
                  Export Options
                </h4>
@@ -1891,6 +1933,29 @@ const AppSuite = () => {
                   <div>
                     <label className="block text-sm font-medium text-gray-700">Submission Time</label>
                     <p className="mt-1 text-sm text-gray-900">{formatDateTime(selectedReport.submissionTime)}</p>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Submitted By</label>
+                    <div className="mt-1 flex items-center">
+                      <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white font-semibold text-sm mr-3">
+                        {selectedReport.submittedByName ? selectedReport.submittedByName.charAt(0).toUpperCase() : 'U'}
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-gray-900">
+                          {selectedReport.submittedByName || 'Unknown User'}
+                        </p>
+                        {selectedReport.submittedBy && (
+                          <p className="text-xs text-gray-500">ID: {selectedReport.submittedBy}</p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Employee Email</label>
+                    <p className="mt-1 text-sm text-gray-900">{selectedReport.employeeEmail || 'N/A'}</p>
                   </div>
                 </div>
 
