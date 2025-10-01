@@ -195,7 +195,7 @@ export default function TaskScheduleModal({ isOpen, onClose }) {
 
                 return (
                   <div
-                    key={day.getDate()}
+                    key={`${day.getFullYear()}-${day.getMonth()}-${day.getDate()}`}
                     onClick={() => setSelectedDate(day)}
                     className={`h-20 p-2 border-r border-b border-gray-200 last:border-r-0 cursor-pointer transition-colors ${
                       isSelected(day) 
